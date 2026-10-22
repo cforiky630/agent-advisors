@@ -1,99 +1,227 @@
 # 🏛️ Agent Advisors
 
-> **From Fragmented Skills to Unified Advisors.**  
-> 告别散乱碎片与规则互搏，为 AI Agent 打造的高聚合、深模块专业顾问团。
+<p align="center">
+  <strong>A curated suite of unified, deep-module AI agent advisors.</strong><br>
+  <strong>高聚合、深模块的 AI Agent 专家顾问智囊套件。</strong>
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Compatible With](https://img.shields.io/badge/Agents-Claude%20Code%20%7C%20Codex%20%7C%20Antigravity%20%7C%20Cursor-orange)](#)
-
----
-
-## 💡 Why Agent Advisors? (为什么需要它？)
-
-随着 AI Agent 技能（Skills）的普及，开发者通常会从社区引入大量零散的规则与技能。但这种**“碎片化浅技能（Shallow Skills）”**往往带来三大灾难：
-
-1. **规则冲突与精神分裂**：不同流派的书籍与规则互相打架（例如追求极短 3 行函数的流派 vs 追求深模块封装的流派），导致 Agent 前后输出风格割裂；
-2. **上下文污染（Context Bloat）**：几十个技能的名字与描述硬塞进系统 Prompt，严重挤占推理窗口，还会导致注意力稀释；
-3. **偷懒与漏触发**：长链条、套娃式的技能调用让 Agent 频繁偷懒或在多个同类技能前陷入“选择瘫痪”。
-
-**`agent-advisors` 采用经典软件工程的“门面模式（Facade）”与“三级渐进式披露（Progressive Disclosure）”重塑了这一体验：**
-我们将每个大领域（软件设计、系统可靠性、前端架构、安全治理）的海量经典智慧，深度聚合为一个个**独当一面的“专业顾问（Advisor）”**。
+<p align="center">
+  <a href="#english"><img src="https://img.shields.io/badge/Language-English-blue.svg" alt="English"></a>
+  <a href="#chinese"><img src="https://img.shields.io/badge/语言-中文简体-red.svg" alt="Chinese"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/Agents-Claude%20Code%20%7C%20Cursor%20%7C%20Codex%20%7C%20Antigravity-orange.svg" alt="Supported Agents">
+</p>
 
 ---
 
-## 📐 Architecture: Three-Level Progressive Disclosure (三级渐进式披露架构)
+<a name="english"></a>
+## English
 
-每一个 Advisor 都遵循严格的深模块工程标准：
+### 💡 Why Agent Advisors?
+
+As AI coding agents become the default development companion, developers increasingly import dozens of fragmented rules and community skills. However, this **"Shallow Skills" paradigm** rapidly leads to three critical failure modes:
+
+1. **Philosophy Clashes & Cognitive Dissonance**: Different rules preach conflicting dogma (e.g., dogmatic 3-line functions vs. cohesive deep modules), causing the agent to vacillate wildly between inconsistent styles.
+2. **Context Window Bloat**: Cramming dozens of individual skill names and descriptions into the system prompt dilutes attention and eats up precious reasoning tokens.
+3. **Execution Friction & Undertriggering**: Fragile, nested skill-chains cause models to either get confused, pick randomly, or lazily skip loading rules altogether.
+
+**`agent-advisors` re-architects agent capabilities using Software Engineering's Facade Pattern and Three-Level Progressive Disclosure.**  
+Instead of hundreds of fragile micro-skills, we consolidate major technical problem spaces into **cohesive, domain-specific Advisors** that arbitrate conflicts internally and expose a zero-friction interface.
+
+---
+
+### 📐 The Deep-Module Architecture
+
+Each advisor in this repository is built as a **Deep Module** (simple interface, profound implementation):
 
 ```
-Level 1: 元数据层 (Metadata) ── 极度轻量 (几十 Token)
-   │     • 永远常驻系统 Prompt，平时完全静默
-   │     • 仅在触发特定领域的复杂设计时精准唤醒
+Level 1: Metadata (Always In Context) ── Ultra-light (~30 Tokens)
+   │     • Injected into system prompts as an intent-rich, pushy trigger.
+   │     • Zero context bloat; stays completely dormant until needed.
    ▼
-Level 2: 统一仲裁与决策矩阵 (SKILL.md) ── 触发时加载 (100~200 行)
-   │     • 给出场景选型矩阵，统一流派哲学冲突，解决 90% 的日常决策
-   │     • 单次调用即可直达全局视野，毫秒级响应
+Level 2: Unified Brain & Arbitration (SKILL.md) ── Loaded on Trigger (~150 Lines)
+   │     • Scenario decision matrix, cross-school clash arbitration, and nano rulesets.
+   │     • Solves 90% of architectural and technical decisions in a single round-trip.
    ▼
-Level 3: 深度知识书架 (references/) ── 内部私有深度库 (按需定向深潜)
-         • 各大经典著作的完整规范仅作为内部私有参考资料存放
-         • 彻底杜绝全局技能列表被污染
+Level 3: Deep Knowledge Repositories (references/) ── Deep Dive On-Demand
+         • Comprehensive canonical texts and complete handbooks kept completely private.
+         • Prevents global skill namespace pollution while preserving full depth.
 ```
 
 ---
 
-## 📚 The Advisors (顾问阵容)
+### 📚 The Advisors Catalog & Roadmap
 
-### 旗舰首发：`software-design-advisor` (软件设计与架构工程顾问)
+Each advisor takes full ownership of an entire technical discipline:
 
-全面融合并裁决了软件工程领域的 **整整 14 部传世经典著作**：
-
-| 维度 | 涵盖书目 | 核心解决领域 |
-| :--- | :--- | :--- |
-| **代码构造与实效** | 《代码大全》《程序员修炼之道》《代码整洁之道》 | 防御性编程、显式命名、扁平控制流、消灭魔数与 Flag 参数 |
-| **模块封装与抽象** | 《软件设计哲学》(John Ousterhout) | 深模块原则（Deep Modules）、信息隐藏、消灭透传浅方法 |
-| **重构与设计模式** | 《重构》(Martin Fowler)、《重构与模式》(Refactoring Guru) | 70+ 种标准重构手法、坏味道驱动、测试保护下行为不变 |
-| **遗留系统治理** | 《修改代码的艺术》(Working Effectively with Legacy Code) | 接缝技术（Seams）、破除老代码依赖、建立特征测试安全网 |
-| **领域建模 (DDD)** | 《DDD原典》(Eric Evans)、《实现DDD》(IDDD)、《DDD精粹》 | 统一语言、限界上下文、聚合根边界、防腐层（ACL） |
-| **企业级应用架构** | 《企业应用架构模式》(PoEAA by Fowler)、《整洁架构》 | 工作单元、数据映射器、仓储模式、依赖倒置原则 |
-| **高可用与分布式** | 《数据密集型应用系统设计》(DDIA)、《Release It!》 | 舱壁隔离、断路器、数据副本/分区一致性、慢调用防御雪崩 |
-
-*(更多领域顾问规划中：前端工程顾问、SRE可靠性顾问、安全审计顾问等，持续演进中...)*
+| Advisor | Domain | Status | Key Highlights |
+| :--- | :--- | :---: | :--- |
+| **[`software-design-advisor`](skills/software-design-advisor/)** | **Software Architecture & Construction** |  Active | Synthesizes **14 foundational classics** (*Code Complete, Deep Modules, Refactoring, Clean Architecture, DDD, PoEAA, DDIA, Release It!*). Arbitrates granularity, seams, and boundaries. |
+| **`frontend-craft-advisor`** | **Modern Web & UI Architecture** | 🚧 Planned | Component composition, accessible state machines, design token systems, performance rendering optimization. |
+| **`system-reliability-advisor`** | **SRE & Distributed Systems** | 🚧 Planned | Chaos engineering, distributed tracing, circuit breaking, bulkhead partitioning, zero-downtime migrations. |
+| **`security-guard-advisor`** | **AppSec & Defense-in-Depth** | 🚧 Planned | Threat modeling (STRIDE), supply-chain audit, input hygiene, OWASP Top 10 mitigation. |
+| **`database-storage-advisor`** | **Data Modeling & Storage Engine** | 🚧 Planned | Relational index tuning, query plan analysis, cache-aside strategies, distributed consensus and partitioning. |
 
 ---
 
-## 🚀 Installation & Usage (安装与使用)
+### 🚀 Installation Guide
 
-### 方式 1：通过 cc-switch 管理（推荐）
+Choose the method matching your primary agent workflow (ordered by popularity):
 
-如果你使用 [cc-switch](https://github.com) 管理多个 Agent 客户端（Claude Code / Codex / Gemini / Antigravity 等）：
+#### 1. Claude Code (Anthropic CLI)
+Symlink the desired advisor directly into Claude Code's skills directory:
+```bash
+mkdir -p ~/.claude/skills
+# On macOS / Linux:
+ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-advisor
 
-1. 将所需技能复制或软链到 cc-switch 的技能存储目录：
+# On Windows (PowerShell - run as Administrator):
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
+```
+
+#### 2. Cursor
+Place or symlink the advisor directory into your project's `.cursor/skills/` (or configure via `.cursorrules` / project rules):
+```bash
+mkdir -p .cursor/skills
+ln -s /path/to/agent-advisors/skills/software-design-advisor .cursor/skills/software-design-advisor
+```
+
+#### 3. OpenAI Codex / CLI
+Add the advisor path to your Codex workspace instructions or register it under your active skills catalog:
+```bash
+mkdir -p ~/.codex/skills
+ln -s /path/to/agent-advisors/skills/software-design-advisor ~/.codex/skills/software-design-advisor
+```
+
+#### 4. Google Antigravity / Gemini CLI
+Link into your Gemini configuration directory:
+```powershell
+# Windows PowerShell (Junction - does NOT require elevation):
+New-Item -ItemType Junction -Path "$HOME\.gemini\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
+```
+
+#### 5. Power Users: Multi-Agent Management with `cc-switch` (Secondary Recommendation)
+If you manage multiple agents simultaneously (Claude Code, Codex, Antigravity, OpenCode), use [cc-switch](https://github.com) for centralized distribution:
+1. Copy or link advisors into the cc-switch central skills store:
    ```powershell
-   # Windows PowerShell
    Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"
    ```
-2. 打开 cc-switch 界面，在技能列表中勾选启用即可，自动无缝分发到各客户端。
+2. Open cc-switch GUI, toggle on the advisor, and it will be dispatched seamlessly across all your active agents.
 
-### 方式 2：直接符号链接到你的 Agent
+---
 
-#### 适用于 Google Antigravity / Gemini CLI：
+### 🛠️ Contributing New Advisors
+
+We welcome contributions! Any new advisor must adhere to our deep-module charter:
+1. **Single Unified Facade**: Never fragment a domain into dozens of micro-skills. Build one cohesive advisor with a clear decision matrix.
+2. **Explicit Arbitration**: Explicitly arbitrate ideological conflicts between different schools of thought.
+3. **Progressive Disclosure**: Keep `SKILL.md` under 200 lines of nano-rules; store deep treatises in `references/`.
+4. **Bilingual Delivery**: Provide both canonical English (`SKILL.md` for deterministic machine execution) and Chinese companion (`SKILL_ZH.md` for human exploration).
+
+---
+
+<a name="chinese"></a>
+## 中文说明
+
+### 💡 为什么需要 Agent Advisors？
+
+随着 AI 编程助手成为开发者的日常标配，社区涌现了大量零散规则与技能。然而，这种**“碎片化浅技能（Shallow Skills）”**范式迅速暴露了三大硬伤：
+
+1. **流派打架与认知分裂**：各方规则教条互斥（例如极端要求“函数不能超过 3 行”的教条与追求“高内聚深模块”的设计互掐），导致 Agent 前后生成的代码风格割裂。
+2. **上下文污染（Context Bloat）**：几十个分散的技能名称和描述塞进系统提示词，不仅挤占宝贵的推理窗口，还会造成模型注意力严重稀释。
+3. **执行阻抗与偷懒漏触发**：长调用链或过多重叠选项会让 Agent 陷入“选择瘫痪”，频繁偷懒甚至完全漏掉该调用的规范。
+
+**`agent-advisors` 采用经典软件工程的“门面模式（Facade）”与“三级渐进式披露（Progressive Disclosure）”重塑了这一体验。**  
+我们告别了散乱浅薄的微型 Prompt，而是将每一个重大技术领域系统性地凝练为**独当一面的领域“专业顾问（Advisor）”**——内部自我仲裁分歧，对外提供无摩擦的统一接口。
+
+---
+
+### 📐 核心架构：深模块与三级渐进式披露
+
+本仓库的每一个顾问都遵循严格的 **深模块（Deep Module）** 工程哲学（极简的外表，极深的内涵）：
+
+```
+Level 1: 元数据层 (Metadata) ── 极度轻量 (约 30 Token)
+   │     • 注入系统提示词，平时完全静默，零上下文负担。
+   │     • 仅在触发特定领域的复杂任务时被精确唤醒。
+   ▼
+Level 2: 统一仲裁与决策矩阵 (SKILL.md) ── 触发时加载 (约 150 行)
+   │     • 给出场景选型矩阵、流派冲突仲裁准则与 Nano 核心硬规则。
+   │     • 一次往返直达全局视野，解决 90% 的日常架构与工程决策。
+   ▼
+Level 3: 深度知识书架 (references/) ── 内部按需定向深潜
+         • 存放各大经典原著与权威手册的完整规约，对外完全隐蔽。
+         • 既彻底杜绝全局技能列表被污染，又保留了无限的深度知识储备。
+```
+
+---
+
+### 📚 顾问目录与演进路线图
+
+每一个 Advisor 全权接管并服务于一个独立的技术大领域：
+
+| 顾问名称 (Advisor) | 统摄技术领域 | 状态 | 核心亮点 |
+| :--- | :--- | :---: | :--- |
+| **[`software-design-advisor`](skills/software-design-advisor/)** | **软件设计与架构工程** |  已上线 | 融汇并裁决 **14 部传世工程经典**（《代码大全》《深模块设计哲学》《重构》《整洁架构》《DDD》《PoEAA》《DDIA》《Release It!》等）。统筹代码粒度、接缝治理与架构边界。 |
+| **`frontend-craft-advisor`** | **现代前端与 UI 架构** | 🚧 规划中 | 组件复合范式、无障碍状态机、Design Token 体系、渲染性能极限调优。 |
+| **`system-reliability-advisor`** | **分布式系统与 SRE 韧性** | 🚧 规划中 | 混沌工程、分布式追踪、熔断限流舱壁隔离、零停机架构演进。 |
+| **`security-guard-advisor`** | **应用安全与纵深防御** | 🚧 规划中 | STRIDE 威胁建模、供应链依赖审计、输入净化与 OWASP Top 10 针对性加固。 |
+| **`database-storage-advisor`** | **数据建模与存储引擎** | 🚧 规划中 | 关系索引优化、执行计划剖析、Cache-Aside 策略、分布式一致性与分区分表。 |
+
+---
+
+### 🚀 安装与使用指南
+
+根据你主力使用的 Agent 工具选择安装方式（按社区热门流行度排序）：
+
+#### 1. Claude Code (Anthropic 官方 CLI)
+直接将所需顾问软链接到 Claude Code 的技能目录中：
+```bash
+mkdir -p ~/.claude/skills
+# macOS / Linux:
+ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-advisor
+
+# Windows (PowerShell - 管理员权限):
+New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
+```
+
+#### 2. Cursor (主流 AI 编辑器)
+将顾问目录放入或软链接到项目的 `.cursor/skills/`（或在 `.cursorrules` 中配置）：
+```bash
+mkdir -p .cursor/skills
+ln -s /path/to/agent-advisors/skills/software-design-advisor .cursor/skills/software-design-advisor
+```
+
+#### 3. OpenAI Codex / CLI
+将顾问路径添加至 Codex 的工作区说明或注册到活跃技能目录：
+```bash
+mkdir -p ~/.codex/skills
+ln -s /path/to/agent-advisors/skills/software-design-advisor ~/.codex/skills/software-design-advisor
+```
+
+#### 4. Google Antigravity / Gemini CLI
+使用目录联接挂载到 Gemini 配置目录（Windows 下无需提权）：
 ```powershell
 New-Item -ItemType Junction -Path "$HOME\.gemini\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
 ```
 
-#### 适用于 Claude Code：
-```bash
-ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-advisor
-```
+#### 5. 进阶多端统一管理：`cc-switch`（次推荐效率方案）
+如果你日常在多个客户端（Claude Code、Codex、Antigravity、OpenCode）之间高频切换，可使用 [cc-switch](https://github.com) 集中分发：
+1. 复制或软链顾问到 cc-switch 的技能库：
+   ```powershell
+   Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"
+   ```
+2. 打开 cc-switch 界面直接勾选启用，它将自动建立符号链接分发给所有激活的 Agent。
 
 ---
 
-## 🛠️ Contributing New Advisors (如何贡献新的顾问？)
+### 🛠️ 参与贡献新顾问
 
-每个新 Advisor 必须严格遵守深模块规范：
-1. **单一门面**：对外只暴露一个统一的 `SKILL.md`，禁止在同领域拆散为多个碎浅技能；
-2. **哲学仲裁**：必须在文档中明确解决不同思想流派之间的冲突规则；
-3. **分层收纳**：全量书籍或大型知识库必须存放在 `references/` 目录下，主文件仅保留精华 Nano 规则与决策树。
+欢迎提交新的领域顾问！每个新 Advisor 必须严格遵循深模块公约：
+1. **单一统一门面**：严禁在一个领域拆散为几十个琐碎小技能。必须打造一个包含清晰决策矩阵的复合顾问。
+2. **显式冲突仲裁**：必须在文档中明确解决该领域不同流派之间的理论矛盾。
+3. **渐进式披露控制**：`SKILL.md` 正文控制在 200 行以内的 Nano 规约；完整学术专著存入 `references/`。
+4. **双语规范交付**：同时提供纯正地道英文版（`SKILL.md`，保障机器执行的最高精度）和中文参考版（`SKILL_ZH.md`，方便人类阅读与维护）。
 
 ---
 
