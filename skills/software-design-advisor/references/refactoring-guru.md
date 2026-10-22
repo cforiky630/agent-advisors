@@ -1,4 +1,4 @@
-# OBEY Refactoring.Guru
+# Engineering Reference: Refactoring.Guru
 
 ## Source and Scope
 
@@ -17,7 +17,7 @@ The crawl intentionally excluded example code, images, premium course pages, des
 
 This file is not a copy of the site. It is an operational rule set for AI coding agents, paraphrased from the refactoring process, code-smell catalog, and refactoring technique catalog.
 
-This file is binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 

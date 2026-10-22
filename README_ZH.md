@@ -59,7 +59,7 @@
 本仓库的每一个顾问都严格遵循三级加载架构：
 
 ```
-Level 1: 元数据层 (Metadata) ── 极度轻量 (约 30 Token)
+Level 1: 元数据层 (Metadata) ── 高意图唤醒 (约 120-140 Token)
    │     • 作为带有微推力的高意图触发器注入系统提示词。
    │     • 平时完全静默，零上下文负担，仅在任务相关时精确唤醒。
    ▼
@@ -68,7 +68,7 @@ Level 2: 统一决策矩阵与核心规则 (SKILL.md) ── 触发时加载 (�
    │     • 单次往返直达全局视野，解决 90% 的日常架构与工程决策。
    ▼
 Level 3: 深度参考知识库 (references/) ── 内部按需定向深潜
-         • 存放各大经典原著与权威手册的完整规约，对外完全隐蔽。
+         • 存放经过提炼的经典工程规约与模式参考，对外完全隐蔽。
          • 既彻底杜绝全局技能列表被污染，又保留了无限的深度知识储备。
 ```
 
@@ -78,7 +78,7 @@ Level 3: 深度参考知识库 (references/) ── 内部按需定向深潜
 
 | 顾问名称 (Advisor) | 统摄技术领域 | 状态 | 核心亮点 |
 | :--- | :--- | :---: | :--- |
-| **[`software-design-advisor`](skills/software-design-advisor/)** | **软件设计与架构工程** | 🟢 **已上线** | 融会贯通 **14 部传世工程经典**（《代码大全》《深模块设计哲学》《重构》《整洁架构》《DDD》《PoEAA》《DDIA》《Release It!》等）。统筹函数构造、坏味道消除、遗留系统接缝治理与架构分层。 |
+| **[`software-design-advisor`](skills/software-design-advisor/)** | **软件设计与架构工程** | 🟢 **已上线** | 融会贯通 **8 大核心工程领域**的经典文献（包括《代码大全》《深模块设计哲学》《重构》《整洁架构》《DDD》《PoEAA》《DDIA》《Release It!》与 Refactoring.Guru 权威索引）。统筹函数构造、坏味道消除、遗留系统接缝治理与架构分层。 |
 | **[`advisor-creator`](skills/advisor-creator/)** | **元工程与领域技能合成引擎** | 🟢 **已上线** | 内置的元顾问孵化引擎，提供标准 5 步流水线，用于将散乱的领域规范、行业标准或私有代码规约，全自动提炼生成为标准的深模块顾问。 |
 
 ---
@@ -119,7 +119,7 @@ New-Item -ItemType Junction -Path "$HOME\.gemini\skills\software-design-advisor"
 ```
 
 ### 5. 进阶多端统一管理：`cc-switch` (次推荐效率方案)
-如果你在多个客户端（Claude Code、Codex、Antigravity、OpenCode）之间高频切换，可使用 [cc-switch](https://github.com) 统一分发：
+如果你在多个客户端（Claude Code、Codex、Antigravity、OpenCode）之间高频切换，可使用 [cc-switch](https://github.com/farion1231/cc-switch) 统一分发：
 1. 复制或软链顾问到 cc-switch 的中心技能库：
    ```powershell
    Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"

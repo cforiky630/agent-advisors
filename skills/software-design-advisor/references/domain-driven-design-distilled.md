@@ -1,4 +1,4 @@
-# OBEY Domain-Driven Design Distilled by Vaughn Vernon
+# Engineering Reference: Domain-Driven Design Distilled by Vaughn Vernon
 
 ## Purpose
 
@@ -13,7 +13,7 @@ All code generation, edits, and reviews must optimize for:
 - practical implementation over ceremony
 - collaboration between model and software design
 
-This file is a binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 
@@ -70,7 +70,7 @@ Rules (MUST unless marked SHOULD or MUST NOT):
 3. Own integration contracts deliberately.
 4. Protect the local model from foreign language.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - one model reused across billing, identity, catalog, fulfillment, and support
 - shared domain classes with subtly different meanings
 - context boundaries documented but ignored in code
@@ -91,7 +91,7 @@ Choose context relationships deliberately:
 - USE Separate Ways when integration cost is higher than shared capability value.
 - TREAT Big Ball of Mud as a context to contain and translate around, not as a model to spread.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - claiming independent modeling while conforming silently
 - using Shared Kernel without governance
 - calling integration an anticorruption layer when no translation exists
@@ -167,7 +167,7 @@ Rules (MUST unless marked SHOULD or MUST NOT):
 4. Use IDs for references across aggregate boundaries.
 5. One transaction should usually change one aggregate.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - aggregate designed around a screen
 - one request loading and mutating a whole graph
 - aggregate roots exposing mutable children directly
@@ -181,7 +181,7 @@ Anti-patterns (MUST NOT):
 3. They must not become the real domain model.
 4. They should stay thin enough that the model still carries meaning.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - all business decisions in application services
 - controllers duplicating application orchestration
 - application services shaped only by transport
@@ -195,7 +195,7 @@ Anti-patterns (MUST NOT):
 3. Persist aggregates without letting persistence define the model.
 4. Translate transport and integration data at the boundary.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - persistence-first modeling
 - reusing transport objects as domain objects
 - domain methods depending on framework types
@@ -209,7 +209,7 @@ Anti-patterns (MUST NOT):
 3. Make domain assumptions explicit in names, tests, and events.
 4. Where a concept is fuzzy, do not hide the ambiguity behind technical abstractions.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - generic code that could belong to any business
 - unexplained status codes and flags with domain meaning
 - enums and booleans where a richer concept is needed
@@ -223,7 +223,7 @@ Anti-patterns (MUST NOT):
 3. Once invariants, lifecycle, and language complexity rise, strengthen the model.
 4. Prefer incremental improvement over massive design overhauls.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - dismissing DDD because not every module needs it
 - over-modeling a generic subsystem
 - introducing aggregates and events before knowing why

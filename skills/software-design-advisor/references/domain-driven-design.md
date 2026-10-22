@@ -1,4 +1,4 @@
-# OBEY Domain-Driven Design by Eric Evans
+# Engineering Reference: Domain-Driven Design by Eric Evans
 
 ## Purpose
 
@@ -12,7 +12,7 @@ All code generation, modification, and review must optimize for:
 - protection of invariants
 - clear separation between domain model and supporting infrastructure
 
-This file is a binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 

@@ -1,4 +1,4 @@
-# OBEY Implementing Domain-Driven Design by Vaughn Vernon
+# Engineering Reference: Implementing Domain-Driven Design by Vaughn Vernon
 
 ## Purpose
 
@@ -14,7 +14,7 @@ All code generation, edits, and reviews must optimize for:
 - context mapping instead of shared muddled models
 - practical DDD implementation instead of theory theater
 
-This file is a binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 
@@ -53,7 +53,7 @@ Reject designs that sound like DDD but behave like generic CRUD plus renamed cla
 2. Spend the richest modeling effort where competitive or operational complexity truly lives.
 3. Keep supporting subdomains simpler.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - one global company model
 - shared domain package crossing all contexts
 - context boundaries existing only in diagrams but not in code
@@ -99,7 +99,7 @@ Required behavior:
 2. Do not stretch transactions across many aggregates out of convenience.
 3. Use events, policies, or process coordination when consistency can be eventual.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - aggregates sized to fit ORM navigation
 - transactions updating many aggregates by default
 - aggregate roots exposing mutable child collections
@@ -134,7 +134,7 @@ Required behavior:
 3. Use transformation services when domain information must be transformed without assigning behavior to the wrong object.
 4. Keep technical transformation, serialization, transport, and persistence mapping outside the domain model.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - moving behavior into services to avoid modeling entities or value objects
 - hiding technical mapping behind a domain-sounding service name
 
@@ -148,7 +148,7 @@ Anti-patterns (MUST NOT):
 4. Repository APIs should reflect aggregate access needs, not generic table CRUD.
 5. Repositories must return domain objects or domain-oriented results, not ORM rows.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - giant generic repository abstractions
 - repository per table without aggregate thinking
 - business rules inside repository implementations
@@ -171,7 +171,7 @@ Anti-patterns (MUST NOT):
 4. Version events and upcasters or translators when event meaning evolves.
 5. Do not choose event sourcing just because domain events exist.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - using events for every property change
 - event names that describe commands instead of facts
 - domain events carrying framework request objects or persistence artifacts
@@ -187,7 +187,7 @@ Anti-patterns (MUST NOT):
 4. Application services must be thin enough that the model still matters.
 5. Application services may own transaction boundaries and integration coordination.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - application services containing all branching business rules
 - controllers duplicating application service orchestration
 - repositories and application services both implementing the same invariants
@@ -224,7 +224,7 @@ Rules (MUST unless marked SHOULD or MUST NOT):
 2. Do not pass local aggregates directly across context boundaries.
 3. Keep contract models separate from local models.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - importing another context's domain package
 - shared enums across contexts with different semantics
 - direct DB coupling between contexts
@@ -249,7 +249,7 @@ Anti-patterns (MUST NOT):
 3. Use simpler patterns in supporting areas.
 4. However, once invariants and lifecycle complexity appear, model them honestly.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - using DDD vocabulary without changing design
 - over-modeling trivial CRUD subdomains
 - refusing to model real complexity because “simple services are enough”

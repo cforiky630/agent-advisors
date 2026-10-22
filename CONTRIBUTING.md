@@ -73,7 +73,7 @@ Every `SKILL.md` must follow this standard format:
    ```bash
    git commit -m "feat(skills): add frontend-craft-advisor with state machine and token matrix"
    ```
-7. **Open a Pull Request** against `master` with a clear explanation of your design choices.
+7. **Open a Pull Request** against `main` with a clear explanation of your design choices.
 
 ---
 

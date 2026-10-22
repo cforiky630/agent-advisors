@@ -59,7 +59,7 @@ Inspired by John Ousterhout’s *A Philosophy of Software Design* and the classi
 Every advisor in this repository strictly adheres to a three-level loading model:
 
 ```
-Level 1: Metadata (Always In Context) ── Ultra-light (~30 Tokens)
+Level 1: Metadata (Always In Context) ── High Intent (~120-140 Tokens)
    │     • Injected into system prompts as an intent-rich trigger.
    │     • Zero context bloat; stays completely dormant until relevant tasks arise.
    ▼
@@ -68,7 +68,7 @@ Level 2: Unified Brain & Decision Matrix (SKILL.md) ── Loaded on Trigger (~1
    │     • Resolves 90% of architectural and technical decisions in a single round-trip.
    ▼
 Level 3: Deep Reference Repositories (references/) ── Deep Dive On-Demand
-         • Comprehensive canonical texts and complete handbooks kept completely private.
+         • Distilled engineering rules and pattern reference summaries kept completely private.
          • Prevents global skill namespace pollution while preserving full depth.
 ```
 
@@ -78,7 +78,7 @@ Level 3: Deep Reference Repositories (references/) ── Deep Dive On-Demand
 
 | Advisor | Domain | Status | Key Highlights |
 | :--- | :--- | :---: | :--- |
-| **[`software-design-advisor`](skills/software-design-advisor/)** | **Software Architecture & Construction** | 🟢 **Active** | A comprehensive engineering advisor synthesizing **14 foundational classics** (*Code Complete, Philosophy of Software Design, Refactoring, Clean Architecture, DDD, PoEAA, DDIA, Release It!*). Covers routine construction, seam-driven refactoring, and domain boundaries. |
+| **[`software-design-advisor`](skills/software-design-advisor/)** | **Software Architecture & Construction** | 🟢 **Active** | Synthesizes foundational engineering literature across **8 core engineering domains** (including *Code Complete, Philosophy of Software Design, Refactoring, Clean Architecture, DDD, PoEAA, DDIA, Release It!*, and the *Refactoring.Guru* catalog). Covers routine construction, seam-driven refactoring, and domain boundaries. |
 | **[`advisor-creator`](skills/advisor-creator/)** | **Meta-Engineering & Synthesis Engine** | 🟢 **Active** | Built-in meta-advisor engine that provides a 5-step pipeline to synthesize scattered domain handbooks, prompt rules, or standards into new, standardized deep-module advisors. |
 
 ---
@@ -119,7 +119,7 @@ New-Item -ItemType Junction -Path "$HOME\.gemini\skills\software-design-advisor"
 ```
 
 ### 5. Centralized Multi-Agent Management via `cc-switch` (Secondary Recommendation)
-If you switch between multiple agent runtimes (Claude Code, Codex, Antigravity, OpenCode), use [cc-switch](https://github.com) for unified management:
+If you switch between multiple agent runtimes (Claude Code, Codex, Antigravity, OpenCode), use [cc-switch](https://github.com/farion1231/cc-switch) for unified management:
 1. Copy or link advisors into the cc-switch storage:
    ```powershell
    Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"

@@ -1,4 +1,4 @@
-# OBEY The Pragmatic Programmer by Andrew Hunt and David Thomas
+# Engineering Reference: The Pragmatic Programmer by Andrew Hunt and David Thomas
 
 ## Purpose
 
@@ -14,7 +14,7 @@ All code generation, edits, and reviews must optimize for:
 - automation of repetitive work
 - code that is easy to change and easy to reason about
 
-This file is a binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 
@@ -71,7 +71,7 @@ DRY means **do not duplicate knowledge**, not merely do not duplicate text.
 4. Configuration and schema meaning should not be repeated inconsistently.
 5. Avoid duplicated process steps that can be automated.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - the same rule encoded in UI, API, service, and DB trigger with no ownership
 - copy/paste with minor edits for “just this one case”
 - duplicated manual deployment or testing steps
@@ -86,7 +86,7 @@ Anti-patterns (MUST NOT):
 3. Avoid overlapping responsibilities between modules.
 4. Separate policy from mechanism, data from presentation, orchestration from computation.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - one change requiring edits in many unrelated places
 - one module knowing too much about internal details of others
 - shared utility modules creating sideways coupling everywhere
@@ -100,7 +100,7 @@ Anti-patterns (MUST NOT):
 3. Keep the first slice simple but real enough to prove the path.
 4. Refine from working feedback instead of predicting everything up front.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - building many layers before anything runs end to end
 - treating prototypes as production without hardening
 - waiting for perfect certainty before integrating
@@ -136,7 +136,7 @@ Anti-patterns (MUST NOT):
 3. Build, test, lint, format, package, and deploy steps should be reproducible.
 4. Keep local automation aligned with the project's shared build, test, and release automation.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - “works on my machine” build steps
 - manual release rituals with many hidden prerequisites
 - documentation that describes what a script should do instead of having the script
@@ -160,7 +160,7 @@ Anti-patterns (MUST NOT):
 3. Distinguish between programmer errors, contract violations, and expected domain failures.
 4. Keep contracts close to the abstraction they protect.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - relying on comments for critical preconditions
 - hiding invariant assumptions in scattered callers
 - returning nonsense values for impossible states

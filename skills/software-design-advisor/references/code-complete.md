@@ -1,4 +1,4 @@
-# OBEY Code Complete by Steve McConnell
+# Engineering Reference: Code Complete by Steve McConnell
 
 ## Purpose
 
@@ -13,7 +13,7 @@ All code generation, edits, and reviews must optimize for:
 - strong routine and class design
 - practical correctness over style theater
 
-This file is a binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 
@@ -71,7 +71,7 @@ Do not optimize for cleverness, minimal keystrokes, or fashionable idioms at the
 6. Return values should be meaningful and hard to misuse.
 7. Prefer guard clauses and straightforward structure over deeply nested logic.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - routines that do several unrelated things
 - routines whose names describe implementation detail instead of purpose
 - many hidden side effects
@@ -88,7 +88,7 @@ Anti-patterns (MUST NOT):
 5. Avoid magic numbers and unexplained sentinel values.
 6. Use stronger data types when primitives hide meaning.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - reused loop/index/temp variables beyond their purpose
 - long-lived mutable locals carrying many meanings
 - values whose units or semantics are unclear
@@ -116,7 +116,7 @@ Anti-patterns (MUST NOT):
 5. Eliminate impossible paths and dead branches.
 6. Avoid surprising exits unless they clarify the routine.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - deeply nested conditionals
 - complicated loop exits with hidden state changes
 - control flow dependent on side effects in expressions
@@ -144,7 +144,7 @@ Anti-patterns (MUST NOT):
 4. Fail in a way that preserves diagnosability.
 5. Do not silently continue from corrupted or impossible state.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - assuming all callers are correct
 - burying invalid state until it causes distant failures
 - swallowing exceptions without context
@@ -178,7 +178,7 @@ Anti-patterns (MUST NOT):
 4. Keep classes cohesive.
 5. Reduce coupling through clear contracts and limited knowledge of internals.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - god classes
 - modules with mixed persistence, formatting, business logic, and integration concerns
 - public surfaces that expose internal bookkeeping

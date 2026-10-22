@@ -1,4 +1,4 @@
-# OBEY Release It! by Michael T. Nygard
+# Engineering Reference: Release It! by Michael T. Nygard
 
 ## Purpose
 
@@ -14,7 +14,7 @@ All code generation, edits, and reviews must optimize for:
 - observability
 - survivability over ideal-path elegance
 
-This file is a binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 
@@ -80,7 +80,7 @@ The code must assume these conditions, not merely tolerate them by accident.
 2. One failing integration must not consume all threads, connections, or worker capacity.
 3. Isolate slow or risky work from core request paths.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - nested retries at multiple layers
 - no timeout around remote calls
 - one shared pool for all outbound work
@@ -119,7 +119,7 @@ Anti-patterns (MUST NOT):
 - USE Decoupling Middleware when it reduces direct failure propagation; monitor the middleware as a dependency.
 - USE Governors to cap expensive behavior before it harms the rest of the system.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - unbounded queues
 - accepting work with no plan to finish it
 - letting best-effort tasks crowd out critical work
@@ -141,7 +141,7 @@ Required when:
 - migrations run while old and new application versions coexist
 - operational procedures must be repeatable under release pressure
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - one-shot deployment scripts that cannot safely resume
 - manual repair steps with no recorded state
 - side effects before a durable release checkpoint with no recovery plan
@@ -162,7 +162,7 @@ Anti-patterns (MUST NOT):
 4. Use streaming or pagination for large payloads where appropriate.
 5. Guard memory-heavy operations.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - one huge in-memory batch by default
 - blocking worker threads on slow I/O when a better model exists
 - connection pools sized by guess and then ignored
@@ -204,7 +204,7 @@ At minimum, capture:
 - circuit-breaker state
 - saturation signals
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - only logging stack traces without context
 - no metrics for slow dependencies
 - health checks that always return green despite broken downstreams
@@ -260,7 +260,7 @@ Anti-patterns (MUST NOT):
 3. Avoid dogpiles with request coalescing or appropriate expiry strategies.
 4. Define what happens when the cache is unavailable.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - assuming cache hit rate is always high
 - rebuilding the whole cache synchronously on miss
 - hiding correctness assumptions inside cache behavior

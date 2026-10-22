@@ -1,4 +1,4 @@
-# OBEY Clean Code by Robert C. Martin
+# Engineering Reference: Clean Code by Robert C. Martin
 
 This file defines mandatory working rules for this repository. Follow these instructions before making any code, test, refactor, review, or documentation change.
 

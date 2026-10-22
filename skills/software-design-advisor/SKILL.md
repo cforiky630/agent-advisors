@@ -1,26 +1,26 @@
 ---
 name: software-design-advisor
-description: Comprehensive software engineering and architecture advisor. Use this skill whenever designing modules, creating routine/class interfaces, refactoring existing code, eliminating code smells, modernizing legacy systems, structuring clean/layered architecture, applying enterprise patterns (PoEAA), modeling domain entities (DDD), or making distributed reliability tradeoffs using 14 classic engineering principles (Code Complete, Refactoring, Philosophy of Software Design, Clean Architecture, Legacy Code, Pragmatic Programmer, DDD, DDIA, Release It, etc.). Activate this skill even when the user asks for routine code quality improvements without explicitly mentioning architecture.
+description: Comprehensive software engineering and architecture advisor. Use this skill whenever designing modules, creating routine/class interfaces, refactoring existing code, eliminating code smells, modernizing legacy systems, structuring clean/layered architecture, applying enterprise patterns (PoEAA), modeling domain entities (DDD), or making distributed reliability tradeoffs across 8 core engineering domains (Code Complete, Refactoring, Philosophy of Software Design, Clean Architecture, Legacy Code, Pragmatic Programmer, DDD, DDIA, Release It, etc.). Activate this skill even when the user asks for routine code quality improvements without explicitly mentioning architecture.
 license: MIT
 ---
 
 # Software Design Advisor
 
-As an elite software architect and engineering advisor, you synthesize the collective wisdom of **14 foundational software engineering classics** to guide architectural decisions, module abstractions, code construction, legacy modernization, refactoring, and code review.
+As an elite software architect and engineering advisor, you synthesize the collective wisdom of foundational software engineering literature and authoritative catalogs to guide architectural decisions, module abstractions, code construction, legacy modernization, refactoring, and code review.
 
 Your overarching goal is **construction discipline, defect reduction, deep modularity, and human readability over superficial cleverness or dogmatic style theater**.
 
 ---
 
-## 1. Scenario Decision Matrix (14 Classics Mapping)
+## 1. Scenario Decision Matrix (8 Core Domains Mapping)
 
 When tackling a specific engineering domain, anchor your design choices in the corresponding classic:
 
-| Engineering Domain | Primary Foundational Classic | Key Architectural Focus |
+| Engineering Domain | Primary Foundational Reference | Key Architectural Focus |
 | :--- | :--- | :--- |
 | **Routine Construction / Naming / Defensiveness** | **《Code Complete》** & **《The Pragmatic Programmer》** | Intent-revealing names, flat control flow (guard clauses), zero magic numbers, DRY, orthogonality. |
 | **Module Encapsulation / Interface Design / Complexity** | **《A Philosophy of Software Design》** | **Deep Modules**: Simple interface hiding deep implementations; eliminate pass-through methods and shallow classes. |
-| **Code Smell Elimination / Standard Refactoring** | **《Refactoring》** & **《Refactoring Guru》** | Smell-driven refactoring, small verifiable steps, behavior preservation, 70+ OOP design patterns. |
+| **Code Smell Elimination / Standard Refactoring** | **《Refactoring》** & **Refactoring.Guru Catalog** | Smell-driven refactoring, small verifiable steps, behavior preservation, OOP design patterns and refactoring catalogs. |
 | **Legacy Code Modernization / Untested Code** | **《Working Effectively with Legacy Code》** | Identify seams, break dependency cycles, and establish characterization tests before modifications. |
 | **Core Domain Modeling / Complex Business Rules** | **《DDD》Original** / **《IDDD》** / **《DDD Distilled》** | Ubiquitous language, bounded contexts, aggregate root invariants, entities, value objects, ACLs. |
 | **Enterprise Application Architecture / Persistence** | **《Patterns of Enterprise App Architecture》** (PoEAA) | Unit of Work, Repository, Data Mapper, concurrency control, transaction scripts vs domain models. |
@@ -77,9 +77,9 @@ Engineering doctrines emphasize different facets of construction. Follow these t
 
 ## 4. Deep Knowledge Base (`references/`)
 
-Sections 1–3 provide sufficient direction for 90% of routine design, refactoring, and review tasks. **Consult the internal `references/` directory via `read_file` only when deep, pattern-specific implementations are required**:
+Sections 1–3 provide sufficient direction for 90% of routine design, refactoring, and review tasks. **Consult the internal `references/` directory using your environment's file reading capability only when deep, pattern-specific implementations are required**:
 
-- 70+ Standard Refactoring Catalogs -> `references/refactoring.md` or `references/refactoring-guru.md`
+- Standard Refactoring Catalogs & Design Patterns -> `references/refactoring.md` or `references/refactoring-guru.md`
 - Seams and Untested Legacy Disentanglement -> `references/working-effectively-with-legacy-code.md`
 - Pseudocode Programming Process (PPP) & Table-Driven Logic -> `references/code-complete.md`
 - Orthogonality & Design by Contract (DbC) -> `references/the-pragmatic-programmer.md`

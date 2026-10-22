@@ -1,4 +1,4 @@
-# OBEY A Philosophy of Software Design by John Ousterhout
+# Engineering Reference: A Philosophy of Software Design by John Ousterhout
 
 ## Purpose
 
@@ -14,7 +14,7 @@ All code generation, edits, and reviews must optimize for:
 - clear separation between interface and implementation
 - strategic design over tactical patching
 
-This file is a binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 
@@ -71,7 +71,7 @@ Shallow modules are bad when:
 - layers exist mostly to redirect calls
 - small wrappers multiply concepts without reducing reader burden
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - pass-through service classes
 - thin wrappers around libraries with no simplification
 - helper modules that only rename obvious operations
@@ -86,7 +86,7 @@ Anti-patterns (MUST NOT):
 4. Keep callers from depending on implementation detail, performance hacks, or storage shape.
 5. Encapsulate messy edge conditions and normalization logic.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - exposing internal representation or state through module interfaces
 - leaking storage, protocol, framework, or file-format details through module interfaces
 - callers coordinating object internals across multiple modules
@@ -149,7 +149,7 @@ Avoid:
 4. Use special/general decomposition when unusual cases clutter the main abstraction.
 5. Keep the normal path obvious and the exceptional path isolated.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - APIs that require every caller to repeat defensive ceremony
 - “special case” branches scattered across many call sites
 - exposing half-valid objects and asking callers to tiptoe around them
@@ -194,7 +194,7 @@ Do not use comments to compensate for:
 4. Use variables to capture meaning, not to mirror syntax.
 5. Keep local details local.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - chains of tiny functions where readers must jump constantly to understand one idea
 - variables introduced only to satisfy style rather than clarity
 - exposing intermediate states that should stay internal
@@ -208,7 +208,7 @@ Anti-patterns (MUST NOT):
 3. Initialization steps, processing phases, and cleanup stages should not force readers to reconstruct the design from time-order alone.
 4. Keep call ordering simple and explicit where it matters.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - `prepare/process/finalize` everywhere without domain concepts
 - APIs that require secret temporal knowledge
 - partial objects whose meaning depends on which phase has already run
@@ -236,7 +236,7 @@ This is preferable to accreting conditionals into the core path forever.
 4. Do not preserve a boundary merely because it already exists if it exposes almost as much complexity as it hides.
 5. Prefer one coherent deeper module over several tiny modules that require callers to coordinate details.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - splitting code by execution phase when the stable concept is not temporal
 - separating normal and special cases so far apart that their shared invariant is hidden
 - adding helper layers that distribute one design decision across many files
@@ -251,7 +251,7 @@ Anti-patterns (MUST NOT):
 4. Use comments-first design to clarify abstraction boundaries, not to preserve vague or misleading code.
 5. Revise the abstraction when the comment needed to explain it becomes complicated.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - accepting the first design because it is locally convenient
 - using comments to justify a confusing interface instead of changing the interface
 - documenting implementation mechanics that callers should not need to know

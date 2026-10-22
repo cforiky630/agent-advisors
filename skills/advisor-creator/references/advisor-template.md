@@ -64,7 +64,7 @@ Conflicting dogmas inevitably arise in this domain. Use these rationale-backed p
 
 ## 4. Deep Knowledge Base (`references/`)
 
-Sections 1–3 provide sufficient direction for 90% of routine domain tasks. **Consult the internal `references/` directory via `read_file` only when deep, pattern-specific implementations are required**:
+Sections 1–3 provide sufficient direction for 90% of routine domain tasks. **Consult the internal `references/` directory using your environment's file reading capability only when deep, pattern-specific implementations are required**:
 
 - <Deep Topic 1> -> `references/<file-1>.md`
 - <Deep Topic 2> -> `references/<file-2>.md`

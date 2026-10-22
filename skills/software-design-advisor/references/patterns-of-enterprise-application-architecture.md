@@ -1,4 +1,4 @@
-# OBEY Patterns of Enterprise Application Architecture by Martin Fowler
+# Engineering Reference: Patterns of Enterprise Application Architecture by Martin Fowler
 
 ## Purpose
 
@@ -13,7 +13,7 @@ All code generation, edits, and reviews must optimize for:
 - clear mapping between in-memory objects and external systems
 - code that is maintainable under real enterprise constraints
 
-This file is a binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 
@@ -49,7 +49,7 @@ Rules (MUST unless marked SHOULD or MUST NOT):
 - lower layers must not reach into presentation concerns
 - each layer must earn its existence by reducing coupling or clarifying responsibility
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - controllers reaching directly into SQL and transaction details
 - domain logic embedded in views or handlers
 - repositories returning HTTP-shaped DTOs
@@ -179,7 +179,7 @@ Do not default to Active Record for complex domains.
 - know where lazy loading may trigger remote/database chatter
 - avoid lazy loading surprises in loops and serialization paths
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - invisible N+1 behavior everywhere
 - hidden auto-persistence with surprising write timing
 - saving each object ad hoc from random callers
@@ -256,7 +256,7 @@ Choose Page Controller vs Front Controller pragmatically, but keep routing conce
 3. Integration events/messages are not domain objects.
 4. Do not allow integration convenience to dominate internal design.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - internal code shaped around partner API payloads
 - direct vendor DTOs used across the application
 - business logic embedded in serialization code
@@ -289,7 +289,7 @@ Anti-patterns (MUST NOT):
 3. Separate local object design from remote contract design.
 4. Budget explicitly for latency, serialization, versioning, and partial failure.
 
-Anti-patterns (MUST NOT):
+Anti-patterns to avoid:
 - chatty remote object interfaces
 - assuming local method-call semantics over a network
 - leaking domain internals through remote endpoints

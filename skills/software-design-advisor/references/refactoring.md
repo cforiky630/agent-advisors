@@ -1,4 +1,4 @@
-# OBEY Refactoring by Martin Fowler
+# Engineering Reference: Refactoring by Martin Fowler
 
 ## Purpose
 
@@ -13,7 +13,7 @@ All code generation, edits, and reviews must optimize for:
 - explicit movement from bad design toward good design
 - steady design improvement as part of daily work
 
-This file is a binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 

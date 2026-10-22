@@ -1,4 +1,4 @@
-# OBEY Working Effectively with Legacy Code by Michael Feathers
+# Engineering Reference: Working Effectively with Legacy Code by Michael Feathers
 
 ## Purpose
 
@@ -13,7 +13,7 @@ All code generation, edits, and reviews must optimize for:
 - reducing fear around modification
 - incremental improvement instead of heroic rewrites
 
-This file is a binding engineering policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale.
 
 ---
 
