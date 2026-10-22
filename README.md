@@ -43,10 +43,21 @@ Level 3: 深度知识书架 (references/) ── 内部私有深度库 (按需�
 
 ## 📚 The Advisors (顾问阵容)
 
-| 顾问名称 (Skill Name) | 统摄领域 / 经典著作 | 适用核心场景 |
+### 旗舰首发：`software-design-advisor` (软件设计与架构工程顾问)
+
+全面融合并裁决了软件工程领域的 **整整 14 部传世经典著作**：
+
+| 维度 | 涵盖书目 | 核心解决领域 |
 | :--- | :--- | :--- |
-| **[`software-design-advisor`](skills/software-design-advisor/)** | 《代码大全》《重构》《软件设计哲学》《整洁架构》《DDD》《DDIA》《Release It!》 | 模块设计、代码重构、架构分层、防御性编程与代码质量审查 |
-| *(更多领域顾问规划中...)* | 性能治理、高可用 SRE、前端工程、安全审计等 | 持续演进中 |
+| **代码构造与实效** | 《代码大全》《程序员修炼之道》《代码整洁之道》 | 防御性编程、显式命名、扁平控制流、消灭魔数与 Flag 参数 |
+| **模块封装与抽象** | 《软件设计哲学》(John Ousterhout) | 深模块原则（Deep Modules）、信息隐藏、消灭透传浅方法 |
+| **重构与设计模式** | 《重构》(Martin Fowler)、《重构与模式》(Refactoring Guru) | 70+ 种标准重构手法、坏味道驱动、测试保护下行为不变 |
+| **遗留系统治理** | 《修改代码的艺术》(Working Effectively with Legacy Code) | 接缝技术（Seams）、破除老代码依赖、建立特征测试安全网 |
+| **领域建模 (DDD)** | 《DDD原典》(Eric Evans)、《实现DDD》(IDDD)、《DDD精粹》 | 统一语言、限界上下文、聚合根边界、防腐层（ACL） |
+| **企业级应用架构** | 《企业应用架构模式》(PoEAA by Fowler)、《整洁架构》 | 工作单元、数据映射器、仓储模式、依赖倒置原则 |
+| **高可用与分布式** | 《数据密集型应用系统设计》(DDIA)、《Release It!》 | 舱壁隔离、断路器、数据副本/分区一致性、慢调用防御雪崩 |
+
+*(更多领域顾问规划中：前端工程顾问、SRE可靠性顾问、安全审计顾问等，持续演进中...)*
 
 ---
 
@@ -56,7 +67,7 @@ Level 3: 深度知识书架 (references/) ── 内部私有深度库 (按需�
 
 如果你使用 [cc-switch](https://github.com) 管理多个 Agent 客户端（Claude Code / Codex / Gemini / Antigravity 等）：
 
-1. 将所需技能复制或克隆到 cc-switch 的技能存储目录：
+1. 将所需技能复制或软链到 cc-switch 的技能存储目录：
    ```powershell
    # Windows PowerShell
    Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"
@@ -67,16 +78,13 @@ Level 3: 深度知识书架 (references/) ── 内部私有深度库 (按需�
 
 #### 适用于 Google Antigravity / Gemini CLI：
 ```powershell
-New-Item -ItemType SymbolicLink -Path "$HOME\.gemini\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
+New-Item -ItemType Junction -Path "$HOME\.gemini\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
 ```
 
 #### 适用于 Claude Code：
 ```bash
 ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-advisor
 ```
-
-#### 适用于 OpenAI Codex / 其他客户端：
-直接将对应技能文件夹加入客户端的 skills 扫描路径即可。
 
 ---
 
