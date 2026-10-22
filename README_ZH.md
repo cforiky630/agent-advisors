@@ -80,6 +80,7 @@ Level 3: 深度知识书架 (references/) ── 内部按需定向深潜
 | 顾问名称 (Advisor) | 统摄技术领域 | 状态 | 核心亮点 |
 | :--- | :--- | :---: | :--- |
 | **[`software-design-advisor`](skills/software-design-advisor/)** | **软件设计与架构工程** | 🟢 **已上线** | 融汇并仲裁 **14 部传世工程经典**（《代码大全》《深模块设计哲学》《重构》《整洁架构》《DDD》《PoEAA》《DDIA》《Release It!》等）。统筹函数粒度、遗留代码接缝与分层边界。 |
+| **[`advisor-creator`](skills/advisor-creator/)** | **元工程与领域技能合成** | 🟢 **已上线** | 内置的元顾问孵化引擎，负责将各技术领域的散乱规范、经典书目与流派冲突，全自动熔铸为标准的三级深模块顾问。 |
 | **`frontend-craft-advisor`** | **现代前端与 UI 架构** | 🚧 规划中 | 组件复合范式、无障碍状态机、Design Token 体系、渲染性能极限调优。 |
 | **`system-reliability-advisor`** | **分布式系统与 SRE 韧性** | 🚧 规划中 | 混沌工程、分布式追踪、熔断限流舱壁隔离、零停机架构演进。 |
 | **`security-guard-advisor`** | **应用安全与纵深防御** | 🚧 规划中 | STRIDE 威胁建模、供应链依赖审计、输入净化与 OWASP Top 10 针对性加固。 |

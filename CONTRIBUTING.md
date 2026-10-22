@@ -64,7 +64,7 @@ Every `SKILL.md` must follow this standard format:
    ```bash
    git checkout -b feat/add-frontend-craft-advisor
    ```
-4. **Draft your advisor** following the guidelines above.
+4. **Draft your advisor**: You can use our built-in `advisor-creator` meta-skill to scaffold and arbitrate the new advisor automatically! Simply prompt your agent: *"Activate advisor-creator to scaffold a new advisor for <your domain> based on <your sources>"*.
 5. **Local Validation**: Test the advisor in your local agent (e.g., Claude Code, Cursor, or Antigravity) to ensure:
    - It triggers on realistic user prompts without undertriggering.
    - It produces balanced, rationale-backed architectural decisions.

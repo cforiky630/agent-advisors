@@ -80,6 +80,7 @@ Each advisor takes complete ownership of a broad engineering domain:
 | Advisor | Domain | Status | Key Highlights |
 | :--- | :--- | :---: | :--- |
 | **[`software-design-advisor`](skills/software-design-advisor/)** | **Software Architecture & Construction** | 🟢 **Active** | Synthesizes **14 foundational classics** (*Code Complete, Philosophy of Software Design, Refactoring, Clean Architecture, DDD, PoEAA, DDIA, Release It!*). Arbitrates granularity, seams, and boundaries. |
+| **[`advisor-creator`](skills/advisor-creator/)** | **Meta-Engineering & Skill Synthesis** | 🟢 **Active** | Built-in meta-advisor engine to synthesize fragmented domain handbooks into new, standardized deep-module advisors. |
 | **`frontend-craft-advisor`** | **Modern Web & UI Architecture** | 🚧 Planned | Component composition, accessible state machines, design token systems, rendering performance tuning. |
 | **`system-reliability-advisor`** | **SRE & Distributed Systems** | 🚧 Planned | Chaos engineering, distributed tracing, circuit breaking, bulkhead partitioning, zero-downtime database cutovers. |
 | **`security-guard-advisor`** | **AppSec & Defense-in-Depth** | 🚧 Planned | Threat modeling (STRIDE), supply-chain audit, input hygiene, OWASP Top 10 mitigation. |
