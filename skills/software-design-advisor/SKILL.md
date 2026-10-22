@@ -12,9 +12,19 @@ Your overarching goal is **construction discipline, defect reduction, deep modul
 
 ---
 
+## Operating Boundaries
+
+This advisor supplies design reasoning; it does not own every workflow:
+
+- **Project conventions first.** Existing architecture decisions, linters, tests, and explicit user instructions outrank any doctrine here. If they conflict, name the conflict and follow the project unless the user asks otherwise.
+- **Defer the workflow, keep the rationale.** When a dedicated review, testing, debugging, or planning skill already governs the task, let that skill run its steps and use this advisor only for the design trade-offs behind them.
+- **Match doctrine to problem size.** Apply a pattern only when its preconditions exist: a CRUD service does not need aggregates, and untested behavior is not rewritten without a seam plan.
+
+---
+
 ## 1. Scenario Decision Matrix (8 Core Domains Mapping)
 
-When tackling a specific engineering domain, anchor your design choices in the corresponding classic:
+When tackling a specific engineering domain, anchor your design choices in the corresponding reference:
 
 | Engineering Domain | Primary Foundational Reference | Key Architectural Focus |
 | :--- | :--- | :--- |
@@ -77,16 +87,28 @@ Engineering doctrines emphasize different facets of construction. Follow these t
 
 ## 4. Deep Knowledge Base (`references/`)
 
-Sections 1–3 provide sufficient direction for 90% of routine design, refactoring, and review tasks. **Consult the internal `references/` directory using your environment's file reading capability only when deep, pattern-specific implementations are required**:
+Sections 1–3 cover most routine design, refactoring, and review decisions. Open a reference only for pattern-level detail you cannot reconstruct from them, and respect these limits:
 
-- Standard Refactoring Catalogs & Design Patterns -> `references/refactoring.md` or `references/refactoring-guru.md`
-- Seams and Untested Legacy Disentanglement -> `references/working-effectively-with-legacy-code.md`
-- Pseudocode Programming Process (PPP) & Table-Driven Logic -> `references/code-complete.md`
-- Orthogonality & Design by Contract (DbC) -> `references/the-pragmatic-programmer.md`
-- Aggregate Root Partitioning, Repositories & ACLs -> `references/domain-driven-design.md`, `references/implementing-domain-driven-design.md`, `references/domain-driven-design-distilled.md`
-- Clean Layer Boundaries & Decoupling -> `references/clean-architecture.md`
-- Unit of Work & Data Mapper Implementations -> `references/patterns-of-enterprise-application-architecture.md`
-- Distributed Fault Tolerance, Partitioning & Quorum Consensus -> `references/designing-data-intensive-applications.md` or `references/release-it.md`
+- Read **at most 1–2 reference files per task**. Do not preload the directory.
+- Pick the **narrowest** file that answers the question. Where files overlap, choose deliberately: `domain-driven-design-distilled.md` for an overview or fit check, `domain-driven-design.md` for strategic modeling and ubiquitous language, `implementing-domain-driven-design.md` for tactical patterns such as aggregates, repositories, and domain events; `refactoring.md` for process and smell-driven change, `refactoring-guru.md` for technique catalogs and the smell-to-treatment map.
+- Treat these files as **independently written distilled summaries**, not as the books themselves. When a summary bullet and the rationale in Sections 1–3 disagree, the rationale wins.
+- `MUST` / `SHOULD` in references express severity, not authority; they never outrank project conventions, tests, or an explicit user instruction.
+
+Reference map:
+
+- Deep modules, information hiding, interface depth -> `references/a-philosophy-of-software-design.md`
+- Construction, naming, defensiveness, PPP and table-driven logic -> `references/code-complete.md`
+- Pragmatism, DRY, orthogonality, design by contract -> `references/the-pragmatic-programmer.md`
+- Readable code hygiene and routine structure -> `references/clean-code.md`
+- Refactoring process, smells, behavior preservation -> `references/refactoring.md`
+- Refactoring and pattern catalogs, technique selection -> `references/refactoring-guru.md`
+- Seams and untested legacy disentanglement -> `references/working-effectively-with-legacy-code.md`
+- Layer boundaries and dependency direction -> `references/clean-architecture.md`
+- Aggregates, repositories, and ACLs -> `references/domain-driven-design.md`, `references/implementing-domain-driven-design.md`, `references/domain-driven-design-distilled.md`
+- Unit of Work, Data Mapper, enterprise persistence -> `references/patterns-of-enterprise-application-architecture.md`
+- Distributed fault tolerance, partitioning, quorum -> `references/designing-data-intensive-applications.md`, `references/release-it.md`
+
+These summaries are not reproductions of the source works; book titles, authors, and catalog names belong to their respective owners, and this project is not affiliated with or endorsed by them.
 
 ---
 
@@ -101,4 +123,5 @@ When delivering architectural guidance or refactored code, present results in th
    - [ ] **Legacy Safety**: If modifying legacy code, is there a regression test or seam protecting existing behavior?
    - [ ] **Defensive Boundaries**: Are external inputs validated? Are exceptions contextualized and unmasked?
    - [ ] **Orthogonality**: Is core business logic decoupled from framework and persistence details?
+   - [ ] **Proportionality**: Is the applied doctrine proportionate to the problem, with no pattern introduced before its preconditions hold?
    - [ ] **Distributed Resilience**: Are timeouts, circuit breakers, and degradation policies addressed for remote I/O?

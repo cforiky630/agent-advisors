@@ -1,0 +1,17 @@
+{
+  "name": "agent-advisors",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Deep-module AI agent advisors with audit, import, and validation tooling.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "validate": "node scripts/validate_skills.mjs",
+    "audit": "node scripts/audit_skills.mjs",
+    "import": "node scripts/import_repo.mjs",
+    "test": "node --test"
+  }
+}

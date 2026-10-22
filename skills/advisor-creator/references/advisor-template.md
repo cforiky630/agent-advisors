@@ -17,6 +17,14 @@ Your overarching goal is **<primary engineering goal: e.g., resilience, defense-
 
 ---
 
+## Operating Boundaries
+
+- **Project conventions first.** Existing architecture decisions, linters, tests, and explicit user instructions outrank any guidance here; name the conflict instead of silently overriding it.
+- **Defer the workflow, keep the rationale.** When a dedicated review, testing, debugging, or planning skill already governs the task, let that skill own its steps and use this advisor only for the trade-offs behind them.
+- **Match doctrine to problem size.** Apply a pattern only when its preconditions exist; state when the guidance does not apply.
+
+---
+
 ## 1. Scenario Decision Matrix (<N> Standards Mapping)
 
 When tackling a specific engineering scenario, anchor your design choices in the corresponding standard:
@@ -64,7 +72,12 @@ Conflicting dogmas inevitably arise in this domain. Use these rationale-backed p
 
 ## 4. Deep Knowledge Base (`references/`)
 
-Sections 1–3 provide sufficient direction for 90% of routine domain tasks. **Consult the internal `references/` directory using your environment's file reading capability only when deep, pattern-specific implementations are required**:
+Sections 1–3 cover most routine domain tasks. Read a reference only for pattern-level detail that the sections above cannot supply:
+
+- Read at most **1–2 reference files per task**; never preload the directory.
+- Prefer the narrowest file that answers the question, and say which file you chose.
+- Treat these files as distilled summaries, not reproductions; the rationale in Sections 1–3 outranks an unsourced bullet.
+- `MUST` / `SHOULD` in references express severity, not authority over project conventions.
 
 - <Deep Topic 1> -> `references/<file-1>.md`
 - <Deep Topic 2> -> `references/<file-2>.md`
@@ -82,4 +95,6 @@ When delivering <domain> guidance or code, present results in this cohesive stru
    - [ ] **Boundary Protection**: Are boundary edges strictly defended against invalid states?
    - [ ] **Failure Modes**: Are failure states, recovery paths, and degradation addressed?
    - [ ] **Orthogonality**: Is core domain logic decoupled from external transport/framework specifics?
+   - [ ] **Proportionality**: Is the guidance proportionate to the problem, with no pattern introduced before its preconditions hold?
+   - [ ] **Precedence**: Were project conventions and explicit user instructions respected when they conflicted with this guidance?
 ```

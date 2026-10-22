@@ -1,8 +1,8 @@
 # 🏛️ Agent Advisors
 
 <p align="center">
-  <strong>A curated suite of unified, deep-module AI agent advisors.</strong><br>
-  Ending fragmented prompt clutter and context window bloat via holistic domain synthesis and three-level progressive disclosure.
+  <strong>One opinionated advisor per engineering domain — plus the tooling to audit and extend your agent's skill set.</strong><br>
+  Less prompt clutter, fewer overlapping skills, more consistent engineering decisions.
 </p>
 
 <p align="center">
@@ -17,179 +17,293 @@
 
 ---
 
-## Table of Contents
+## What is this?
 
-- [Why Agent Advisors?](#-why-agent-advisors)
-  - [The Fragmentation Problem](#the-fragmentation-problem)
-  - [The Deep-Module Synthesis](#the-deep-module-synthesis)
-- [Architecture: Three-Level Progressive Disclosure](#-architecture-three-level-progressive-disclosure)
-- [The Advisors Catalog](#-the-advisors-catalog)
-- [Quick Start & Installation](#-quick-start--installation)
-  - [1. Claude Code](#1-claude-code-anthropic-cli)
-  - [2. Cursor](#2-cursor)
-  - [3. OpenAI Codex](#3-openai-codex--cli)
-  - [4. Google Antigravity / Gemini CLI](#4-google-antigravity--gemini-cli)
-  - [5. Centralized Multi-Agent Management via cc-switch](#5-centralized-multi-agent-management-via-cc-switch-secondary-recommendation)
-- [How It Works in Action](#-how-it-works-in-action)
-- [Repository Structure](#-repository-structure)
-- [Creating Custom Advisors](#-creating-custom-advisors)
-- [Contributing](#-contributing)
-- [License](#-license)
+Agent Advisors is a collection of **skills** for AI coding agents, plus small tools for managing them.
 
----
+A skill is a folder with a `SKILL.md` file. The agent always sees the skill's name and description; it reads the body only when the task matches. That makes a skill a cheap way to give an agent a stable point of view without loading a wall of instructions on every turn.
 
-## 💡 Why Agent Advisors?
+This repository ships two skills and three tools:
 
-### The Fragmentation Problem
-As AI coding agents become default pair-programming companions, developers typically accumulate dozens of individual rules, prompt snippets, and micro-skills. In practice, this **fragmented setup** causes three severe bottlenecks:
+| Piece | What it is | What it is for |
+| :--- | :--- | :--- |
+| [`software-design-advisor`](skills/software-design-advisor/) | One skill + 14 distilled reference notes | Consistent decisions on design, refactoring, legacy code, architecture, DDD, and resilience |
+| [`advisor-creator`](skills/advisor-creator/) | A meta-skill | Turn your team's scattered standards into a new advisor |
+| [`audit_skills.mjs`](scripts/audit_skills.mjs) | A read-only command-line tool | See what is installed, what it costs per turn, and which skills compete for the same tasks |
+| [`import_repo.mjs`](scripts/import_repo.mjs) | A quarantine importer | Evaluate skills from another repository without installing them |
+| [`validate_skills.mjs`](scripts/validate_skills.mjs) | A structural checker | Keep skills well-formed; CI runs it too |
 
-1. **Disconnected Engineering Vision**: Software construction is an interconnected whole—routine naming, error defense, refactoring, and layered architecture are not isolated tasks. Splitting them into dozens of separate micro-skills forces the developer to manually coordinate which skill to call at each stage.
-2. **Context Window Bloat**: Registering dozens of individual skills floods the system prompt with verbose descriptions on every turn, diluting the agent's attention and consuming valuable reasoning tokens.
-3. **Execution Friction & Undertriggering**: When presented with an overwhelming menu of overlapping micro-skills, agents suffer from decision friction—often undertriggering or failing to load the relevant guidance entirely.
-
-### The Deep-Module Synthesis
-Inspired by John Ousterhout’s *A Philosophy of Software Design* and the classic **Facade Pattern**, `agent-advisors` consolidates domain wisdom into **high-leverage, deep-module Advisors**:
-
-> **Instead of registering dozens of fragmented micro-rules, synthesize entire engineering disciplines into cohesive Advisors that encapsulate deep knowledge behind a clean, zero-friction interface.**
+**You can use the advisor without any of the tooling.** The tools are for people who already have many skills installed, or who want to adopt skills from elsewhere without losing control of their agent.
 
 ---
 
-## 📐 Architecture: Three-Level Progressive Disclosure
+## Quick start (60 seconds)
 
-Every advisor in this repository strictly adheres to a three-level loading model:
+### 1. Install the advisor (Claude Code)
 
-```
-Level 1: Metadata (Always In Context) ── High Intent (~120-140 Tokens)
-   │     • Injected into system prompts as an intent-rich trigger.
-   │     • Zero context bloat; stays completely dormant until relevant tasks arise.
-   ▼
-Level 2: Unified Brain & Decision Matrix (SKILL.md) ── Loaded on Trigger (~120 Lines)
-   │     • Scenario decision matrix, engineering trade-offs, and nano rulesets.
-   │     • Resolves 90% of architectural and technical decisions in a single round-trip.
-   ▼
-Level 3: Deep Reference Repositories (references/) ── Deep Dive On-Demand
-         • Distilled engineering rules and pattern reference summaries kept completely private.
-         • Prevents global skill namespace pollution while preserving full depth.
-```
-
----
-
-## 📚 The Advisors Catalog
-
-| Advisor | Domain | Status | Key Highlights |
-| :--- | :--- | :---: | :--- |
-| **[`software-design-advisor`](skills/software-design-advisor/)** | **Software Architecture & Construction** | 🟢 **Active** | Synthesizes foundational engineering literature across **8 core engineering domains** (including *Code Complete, Philosophy of Software Design, Refactoring, Clean Architecture, DDD, PoEAA, DDIA, Release It!*, and the *Refactoring.Guru* catalog). Covers routine construction, seam-driven refactoring, and domain boundaries. |
-| **[`advisor-creator`](skills/advisor-creator/)** | **Meta-Engineering & Synthesis Engine** | 🟢 **Active** | Built-in meta-advisor engine that provides a 5-step pipeline to synthesize scattered domain handbooks, prompt rules, or standards into new, standardized deep-module advisors. |
-
----
-
-## 🚀 Quick Start & Installation
-
-Install advisors directly into your favorite agent environment (ordered by popularity):
-
-### 1. Claude Code (Anthropic CLI)
-Symlink the advisor into Claude Code's skill store:
 ```bash
 # macOS / Linux
 mkdir -p ~/.claude/skills
 ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-advisor
+```
 
-# Windows (PowerShell - run as Administrator)
+```powershell
+# Windows (PowerShell, run as Administrator)
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
 ```
 
-### 2. Cursor
-Place or symlink the advisor directory into your project's `.cursor/skills/` (or configure via `.cursorrules` / project prompt):
+Other agents are covered in [Installation](#installation).
+
+### 2. Ask something it is meant for
+
+```
+Help me refactor this legacy order service. The logic is tangled, and I cannot break existing consumers.
+```
+
+```
+Design the interface for a payment module; callers should not care which gateway is used.
+```
+
+```
+Should this CRUD service adopt full DDD?
+```
+
+There is nothing to configure. If the skill matches the task, the agent loads it, applies the relevant principles, and returns a short rationale with the code.
+
+### 3. Optional: see what else is installed
+
+```bash
+node scripts/audit_skills.mjs
+```
+
+It writes a report to `.advisor-audit/audit-report.md`. Use it when you have accumulated many skills and want to know which ones overlap or cost the most context.
+
+---
+
+## What an advisor actually gives you
+
+It is not extra knowledge; models already know the books. It is a **stable default stance**, so answers do not drift between "split everything into tiny functions" and "keep deep modules" from one session to the next.
+
+For example, when asked to untangle a legacy service, the advisor pushes the agent toward:
+
+1. Find seams and add characterization tests before changing behavior.
+2. Separate refactoring from behavior changes (Fowler's Two Hats).
+3. Collapse pass-through wrappers into deeper modules.
+4. Validate input at the boundary, not in the domain core.
+
+It also states where it defers: project conventions, tests, and explicit user instructions win; a dedicated review/test/debug skill owns its workflow. See [SKILL.md](skills/software-design-advisor/SKILL.md).
+
+---
+
+## How it works: three levels
+
+```
+Level 1  name + description        always in context, ~120–140 tokens
+   │
+   ▼  task matches
+Level 2  SKILL.md                  loaded on demand, ~100 lines
+   │
+   ▼  needs pattern-level detail
+Level 3  references/*.md           read one or two at a time, never preloaded
+```
+
+- **Level 1** is the only fixed cost. It is what lets the agent decide whether to load the skill.
+- **Level 2** contains the decision matrix, the trade-off arbitrations, and the delivery checklist. Most tasks end here.
+- **Level 3** holds the distilled notes. They are summaries, not the original books, and the skill explicitly tells the agent to read at most one or two per task.
+
+The point is not "more documentation". The point is that an agent can carry a coherent engineering stance without paying for it on every turn.
+
+---
+
+## Installation
+
+### Claude Code
+
+```bash
+mkdir -p ~/.claude/skills
+ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-advisor
+```
+
+On Windows, use the PowerShell command in the quick start.
+
+### Cursor
+
+Place or symlink the advisor into your project's `.cursor/skills/`:
+
 ```bash
 mkdir -p .cursor/skills
 ln -s /path/to/agent-advisors/skills/software-design-advisor .cursor/skills/software-design-advisor
 ```
 
-### 3. OpenAI Codex / CLI
-Add the advisor path to your active skills catalog:
+### Codex CLI
+
 ```bash
 mkdir -p ~/.codex/skills
 ln -s /path/to/agent-advisors/skills/software-design-advisor ~/.codex/skills/software-design-advisor
 ```
 
-### 4. Google Antigravity / Gemini CLI
-Mount the advisor using a directory junction (does not require administrator elevation on Windows):
+### Google Antigravity / Gemini CLI
+
 ```powershell
 New-Item -ItemType Junction -Path "$HOME\.gemini\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
 ```
 
-### 5. Centralized Multi-Agent Management via `cc-switch` (Secondary Recommendation)
-If you switch between multiple agent runtimes (Claude Code, Codex, Antigravity, OpenCode), use [cc-switch](https://github.com/farion1231/cc-switch) for unified management:
-1. Copy or link advisors into the cc-switch storage:
-   ```powershell
-   Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"
-   ```
-2. Enable the advisor in the cc-switch interface to propagate it instantly across all active agents.
+### Manage several agents with cc-switch
+
+If you switch between Claude Code, Codex, Antigravity, and OpenCode, [cc-switch](https://github.com/farion1231/cc-switch) can keep one central copy and distribute it:
+
+```powershell
+Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"
+```
+
+Then enable the advisor in the cc-switch interface. Updating the central copy updates every agent that links to it.
 
 ---
 
-## 🎬 How It Works in Action
+## Auditing installed skills
 
-When you prompt your agent with a task like:
-> *"Help me refactor this legacy order processing service. The logic is tangled, but I cannot break existing consumers."*
+A skill cannot see the rest of your install set. The audit tool can:
 
-1. **Automatic Activation**: The agent's skill runner detects architectural/refactoring intent and activates `software-design-advisor`.
-2. **Holistic Guidance**: The advisor guides the agent across multiple classic disciplines:
-   - Apply Michael Feathers' seam technique (*Working Effectively with Legacy Code*) to inject characterization tests before touching logic.
-   - Separate refactoring from behavior changes (*Two Hats Principle* by Martin Fowler).
-   - Consolidate fragmented classes into deep modules (*Philosophy of Software Design*), eliminating verbose pass-through wrappers.
-   - Guard external input boundaries (*Code Complete*).
-3. **Structured Output**: The agent delivers code cleanly partitioned into:
-   - Engineering Tradeoffs & Rationale
-   - Test-protected Implementation
-   - Pre-Delivery Checklist Verification
+```bash
+node scripts/audit_skills.mjs
+```
+
+It reports:
+
+- **What is loaded**, per runtime (Claude Code, Codex, Gemini, Cursor).
+- **The fixed cost**: how many description tokens are paid every turn.
+- **Structural problems**: missing frontmatter, broken references, name collisions.
+- **Overlap candidates**: pairs of skills whose descriptions claim similar triggers.
+- **Broad trigger wording**: descriptions that say "whenever" or "anything", a common cause of over-triggering.
+
+Outputs go to `.advisor-audit/`:
+
+- `audit-report.md` — the readable report.
+- `skills.lock.json` — an inventory with content hashes, so install changes can be diffed.
+
+A high overlap score means "read these two", not "they conflict". The audit never edits, removes, or installs anything. Method and limits: [docs/AUDIT.md](docs/AUDIT.md).
 
 ---
 
-## 📁 Repository Structure
+## Importing skills from another repository
+
+```bash
+node scripts/import_repo.mjs https://github.com/owner/skills --ref main
+```
+
+The importer:
+
+1. Clones the repository into a temporary quarantine directory.
+2. Finds `SKILL.md`, `AGENTS.md`, `CLAUDE.md`, and `.cursor/rules/*.mdc`.
+3. Records provenance: URL, commit SHA, subdirectory, license, content hashes.
+4. Compares candidates with your audit inventory.
+5. Writes `.advisor-import/<repo>/proposal.md` with a recommended action for each candidate.
+
+It **never installs anything, never writes into a skill root, and never runs repository code**. Executable files are listed but not copied. Non-permissive or unknown licenses are marked `reference only`.
+
+To adopt a candidate, review the proposal, merge what you want with `advisor-creator`, then install it deliberately.
+
+---
+
+## Creating your own advisor
+
+If you have team-specific standards — API conventions, security baselines, incident rules — `advisor-creator` turns them into a skill:
+
+```
+Activate advisor-creator to consolidate our API guidelines and OWASP rules into an api-security-advisor.
+```
+
+It walks through domain mapping, conflict arbitration, condensed rules, and scaffolding. The result follows the same structure as `software-design-advisor`, so the audit, validator, and tests work on it too.
+
+---
+
+## Repository structure
 
 ```text
 agent-advisors/
-├── .github/                       # GitHub workflow and community configurations
-├── skills/                        # Standard Skill Catalog Root
-│   ├── software-design-advisor/   # Comprehensive Software Architecture Advisor
-│   │   ├── SKILL.md               # Machine-executable advisor interface
-│   │   └── references/            # Bundled deep reference repositories (14 classics)
-│   └── advisor-creator/           # Meta-Advisor Synthesis Engine
-│       ├── SKILL.md               # 5-step pipeline for synthesizing new advisors
-│       └── references/            # Advisor scaffolding template
-├── CONTRIBUTING.md                # Advisor engineering specification & guidelines
-├── LICENSE                        # MIT License
-├── README.md                      # International Documentation (English)
-└── README_ZH.md                   # Chinese Documentation (简体中文)
+├── .github/workflows/          # CI: structural validation + tests
+├── docs/                       # Audit method and import security model
+├── evals/                      # Trigger cases and blind outcome protocol
+├── scripts/
+│   ├── lib/skill.mjs           # Shared parsing and comparison
+│   ├── audit_skills.mjs        # Read-only inventory and overlap report
+│   ├── import_repo.mjs         # Quarantine clone and proposal
+│   └── validate_skills.mjs     # Structural checks for this repository
+├── tests/                      # node --test suites
+├── skills/
+│   ├── software-design-advisor/
+│   │   ├── SKILL.md
+│   │   └── references/         # 14 distilled engineering references
+│   └── advisor-creator/
+│       ├── SKILL.md
+│       └── references/         # Advisor template
+├── CONTRIBUTING.md
+├── LICENSE
+├── package.json                # Scripts only; no dependencies
+└── README.md / README_ZH.md
 ```
 
 ---
 
-## 🛠️ Creating Custom Advisors
+## FAQ and limits
 
-If you have proprietary domain standards, security baselines, or internal architecture guidelines, use the included **`advisor-creator`** meta-skill to synthesize your own domain advisor:
+**Does this make the model know more?**
+No. Models already know the source material. The advisor changes the default decisions and keeps them consistent. Its value is judgment, not facts.
 
-```text
-User: "Activate advisor-creator to help me consolidate our team's API guidelines and OWASP rules into an api-security-advisor."
+**Does it guarantee the skill will trigger?**
+No. Skill selection is model-driven. [`evals/trigger-cases.md`](evals/trigger-cases.md) lists cases that should trigger, should stay dormant, and should defer to another workflow.
+
+**Does the audit detect contradictory advice?**
+No. It detects structural problems and trigger overlap. Whether two skills actually disagree requires reading them or an LLM arbitration pass. See [docs/AUDIT.md](docs/AUDIT.md).
+
+**Are the references the original books?**
+No. They are independently written summaries. Titles and authors belong to their owners; this project is not affiliated with them.
+
+**Does the audit work for every agent?**
+Budgets are computed per runtime. Overlap analysis covers Claude Code by default (`--agents all` for every runtime). Plugin discovery currently targets Claude Code's `installed_plugins.json`.
+
+**Will the tooling uninstall or rewrite my skills?**
+No. Audit and import are read-only with respect to installed skills. Removal and merging are decisions you make.
+
+---
+
+## Development
+
+Requires Node.js 20+ and nothing else.
+
+```bash
+node scripts/validate_skills.mjs
 ```
 
-The engine will guide you through domain mapping, trade-off analysis, nano-rule distillation, and progressive disclosure scaffolding.
+```bash
+node --test
+```
+
+```bash
+node scripts/audit_skills.mjs
+```
+
+```bash
+node scripts/import_repo.mjs <git-url>
+```
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-We welcome community contributions! Please read our **[Contribution Guidelines](CONTRIBUTING.md)** before opening a Pull Request.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR. The key rules:
 
-Key requirements for all advisors:
-- **Single Facade**: One technical domain, one comprehensive advisor.
-- **Progressive Disclosure**: `SKILL.md` under 150 lines; place comprehensive treaties in `references/`.
-- **Explain the Why**: Back engineering rules with causal rationales and explicit trade-offs.
-- **Canonical English Execution**: `SKILL.md` must be written in high-precision, rationale-backed English for deterministic machine execution across all LLM backends.
+- One domain, one advisor.
+- `SKILL.md` under 150 lines; distilled summaries in `references/`.
+- State the rationale, the trade-offs, and what the advisor defers to.
+- Run the validator and tests; CI repeats both.
 
 ---
 
-## 📄 License
+## License
 
-This repository is licensed under the [MIT License](LICENSE) © 2026 [cqzeng](https://github.com/cqzeng).
+MIT. See [LICENSE](LICENSE).
+
+### Attribution
+
+Files under `skills/*/references/` are independently written distillations of published books and catalogs. Book titles, authors, and catalog names belong to their respective owners; this project is not affiliated with or endorsed by them, and the summaries are not substitutes for the original works.

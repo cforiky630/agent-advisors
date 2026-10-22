@@ -1,8 +1,8 @@
-# 🏛️ Agent Advisors (智能体专家顾问库)
+# 🏛️ Agent Advisors（智能体专家顾问库）
 
 <p align="center">
-  <strong>高聚合、深模块的 AI Agent 专家顾问智囊套件。</strong><br>
-  借助门面模式（Facade）与三级渐进式披露，终结零散规则碎片与系统提示词膨胀。
+  <strong>每个工程领域一个说话算数的顾问，外加一套审计与扩展技能的工具。</strong><br>
+  少一点提示词堆积，少一点技能互相抢活，多一点稳定的工程判断。
 </p>
 
 <p align="center">
@@ -17,179 +17,293 @@
 
 ---
 
-## 目录导航
+## 这是什么？
 
-- [为什么需要 Agent Advisors？](#-为什么需要-agent-advisors)
-  - [“碎片化浅技能”带来的实际困境](#碎片化浅技能带来的实际困境)
-  - [深模块统合范式（Deep-Module Synthesis）](#深模块统合范式deep-module-synthesis)
-- [核心架构：三级渐进式披露](#-核心架构三级渐进式披露)
-- [顾问阵容目录](#-顾问阵容目录)
-- [快速开始与安装指南](#-快速开始与安装指南)
-  - [1. Claude Code (Anthropic 官方 CLI)](#1-claude-code-anthropic-官方-cli)
-  - [2. Cursor (主流 AI 编辑器)](#2-cursor-主流-ai-编辑器)
-  - [3. OpenAI Codex / CLI](#3-openai-codex--cli)
-  - [4. Google Antigravity / Gemini CLI](#4-google-antigravity--gemini-cli)
-  - [5. 进阶多端统一管理：cc-switch (次推荐效率方案)](#5-进阶多端统一管理cc-switch-次推荐效率方案)
-- [实战工作流示例](#-实战工作流示例)
-- [仓库标准规范结构](#-仓库标准规范结构)
-- [自制专属领域顾问](#-自制专属领域顾问)
-- [参与贡献](#-参与贡献)
-- [开源协议](#-开源协议)
+Agent Advisors 是一组给 AI 编程助手用的 **skill（技能）**，外加几个管理技能的小工具。
 
----
+一个 skill 就是一个带 `SKILL.md` 的文件夹。模型每一轮都能看到它的名字和描述，只有任务对得上时才读正文。这样既能给模型一个稳定的立场，又不用每轮都塞一大段指令。
 
-## 💡 为什么需要 Agent Advisors？
+本仓库包含两个 skill 和三个工具：
 
-### “碎片化浅技能”带来的实际困境
-随着 AI 编程助手成为开发者的核心协作伙伴，开发者往往会在本地安装大量零散的 Prompt 片段、规则文件和微型技能（Micro-skills）。在实际生产中，这种**割裂的碎片化配置**带来了三大明显瓶颈：
+| 内容 | 是什么 | 用来干什么 |
+| :--- | :--- | :--- |
+| [`software-design-advisor`](skills/software-design-advisor/) | 一个 skill + 14 份提炼笔记 | 让设计、重构、遗留代码、架构、DDD、容错类决策保持一致 |
+| [`advisor-creator`](skills/advisor-creator/) | 元技能 | 把团队散落各处的规范合成一个新顾问 |
+| [`audit_skills.mjs`](scripts/audit_skills.mjs) | 只读命令行工具 | 盘点装了哪些技能、每轮花多少上下文、谁在抢同一类任务 |
+| [`import_repo.mjs`](scripts/import_repo.mjs) | 隔离导入工具 | 评估别的仓库里的技能，但绝不直接安装 |
+| [`validate_skills.mjs`](scripts/validate_skills.mjs) | 结构校验工具 | 检查技能格式是否规范；CI 也会跑 |
 
-1. **工程视野割裂**：软件构建是一个有机整体——变量命名、防御性边界、代码重构、遗留代码治理与架构分层并不是孤立互不相干的环节。如果将它们生硬拆散为十几份微型技能，开发者就必须在每个阶段手动挑选和调度对应的技能，极其繁琐。
-2. **上下文污染与 Token 浪费**：在系统里同时挂载十几个独立技能，每一轮对话都会把冗长的名字和描述注入系统提示词，不仅挤占宝贵的推理窗口，还会造成模型注意力被严重稀释。
-3. **调用摩擦与漏触发**：当候选技能列表过于细碎且存在概念重叠时，Agent 极易陷入决策摩擦，出现偷懒、乱选或完全不触发相应规范的现象。
-
-### 深模块统合范式（Deep-Module Synthesis）
-受 John Ousterhout 教授名著《软件设计哲学》（*A Philosophy of Software Design*）与经典**门面模式（Facade Pattern）**的启发，`agent-advisors` 重塑了 Agent 技能的组织形态：
-
-> **告别散落堆砌的零碎微规则。将整个大型工程领域的精髓，高度融汇为一个兼具深度与高杠杆的“专业顾问（Advisor）”——对外暴露极简纯粹的统一接口，对内提供融会贯通的全景工程视野。**
+**只用顾问的话，完全不需要这些工具。** 工具是给已经装了很多技能、或者想安全吸收外部技能的人用的。
 
 ---
 
-## 📐 核心架构：三级渐进式披露
+## 60 秒上手
 
-本仓库的每一个顾问都严格遵循三级加载架构：
+### 1. 安装顾问（Claude Code）
 
-```
-Level 1: 元数据层 (Metadata) ── 高意图唤醒 (约 120-140 Token)
-   │     • 作为带有微推力的高意图触发器注入系统提示词。
-   │     • 平时完全静默，零上下文负担，仅在任务相关时精确唤醒。
-   ▼
-Level 2: 统一决策矩阵与核心规则 (SKILL.md) ── 触发时加载 (约 120 行)
-   │     • 包含场景决策矩阵、工程权衡考量与 Nano 核心硬规则。
-   │     • 单次往返直达全局视野，解决 90% 的日常架构与工程决策。
-   ▼
-Level 3: 深度参考知识库 (references/) ── 内部按需定向深潜
-         • 存放经过提炼的经典工程规约与模式参考，对外完全隐蔽。
-         • 既彻底杜绝全局技能列表被污染，又保留了无限的深度知识储备。
-```
-
----
-
-## 📚 顾问阵容目录
-
-| 顾问名称 (Advisor) | 统摄技术领域 | 状态 | 核心亮点 |
-| :--- | :--- | :---: | :--- |
-| **[`software-design-advisor`](skills/software-design-advisor/)** | **软件设计与架构工程** | 🟢 **已上线** | 融会贯通 **8 大核心工程领域**的经典文献（包括《代码大全》《深模块设计哲学》《重构》《整洁架构》《DDD》《PoEAA》《DDIA》《Release It!》与 Refactoring.Guru 权威索引）。统筹函数构造、坏味道消除、遗留系统接缝治理与架构分层。 |
-| **[`advisor-creator`](skills/advisor-creator/)** | **元工程与领域技能合成引擎** | 🟢 **已上线** | 内置的元顾问孵化引擎，提供标准 5 步流水线，用于将散乱的领域规范、行业标准或私有代码规约，全自动提炼生成为标准的深模块顾问。 |
-
----
-
-## 🚀 快速开始与安装指南
-
-根据你主力使用的 Agent 工具选择安装方式（按社区流行度排序）：
-
-### 1. Claude Code (Anthropic 官方 CLI)
-将所需顾问软链接到 Claude Code 的技能目录中：
 ```bash
-# macOS / Linux:
+# macOS / Linux
 mkdir -p ~/.claude/skills
 ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-advisor
+```
 
-# Windows (PowerShell - 请以管理员身份运行):
+```powershell
+# Windows（PowerShell，以管理员身份运行）
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
 ```
 
-### 2. Cursor (主流 AI 编辑器)
-将顾问目录放入或软链接到项目的 `.cursor/skills/`（或在 `.cursorrules` 中配置）：
+其他客户端见[安装](#安装)。
+
+### 2. 问一个它擅长的问题
+
+```
+帮我重构这个老订单服务。逻辑很缠绕，但不能破坏既有调用方。
+```
+
+```
+给支付模块设计接口，调用方不应该关心底层用的是哪个网关。
+```
+
+```
+这个 CRUD 服务有必要上完整 DDD 吗？
+```
+
+不需要任何配置。任务对得上，模型就会加载它，给出理由和代码。
+
+### 3. 可选：看看你还装了什么
+
+```bash
+node scripts/audit_skills.mjs
+```
+
+报告会写到 `.advisor-audit/audit-report.md`。当你装了很多技能、开始感觉模型“选择困难”时，就该跑一次。
+
+---
+
+## 顾问到底给了你什么
+
+它不提供新知识——书里的内容模型本来就知道。它提供的是一套**稳定的默认立场**，让回答不会今天说“全部拆成小函数”、明天又说“要深模块”。
+
+比如让它处理一个缠绕的遗留服务，它会推动模型：
+
+1. 先找接缝、补特征测试，再动逻辑；
+2. 把重构和行为变更分开（Fowler 的“两顶帽子”）；
+3. 把透传包装收成更深的模块；
+4. 在边界校验输入，而不是在领域核心里到处防御。
+
+它也明确写了什么时候让位：项目既有约定、测试、用户明确指令优先；专门的审查/测试/调试技能负责自己的流程。见 [SKILL.md](skills/software-design-advisor/SKILL.md)。
+
+---
+
+## 怎么工作：三层
+
+```
+第 1 层  名字 + 描述            常驻上下文，约 120–140 token
+   │
+   ▼  任务匹配
+第 2 层  SKILL.md               命中时加载，约 100 行
+   │
+   ▼  需要具体模式
+第 3 层  references/*.md        每次最多读一两份，不预加载
+```
+
+- **第 1 层**是唯一固定成本，用来让模型判断“要不要加载”。
+- **第 2 层**是决策矩阵、冲突仲裁和交付检查表，大多数任务到这里就够了。
+- **第 3 层**是提炼笔记。它们是摘要，不是原书；并且明确要求每次最多读一两份。
+
+重点不是“文档更多”，而是让模型带着一套连贯的工程立场，又不必每轮为它付费。
+
+---
+
+## 安装
+
+### Claude Code
+
+```bash
+mkdir -p ~/.claude/skills
+ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-advisor
+```
+
+Windows 用上面快速上手里的 PowerShell 命令。
+
+### Cursor
+
+放进或软链到项目的 `.cursor/skills/`：
+
 ```bash
 mkdir -p .cursor/skills
 ln -s /path/to/agent-advisors/skills/software-design-advisor .cursor/skills/software-design-advisor
 ```
 
-### 3. OpenAI Codex / CLI
-将顾问路径添加至 Codex 的工作区说明或注册到活跃技能目录：
+### Codex CLI
+
 ```bash
 mkdir -p ~/.codex/skills
 ln -s /path/to/agent-advisors/skills/software-design-advisor ~/.codex/skills/software-design-advisor
 ```
 
-### 4. Google Antigravity / Gemini CLI
-使用目录联接挂载到 Gemini 配置目录（Windows 下无需管理员提权）：
+### Google Antigravity / Gemini CLI
+
 ```powershell
 New-Item -ItemType Junction -Path "$HOME\.gemini\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
 ```
 
-### 5. 进阶多端统一管理：`cc-switch` (次推荐效率方案)
-如果你在多个客户端（Claude Code、Codex、Antigravity、OpenCode）之间高频切换，可使用 [cc-switch](https://github.com/farion1231/cc-switch) 统一分发：
-1. 复制或软链顾问到 cc-switch 的中心技能库：
-   ```powershell
-   Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"
-   ```
-2. 打开 cc-switch 界面直接勾选启用，它将自动建立符号链接分发给所有激活的 Agent。
+### 用 cc-switch 管理多个客户端
+
+如果你在 Claude Code、Codex、Antigravity、OpenCode 之间切换，可以用 [cc-switch](https://github.com/farion1231/cc-switch) 维护一份中心副本：
+
+```powershell
+Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"
+```
+
+然后在 cc-switch 界面启用。更新中心副本，所有链接到它的客户端一起更新。
 
 ---
 
-## 🎬 实战工作流示例
+## 审计已安装技能
 
-当你输入类似以下指令时：
-> *“帮我重构这个老旧的订单结算服务。逻辑很缠绕，但我不能破坏既有业务调用。”*
+一个 skill 看不到你装的其他东西，审计工具可以：
 
-1. **自动唤醒**：Agent 侦测到重构与架构意图，自动激活 `software-design-advisor`。
-2. **多维工程协同**：顾问引导 Agent 综合运用多部经典智慧：
-   - 运用 Michael Feathers《修改代码的艺术》的“接缝技术”，在修改前植入特征测试锁定既有行为；
-   - 遵循 Martin Fowler《重构》的“两顶帽子原则”，将结构调整与功能变动绝对解耦；
-   - 运用《软件设计哲学》消除透传浅类，将碎片化逻辑收敛为高内聚深模块；
-   - 运用《代码大全》在外部输入边界做好防御性校验。
-3. **结构化交付**：Agent 产出结构严谨的方案：
-   - 架构选型与权衡依据（Tradeoffs & Rationale）
-   - 测试安全网保护下的代码实现
-   - 六维交付自检清单核验
+```bash
+node scripts/audit_skills.mjs
+```
+
+报告包括：
+
+- **各运行时装了什么**（Claude Code、Codex、Gemini、Cursor）。
+- **固定成本**：每轮要付多少描述 token。
+- **结构问题**：缺描述、坏引用、同名冲突。
+- **重叠候选**：描述里抢同一类任务的技能对。
+- **过宽触发词**：动辄“任何”“只要”，最容易误触发的写法。
+
+产物在 `.advisor-audit/`：
+
+- `audit-report.md` —— 可读报告。
+- `skills.lock.json` —— 带内容哈希的清单，方便对比安装变化。
+
+重叠分数高只代表“这两份值得读一下”，不代表它们冲突。审计不会修改、删除或安装任何东西。方法与边界见 [docs/AUDIT.md](docs/AUDIT.md)。
 
 ---
 
-## 📁 仓库标准规范结构
+## 从其他仓库导入技能
+
+```bash
+node scripts/import_repo.mjs https://github.com/owner/skills --ref main
+```
+
+导入工具会：
+
+1. 把仓库克隆到临时隔离目录；
+2. 找出 `SKILL.md`、`AGENTS.md`、`CLAUDE.md`、`.cursor/rules/*.mdc`；
+3. 记录来源：URL、commit SHA、子目录、许可证、内容哈希；
+4. 和你的审计清单比对；
+5. 写出 `.advisor-import/<repo>/proposal.md`，逐个给出建议动作。
+
+它**不安装、不写入技能根目录、不执行仓库代码**。可执行文件只登记、不复制；许可证不明或非宽松许可的候选默认只能作参考。
+
+决定采纳后，先读建议书，再用 `advisor-creator` 合并，最后手动安装。
+
+---
+
+## 造自己的顾问
+
+如果你有团队专属的规范——API 约定、安全基线、事故处理规则——`advisor-creator` 可以把它变成一个技能：
+
+```
+调用 advisor-creator，把我们团队的 API 规范与 OWASP 要求合成为一个 api-security-advisor。
+```
+
+它会带你走完领域映射、冲突仲裁、规则精简和脚手架。产物结构与 `software-design-advisor` 一致，因此同一套审计、校验和测试都能直接用。
+
+---
+
+## 仓库结构
 
 ```text
 agent-advisors/
-├── .github/                       # GitHub 工作流与社区配置文件
-├── skills/                        # 标准技能总目录
-│   ├── software-design-advisor/   # 软件架构综合顾问
-│   │   ├── SKILL.md               # 机器可执行纯英接口
-│   │   └── references/            # 内部深度知识书架 (14 部经典)
-│   └── advisor-creator/           # 元顾问合成引擎
-│       ├── SKILL.md               # 5 步流水线规约
-│       └── references/            # 顾问生成母版脚手架
-├── CONTRIBUTING.md                # 顾问工程规范与贡献公约
-├── LICENSE                        # MIT 开源协议
-├── README.md                      # 国际英文主文档
-└── README_ZH.md                   # 简体中文主文档
+├── .github/workflows/          # CI：结构校验 + 测试
+├── docs/                       # 审计方法与导入安全模型
+├── evals/                      # 触发用例与盲测协议
+├── scripts/
+│   ├── lib/skill.mjs           # 共享的解析与比较
+│   ├── audit_skills.mjs        # 只读盘点与重叠报告
+│   ├── import_repo.mjs         # 隔离克隆与建议书
+│   └── validate_skills.mjs     # 本仓库的结构校验
+├── tests/                      # node --test 测试
+├── skills/
+│   ├── software-design-advisor/
+│   │   ├── SKILL.md
+│   │   └── references/         # 14 份提炼工程参考
+│   └── advisor-creator/
+│       ├── SKILL.md
+│       └── references/         # 顾问模板
+├── CONTRIBUTING.md
+├── LICENSE
+├── package.json                # 只有脚本，零依赖
+└── README.md / README_ZH.md
 ```
 
 ---
 
-## 🛠️ 自制专属领域顾问
+## 常见问题与边界
 
-如果你有自己团队特有的架构规范、安全合规基线或私有领域标准，可直接调用内置的 **`advisor-creator`** 元技能来生成专属顾问：
+**它会让模型多懂一些东西吗？**
+不会。模型本来就知道这些书。顾问改变的是默认判断，并让判断保持稳定；它的价值是判断力，不是知识点。
 
-```text
-用户：“调用 advisor-creator，把我们团队的 API 设计规范与安全开发指南，合成为一个 api-standards-advisor。”
+**能保证每次都触发吗？**
+不能。是否加载由模型决定。[`evals/trigger-cases.md`](evals/trigger-cases.md) 列出了“该触发”“该静默”“该让位”的用例。
+
+**审计能发现两套规范互相矛盾吗？**
+不能。它只能发现结构问题和触发面重叠。是否真的矛盾，需要读正文或让模型做仲裁。见 [docs/AUDIT.md](docs/AUDIT.md)。
+
+**references 是原书内容吗？**
+不是。它们是独立写的摘要。书名与作者归各自权利人所有，本项目与其无隶属关系。
+
+**所有客户端都支持审计吗？**
+预算按运行时分开展示；重叠分析默认只比较 Claude Code（加 `--agents all` 可比较全部）。插件发现目前只支持 Claude Code 的 `installed_plugins.json`。
+
+**工具会自动卸载或改写我的技能吗？**
+不会。审计和导入对已安装技能都是只读的。删不删、合不合并，由你决定。
+
+---
+
+## 开发
+
+只需要 Node.js 20+，没有任何第三方依赖。
+
+```bash
+node scripts/validate_skills.mjs
 ```
 
-引擎将自动引导你完成领域映射、权衡分析、Nano 规则蒸馏与渐进式披露脚手架的构建。
+```bash
+node --test
+```
+
+```bash
+node scripts/audit_skills.mjs
+```
+
+```bash
+node scripts/import_repo.mjs <git-url>
+```
 
 ---
 
-## 🤝 参与贡献
+## 参与贡献
 
-欢迎社区共同贡献高质量的领域顾问！在提交 Pull Request 前，请先阅读 **[贡献指南 (CONTRIBUTING.md)](CONTRIBUTING.md)**。
+提交 PR 前请读 [CONTRIBUTING.md](CONTRIBUTING.md)。核心规则：
 
-所有顾问的核心质量要求：
-- **单一门面**：一个技术大领域只打造一个复合型顾问，拒绝散碎微规则；
-- **渐进式披露**：`SKILL.md` 正文控制在 150 行以内的 Nano 规约；深度典籍存入 `references/`；
-- **因果阐释（Explain the Why）**：用工程权衡与因果关系说明约束，杜绝死板的空洞命令；
-- **标准英文机器执行**：`SKILL.md` 统一采用精准地道的纯正英文编写，确保各大模型在机器执行时具备最高精度与零歧义。
+- 一个领域只做一个顾问；
+- `SKILL.md` 控制在 150 行以内，深度内容放 `references/`；
+- 写清理由、权衡，以及这个顾问让位于什么；
+- 跑校验和测试，CI 也会重复一遍。
 
 ---
 
-## 📄 开源协议
+## 开源协议
 
-本项目采用 [MIT License](LICENSE) 开源 © 2026 [cqzeng](https://github.com/cqzeng)。
+MIT，见 [LICENSE](LICENSE)。
+
+### 版权与出处
+
+`skills/*/references/` 下的文件是对已出版专著与公开目录的独立提炼与改写，并非原文复制。书名、作者与目录名称归各自权利人所有；本项目与这些作者或出版方无隶属或背书关系，这些摘要也不能替代原著。

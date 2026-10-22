@@ -17,3 +17,6 @@ assignees: ''
 
 ### Major Ideological Clashes to Arbitrate
 <!-- What conflicting schools of thought exist in this domain? How should they be arbitrated? -->
+
+### Operating Boundaries & Non-Goals
+<!-- What does this advisor NOT own? Which project conventions or adjacent skills should take precedence? -->

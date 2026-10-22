@@ -30,7 +30,7 @@ Follow this disciplined pipeline sequentially whenever a user asks to create or 
 - Map high-frequency developer tasks in this domain to their most authoritative standard.
 - Structure this as an explicit table in Section 1 of the new advisor:
   `| Engineering Scenario | Primary Standard / Classic | Architectural Focus & Rationale |`
-- Ensure the categories are largely orthogonal and cover 80%+ of common production problems.
+- Ensure the categories are largely orthogonal and cover the large majority of common production problems.
 
 ### Step 3: Ideological Clash Arbitration
 Every mature domain contains doctrinal civil wars (e.g., OOP vs. FP, 3-line functions vs. deep modules, strict typing vs. dynamic agility).
@@ -45,9 +45,9 @@ Every mature domain contains doctrinal civil wars (e.g., OOP vs. FP, 3-line func
 - Define a standardized **Output Delivery Format** to ensure the new advisor delivers structured responses (Tradeoffs -> Implementation -> Verification Checklist).
 
 ### Step 5: Progressive Disclosure Scaffolding & Compliance Audit
-Scaffold the target advisor under `skills/<advisor-name>/`:
-- **`SKILL.md`**: Must stay **under 150 lines**, written in canonical, rationale-backed English.
-- **`references/`**: Place comprehensive canonical source texts, cheat-sheets, or detailed catalogs here for on-demand deep dives.
+Scaffold the target advisor under `skills/<advisor-name>/`, starting from [`references/advisor-template.md`](references/advisor-template.md) rather than inventing section names:
+- **`SKILL.md`**: Must stay **under 150 lines**, written in canonical, rationale-backed English, with an **Operating Boundaries** section that states what the advisor does not own.
+- **`references/`**: Place distilled source summaries, cheat-sheets, or detailed catalogs here for on-demand deep dives. These are summaries, never copies of the source text.
 - Review against the **Advisor Audit Checklist** before finalizing.
 
 ---
@@ -71,6 +71,8 @@ Before declaring a new Advisor complete, verify every item:
 3. **[ ] Progressive Disclosure Hierarchy**:
    - Level 1: Intent-rich frontmatter metadata (~30 tokens)?
    - Level 2: Compact `SKILL.md` under 150 lines?
-   - Level 3: Deep exhaustive treatises safely relegated to `references/`?
+   - Level 3: Distilled references relegated to `references/`, with a one-or-two-file reading cap?
 4. **[ ] Canonical English Execution**: Is `SKILL.md` written in idiomatic, high-precision English for deterministic LLM execution?
-5. **[ ] Explain the Why**: Have all rigid, all-caps `MUST` and `ALWAYS` commands been replaced with clear causal explanations and trade-off rationales?
+5. **[ ] Explain the Why**: Does every binding rule (`MUST` / `SHOULD`) carry its rationale? Severity vocabulary is acceptable when the reason is stated; unsupported all-caps commands are not.
+6. **[ ] Cross-Skill Boundary**: Does the advisor state what it does not own and defer to project conventions, adjacent review/test/debug skills, and explicit user instructions?
+7. **[ ] Source Honesty**: Are `references/` files described as distilled summaries rather than reproductions, with source titles attributed and no implied affiliation?
