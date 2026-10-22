@@ -116,7 +116,7 @@ We welcome contributions! Any new advisor must adhere to our deep-module charter
 1. **Single Unified Facade**: Never fragment a domain into dozens of micro-skills. Build one cohesive advisor with a clear decision matrix.
 2. **Explicit Arbitration**: Explicitly arbitrate ideological conflicts between different schools of thought.
 3. **Progressive Disclosure**: Keep `SKILL.md` under 200 lines of nano-rules; store deep treatises in `references/`.
-4. **Bilingual Delivery**: Provide both canonical English (`SKILL.md` for deterministic machine execution) and Chinese companion (`SKILL_ZH.md` for human exploration).
+4. **Canonical English Execution**: Keep `SKILL.md` written in rigorous canonical English to ensure maximum deterministic execution and zero token waste across all LLM backends.
 
 ---
 
@@ -221,7 +221,7 @@ New-Item -ItemType Junction -Path "$HOME\.gemini\skills\software-design-advisor"
 1. **单一统一门面**：严禁在一个领域拆散为几十个琐碎小技能。必须打造一个包含清晰决策矩阵的复合顾问。
 2. **显式冲突仲裁**：必须在文档中明确解决该领域不同流派之间的理论矛盾。
 3. **渐进式披露控制**：`SKILL.md` 正文控制在 200 行以内的 Nano 规约；完整学术专著存入 `references/`。
-4. **双语规范交付**：同时提供纯正地道英文版（`SKILL.md`，保障机器执行的最高精度）和中文参考版（`SKILL_ZH.md`，方便人类阅读与维护）。
+4. **标准英文机器执行**：`SKILL.md` 统一采用精准地道的纯正英文编写，确保各大模型在机器执行时具备最高精度、零歧义且 Token 消耗最小。README 承担全局中英双语的导读与架构阐释。
 
 ---
 
