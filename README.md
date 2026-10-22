@@ -121,6 +121,7 @@ We welcome contributions! Any new advisor must adhere to our deep-module charter
 ---
 
 <a name="chinese"></a>
+
 ## 中文说明
 
 ### 💡 为什么需要 Agent Advisors？
@@ -174,7 +175,7 @@ Level 3: 深度知识书架 (references/) ── 内部按需定向深潜
 
 根据你主力使用的 Agent 工具选择安装方式（按社区热门流行度排序）：
 
-#### 1. Claude Code (Anthropic 官方 CLI)
+#### 1. Claude Code
 直接将所需顾问软链接到 Claude Code 的技能目录中：
 ```bash
 mkdir -p ~/.claude/skills
@@ -185,7 +186,7 @@ ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-a
 New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
 ```
 
-#### 2. Cursor (主流 AI 编辑器)
+#### 2. Cursor
 将顾问目录放入或软链接到项目的 `.cursor/skills/`（或在 `.cursorrules` 中配置）：
 ```bash
 mkdir -p .cursor/skills

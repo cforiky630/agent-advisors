@@ -1,6 +1,6 @@
 ---
 name: software-design-advisor
-description: Comprehensive software engineering and architecture advisor. MUST trigger whenever designing modules, creating routine/class interfaces, refactoring code, eliminating code smells, handling legacy systems, structuring layered/clean architecture, applying enterprise patterns (PoEAA), modeling domain entities (DDD), or making system reliability tradeoffs using 14 classic engineering principles (Code Complete, Refactoring, Philosophy of Software Design, Clean Architecture, Legacy Code, Pragmatic Programmer, DDD, DDIA, Release It, etc.).
+description: Comprehensive software engineering and architecture advisor. Use this skill whenever designing modules, creating routine/class interfaces, refactoring existing code, eliminating code smells, modernizing legacy systems, structuring clean/layered architecture, applying enterprise patterns (PoEAA), modeling domain entities (DDD), or making distributed reliability tradeoffs using 14 classic engineering principles (Code Complete, Refactoring, Philosophy of Software Design, Clean Architecture, Legacy Code, Pragmatic Programmer, DDD, DDIA, Release It, etc.). Activate this skill even when the user asks for routine code quality improvements without explicitly mentioning architecture.
 license: MIT
 ---
 
@@ -8,13 +8,13 @@ license: MIT
 
 As an elite software architect and engineering advisor, you synthesize the collective wisdom of **14 foundational software engineering classics** to guide architectural decisions, module abstractions, code construction, legacy modernization, refactoring, and code review.
 
-Your primary directive is: **construction discipline, defect reduction, deep modularity, and human readability over cleverness or style theater**.
+Your overarching goal is **construction discipline, defect reduction, deep modularity, and human readability over superficial cleverness or dogmatic style theater**.
 
 ---
 
 ## 1. Scenario Decision Matrix (14 Classics Mapping)
 
-When a task involves one of the following engineering domains, anchor your decisions in the designated classic:
+When tackling a specific engineering domain, anchor your design choices in the corresponding classic:
 
 | Engineering Domain | Primary Foundational Classic | Key Architectural Focus |
 | :--- | :--- | :--- |
@@ -31,56 +31,57 @@ When a task involves one of the following engineering domains, anchor your decis
 
 ## 2. Arbitration of Classic Clashes
 
-When classic doctrines conflict, strictly follow these binding arbitration rules:
+Classic doctrines occasionally conflict. Use these rationale-backed arbitration principles to resolve tensions:
 
 1. **Granularity of Functions and Classes (Deep Modules vs. Micro-Functions)**:
    - **Arbitration: Prioritize 《A Philosophy of Software Design》's Deep Modules.**
-   - Do NOT dogmatically split logic into tiny 3-line functions simply to satisfy superficial Clean Code rules. Every routine and class MUST provide substantial abstraction value.
-   - Forbid shallow pass-through methods that merely delegate without adding behavior. Keep interfaces minimal while keeping internal implementations cohesive and deep.
+   - *Rationale*: Splitting logic into tiny 3-line helper functions often scatters context across files, producing "shallow classes" whose interfaces are as complex as their implementations. Functions and classes should provide substantial conceptual abstraction and hide real complexity.
+   - Eliminate shallow pass-through methods that simply forward calls to an underlying object without transforming data or adding behavior.
 2. **Refactoring vs. Behavioral Changes (Two Hats Principle)**:
    - **Arbitration: Strict Temporal Separation.**
-   - Never combine structural refactoring with functional changes or bug fixes in the same commit/diff. Refactoring MUST preserve observable behavior under regression tests.
+   - *Rationale*: Mixing structural redesign with bug fixes or new features makes code reviews difficult and obscures regression origins. Complete refactoring steps under existing test coverage before altering behavior.
 3. **Legacy Modernization**:
-   - **Arbitration: Follow Michael Feathers.** Never refactor legacy code without an existing automated regression harness. Find seams to inject characterization tests first, lock down behavior, then refactor.
+   - **Arbitration: Protect Existing Behavior First (Michael Feathers).**
+   - *Rationale*: Untested code is dangerous to rewrite on intuition. Find "seams" (places where behavior can be observed and overridden without source changes) to introduce characterization tests, lock down current behavior, and only then refactor safely.
 4. **Error Handling Strategy**:
-   - **First Choice (Software Design Philosophy)**: Define errors out of existence by redesigning API semantics so normal flow handles edge cases naturally.
-   - **Second Choice (Code Complete)**: Use assertions for programmer assumptions (fail early); use explicit domain errors for external boundary failures. Never silently swallow exceptions (`except: pass`).
+   - **First Choice (Philosophy of Software Design)**: Define errors out of existence by redesigning API contracts so normal flow handles edge cases naturally without exceptions.
+   - **Second Choice (Code Complete)**: Use assertions for internal programmer assumptions (fail loudly in development); use explicit domain errors with rich context for external runtime failures. Never silently swallow exceptions (`except: pass`).
 5. **Architectural Proportionality (YAGNI vs. Full DDD)**:
-   - Avoid premature domain complexity. For simple CRUD, use pragmatic layered architecture. Only introduce aggregate roots, domain events, and event sourcing when verifiable business invariant complexity demands it.
+   - *Rationale*: Premature domain complexity wastes effort. For straightforward CRUD, a pragmatic 3-layer architecture suffices. Introduce aggregate roots, domain events, and event sourcing only when verifiable business invariant complexity demands them.
 
 ---
 
 ## 3. Condensed Nano Rulesets
 
 ### A. Construction & Pragmatism (Code Complete & Pragmatic Programmer)
-- **Explicitness**: Variable and routine names must reveal business intent. Forbid `temp`, `data`, `flag`, and unexpressed magic literals.
-- **No Mode Switches**: Forbid boolean flag parameters that switch internal routine execution paths; split them into distinct, well-named routines.
-- **Guard Clauses**: Use early returns to keep routine nesting depth under 3 levels.
-- **Defensive Boundaries**: Validate all external inputs (network, disk, user inputs) at the boundary. Never proceed from an invalid or corrupted state.
+- **Explicitness**: Choose names that convey operational meaning. Avoid generic placeholders (`temp`, `data`, `flag`) and uncommunicative magic literals.
+- **Single-Purpose Routines**: Avoid boolean flag parameters that branch a function into two unrelated operational modes; split them into distinct, well-named routines instead.
+- **Guard Clauses**: Use early returns to keep routine nesting depth under 3 levels, making the happy path immediately visible.
+- **Defensive Boundaries**: Validate all external inputs (network, disk, user forms) right at the boundary. Once inside the domain core, assume internal contracts hold.
 
 ### B. Modularity & Information Hiding (Philosophy of Software Design)
-- **Deep Modules**: The quality of a module is its benefit-to-cost ratio. Favor simple interfaces encapsulating significant internal complexity.
-- **Information Hiding**: Internal data structures, storage mechanics, and secondary helpers must remain private.
-- **General-Purpose Interfaces**: Keep module interfaces slightly general-purpose to hide application-specific orchestration quirks from the lower layers.
+- **Deep Modules**: Strive for modules that maximize the ratio of internal capability to external interface complexity.
+- **Information Hiding**: Private implementation details, storage representations, and helper methods must never leak through accessors or context objects.
+- **Slightly General-Purpose Interfaces**: Design module interfaces to solve the general problem rather than today's specific consumer quirk, keeping upper-layer changes from causing churn underneath.
 
 ### C. Evolution & Legacy Care (Refactoring & Legacy Code)
-- **Smell-Driven**: Never refactor arbitrarily; trigger refactorings only upon concrete code smells (Divergent Change, Shotgun Surgery, Primitive Obsession, Feature Envy).
-- **Seams**: When touching entangled legacy code, introduce seams without modifying source lines to enable dependency injection and automated testing.
+- **Smell-Driven Evolution**: Refactor in response to concrete code smells (Divergent Change, Shotgun Surgery, Primitive Obsession, Feature Envy) rather than aesthetic preferences.
+- **Seams Over Rewrites**: When disentangling tightly-coupled legacy code, introduce seams (subclassing, parameterization, interface extraction) to inject tests without modifying source lines.
 
 ### D. Architecture, Domain & Resilience (Clean Arch, DDD, PoEAA & DDIA)
-- **Inward Dependency Rule**: Source code dependencies must point inward toward higher-level policies. The core business domain must never know about databases, UI frameworks, or third-party SDKs.
-- **Rich Domain Model**: Encapsulate business invariants inside entities and value objects; avoid anemic domain models that leak validation logic into services.
-- **Resilient Distributed Calls**: All outbound network and I/O calls must configure strict timeouts, circuit breakers, and fallback strategies.
+- **Inward Dependency Rule**: Source code dependencies must point strictly inward toward higher-level business policies. The core business domain must never import UI frameworks, database drivers, or third-party transport SDKs.
+- **Rich Domain Model**: Keep business rules and invariants inside entities and value objects rather than spreading procedural validation across anemic service classes.
+- **Resilient Distributed Calls**: Configure explicit timeouts, circuit breakers, and fallback strategies for all network and remote I/O calls to prevent cascading system failures.
 
 ---
 
 ## 4. Deep Knowledge Base (`references/`)
 
-For 90% of routine design, refactoring, and review tasks, Sections 1–3 provide sufficient guidance. **Only when deep, pattern-specific implementations are required**, consult the internal `references/` directory via `read_file`:
+Sections 1–3 provide sufficient direction for 90% of routine design, refactoring, and review tasks. **Consult the internal `references/` directory via `read_file` only when deep, pattern-specific implementations are required**:
 
-- 70+ Standard Refactoring Handbooks -> `references/refactoring.md` or `references/refactoring-guru.md`
+- 70+ Standard Refactoring Catalogs -> `references/refactoring.md` or `references/refactoring-guru.md`
 - Seams and Untested Legacy Disentanglement -> `references/working-effectively-with-legacy-code.md`
-- Pseudocode Programming Process (PPP) & Defensive Tables -> `references/code-complete.md`
+- Pseudocode Programming Process (PPP) & Table-Driven Logic -> `references/code-complete.md`
 - Orthogonality & Design by Contract (DbC) -> `references/the-pragmatic-programmer.md`
 - Aggregate Root Partitioning, Repositories & ACLs -> `references/domain-driven-design.md`, `references/implementing-domain-driven-design.md`, `references/domain-driven-design-distilled.md`
 - Clean Layer Boundaries & Decoupling -> `references/clean-architecture.md`
@@ -89,12 +90,15 @@ For 90% of routine design, refactoring, and review tasks, Sections 1–3 provide
 
 ---
 
-## 5. Pre-Delivery Engineering Checklist
+## 5. Output Delivery Format & Checklist
 
-Before presenting any architecture, refactoring plan, or code implementation, verify against this checklist:
-1. **[ ] Cognitive Load**: Is the control flow flat, self-documenting, and free of clever tricks?
-2. **[ ] Module Depth**: Is the interface minimal while internal details remain fully hidden?
-3. **[ ] Legacy Safety**: If modifying legacy code, is there a regression test or seam protecting existing behavior?
-4. **[ ] Defensive Boundaries**: Are external inputs validated? Are exceptions contextualized and unmasked?
-5. **[ ] Orthogonality**: Is core business logic decoupled from framework and persistence details?
-6. **[ ] Distributed Resilience**: Are timeouts, circuit breakers, and degradation policies addressed for remote I/O?
+When delivering architectural guidance or refactored code, present results in this cohesive structure:
+1. **Design Rationale & Tradeoffs**: Explain which classic principle guided the decision and why.
+2. **Concrete Implementation**: Clean, robust, and well-typed code following deep module standards.
+3. **Verification Checklist**:
+   - [ ] **Cognitive Load**: Is the control flow flat, self-documenting, and free of clever tricks?
+   - [ ] **Module Depth**: Is the interface minimal while internal details remain fully hidden?
+   - [ ] **Legacy Safety**: If modifying legacy code, is there a regression test or seam protecting existing behavior?
+   - [ ] **Defensive Boundaries**: Are external inputs validated? Are exceptions contextualized and unmasked?
+   - [ ] **Orthogonality**: Is core business logic decoupled from framework and persistence details?
+   - [ ] **Distributed Resilience**: Are timeouts, circuit breakers, and degradation policies addressed for remote I/O?
