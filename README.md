@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>A curated suite of unified, deep-module AI agent advisors.</strong><br>
-  Ending prompt bloat and ideological skill clashes via the Facade pattern and three-level progressive disclosure.
+  Ending fragmented prompt clutter and context window bloat via holistic domain synthesis and three-level progressive disclosure.
 </p>
 
 <p align="center">
@@ -20,18 +20,19 @@
 ## Table of Contents
 
 - [Why Agent Advisors?](#-why-agent-advisors)
-  - [The "Shallow Skills" Crisis](#the-shallow-skills-crisis)
-  - [The Deep-Module Paradigm](#the-deep-module-paradigm)
+  - [The Fragmentation Problem](#the-fragmentation-problem)
+  - [The Deep-Module Synthesis](#the-deep-module-synthesis)
 - [Architecture: Three-Level Progressive Disclosure](#-architecture-three-level-progressive-disclosure)
-- [The Advisors Catalog & Roadmap](#-the-advisors-catalog--roadmap)
+- [The Advisors Catalog](#-the-advisors-catalog)
 - [Quick Start & Installation](#-quick-start--installation)
   - [1. Claude Code](#1-claude-code-anthropic-cli)
   - [2. Cursor](#2-cursor)
   - [3. OpenAI Codex](#3-openai-codex--cli)
   - [4. Google Antigravity / Gemini CLI](#4-google-antigravity--gemini-cli)
-  - [5. Centralized Management via cc-switch](#5-centralized-multi-agent-management-via-cc-switch-secondary-recommendation)
+  - [5. Centralized Multi-Agent Management via cc-switch](#5-centralized-multi-agent-management-via-cc-switch-secondary-recommendation)
 - [How It Works in Action](#-how-it-works-in-action)
 - [Repository Structure](#-repository-structure)
+- [Creating Custom Advisors](#-creating-custom-advisors)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -39,17 +40,17 @@
 
 ## 💡 Why Agent Advisors?
 
-### The "Shallow Skills" Crisis
-As AI coding agents become essential pair-programmers, the developer ecosystem has flooded with hundreds of ad-hoc prompt snippets, rules, and micro-skills. However, this **shallow skill accumulation** quickly leads to three systemic failures:
+### The Fragmentation Problem
+As AI coding agents become default pair-programming companions, developers typically accumulate dozens of individual rules, prompt snippets, and micro-skills. In practice, this **fragmented setup** causes three severe bottlenecks:
 
-1. **Ideological Clashes & Cognitive Dissonance**: Different books and rules preach contradictory dogmas (e.g., dogmatically demanding 3-line functions vs. advocating cohesive, information-hiding deep modules). Unarbitrated skills cause the agent to waver erratically between conflicting styles across conversational turns.
-2. **Context Window Bloat & Attention Dilution**: Loading dozens of granular skill names and descriptions into the system prompt pollutes the top-level reasoning context, crowding out task context and triggering hallucinations.
-3. **Execution Friction & Undertriggering**: Long, nested "skill-calling-skill" chains create excessive round-trips. Agents frequently become confused, pick randomly, or lazily skip loading guidance entirely.
+1. **Disconnected Engineering Vision**: Software construction is an interconnected whole—routine naming, error defense, refactoring, and layered architecture are not isolated tasks. Splitting them into dozens of separate micro-skills forces the developer to manually coordinate which skill to call at each stage.
+2. **Context Window Bloat**: Registering dozens of individual skills floods the system prompt with verbose descriptions on every turn, diluting the agent's attention and consuming valuable reasoning tokens.
+3. **Execution Friction & Undertriggering**: When presented with an overwhelming menu of overlapping micro-skills, agents suffer from decision friction—often undertriggering or failing to load the relevant guidance entirely.
 
-### The Deep-Module Paradigm
-Inspired by John Ousterhout’s *A Philosophy of Software Design* and the classic **Facade Pattern**, `agent-advisors` reorganizes agent capabilities:
+### The Deep-Module Synthesis
+Inspired by John Ousterhout’s *A Philosophy of Software Design* and the classic **Facade Pattern**, `agent-advisors` consolidates domain wisdom into **high-leverage, deep-module Advisors**:
 
-> **Do not scatter dozens of shallow rules. Consolidate entire technical disciplines into cohesive, high-leverage "Advisors" that arbitrate conflicts internally and expose a zero-friction interface to the agent.**
+> **Instead of registering dozens of fragmented micro-rules, synthesize entire engineering disciplines into cohesive Advisors that encapsulate deep knowledge behind a clean, zero-friction interface.**
 
 ---
 
@@ -59,32 +60,26 @@ Every advisor in this repository strictly adheres to a three-level loading model
 
 ```
 Level 1: Metadata (Always In Context) ── Ultra-light (~30 Tokens)
-   │     • Injected into system prompts as an intent-rich, pushy trigger.
+   │     • Injected into system prompts as an intent-rich trigger.
    │     • Zero context bloat; stays completely dormant until relevant tasks arise.
    ▼
-Level 2: Unified Brain & Arbitration (SKILL.md) ── Loaded on Trigger (~120 Lines)
-   │     • Scenario decision matrix, cross-school clash arbitration, and nano rulesets.
+Level 2: Unified Brain & Decision Matrix (SKILL.md) ── Loaded on Trigger (~120 Lines)
+   │     • Scenario decision matrix, engineering trade-offs, and nano rulesets.
    │     • Resolves 90% of architectural and technical decisions in a single round-trip.
    ▼
-Level 3: Deep Knowledge Repositories (references/) ── Deep Dive On-Demand
+Level 3: Deep Reference Repositories (references/) ── Deep Dive On-Demand
          • Comprehensive canonical texts and complete handbooks kept completely private.
          • Prevents global skill namespace pollution while preserving full depth.
 ```
 
 ---
 
-## 📚 The Advisors Catalog & Roadmap
-
-Each advisor takes complete ownership of a broad engineering domain:
+## 📚 The Advisors Catalog
 
 | Advisor | Domain | Status | Key Highlights |
 | :--- | :--- | :---: | :--- |
-| **[`software-design-advisor`](skills/software-design-advisor/)** | **Software Architecture & Construction** | 🟢 **Active** | Synthesizes **14 foundational classics** (*Code Complete, Philosophy of Software Design, Refactoring, Clean Architecture, DDD, PoEAA, DDIA, Release It!*). Arbitrates granularity, seams, and boundaries. |
-| **[`advisor-creator`](skills/advisor-creator/)** | **Meta-Engineering & Skill Synthesis** | 🟢 **Active** | Built-in meta-advisor engine to synthesize fragmented domain handbooks into new, standardized deep-module advisors. |
-| **`frontend-craft-advisor`** | **Modern Web & UI Architecture** | 🚧 Planned | Component composition, accessible state machines, design token systems, rendering performance tuning. |
-| **`system-reliability-advisor`** | **SRE & Distributed Systems** | 🚧 Planned | Chaos engineering, distributed tracing, circuit breaking, bulkhead partitioning, zero-downtime database cutovers. |
-| **`security-guard-advisor`** | **AppSec & Defense-in-Depth** | 🚧 Planned | Threat modeling (STRIDE), supply-chain audit, input hygiene, OWASP Top 10 mitigation. |
-| **`database-storage-advisor`** | **Data Modeling & Storage Engine** | 🚧 Planned | Relational index tuning, query plan analysis, cache-aside strategies, distributed consensus and partitioning. |
+| **[`software-design-advisor`](skills/software-design-advisor/)** | **Software Architecture & Construction** | 🟢 **Active** | A comprehensive engineering advisor synthesizing **14 foundational classics** (*Code Complete, Philosophy of Software Design, Refactoring, Clean Architecture, DDD, PoEAA, DDIA, Release It!*). Covers routine construction, seam-driven refactoring, and domain boundaries. |
+| **[`advisor-creator`](skills/advisor-creator/)** | **Meta-Engineering & Synthesis Engine** | 🟢 **Active** | Built-in meta-advisor engine that provides a 5-step pipeline to synthesize scattered domain handbooks, prompt rules, or standards into new, standardized deep-module advisors. |
 
 ---
 
@@ -135,16 +130,17 @@ If you switch between multiple agent runtimes (Claude Code, Codex, Antigravity, 
 
 ## 🎬 How It Works in Action
 
-When you provide a prompt like:
-> *"Help me refactor this legacy order processing service. The logic is tangled, but I can't break existing consumers."*
+When you prompt your agent with a task like:
+> *"Help me refactor this legacy order processing service. The logic is tangled, but I cannot break existing consumers."*
 
 1. **Automatic Activation**: The agent's skill runner detects architectural/refactoring intent and activates `software-design-advisor`.
-2. **Arbitrated Decision**: The advisor guides the agent to:
-   - Apply Michael Feathers' seam technique (*Working Effectively with Legacy Code*) to inject characterization tests before refactoring.
-   - Separate refactoring from behavior changes (*Two Hats Principle*).
-   - Consolidate shallow classes into deep modules (*Philosophy of Software Design*), eliminating verbose pass-through wrappers.
-3. **Structured Output**: The agent delivers code structured cleanly into:
-   - Architectural Tradeoff & Rationale
+2. **Holistic Guidance**: The advisor guides the agent across multiple classic disciplines:
+   - Apply Michael Feathers' seam technique (*Working Effectively with Legacy Code*) to inject characterization tests before touching logic.
+   - Separate refactoring from behavior changes (*Two Hats Principle* by Martin Fowler).
+   - Consolidate fragmented classes into deep modules (*Philosophy of Software Design*), eliminating verbose pass-through wrappers.
+   - Guard external input boundaries (*Code Complete*).
+3. **Structured Output**: The agent delivers code cleanly partitioned into:
+   - Engineering Tradeoffs & Rationale
    - Test-protected Implementation
    - Pre-Delivery Checklist Verification
 
@@ -152,19 +148,16 @@ When you provide a prompt like:
 
 ## 📁 Repository Structure
 
-This repository follows the standard Agent Skills Catalog Specification:
-
 ```text
 agent-advisors/
 ├── .github/                       # GitHub workflow and community configurations
 ├── skills/                        # Standard Skill Catalog Root
-│   └── software-design-advisor/   # The Software Architecture Advisor
-│       ├── SKILL.md               # Canonical English machine-executable advisor interface
-│       └── references/            # Bundled deep reference repositories (14 classics)
-│           ├── code-complete.md
-│           ├── a-philosophy-of-software-design.md
-│           ├── refactoring.md
-│           └── ...
+│   ├── software-design-advisor/   # Comprehensive Software Architecture Advisor
+│   │   ├── SKILL.md               # Machine-executable advisor interface
+│   │   └── references/            # Bundled deep reference repositories (14 classics)
+│   └── advisor-creator/           # Meta-Advisor Synthesis Engine
+│       ├── SKILL.md               # 5-step pipeline for synthesizing new advisors
+│       └── references/            # Advisor scaffolding template
 ├── CONTRIBUTING.md                # Advisor engineering specification & guidelines
 ├── LICENSE                        # MIT License
 ├── README.md                      # International Documentation (English)
@@ -173,15 +166,27 @@ agent-advisors/
 
 ---
 
-## 🛠️ Contributing
+## 🛠️ Creating Custom Advisors
 
-We welcome community contributions! If you wish to propose or build a new Advisor (e.g., `frontend-craft-advisor` or `security-guard-advisor`), please read our **[Contribution Guidelines](CONTRIBUTING.md)** first.
+If you have proprietary domain standards, security baselines, or internal architecture guidelines, use the included **`advisor-creator`** meta-skill to synthesize your own domain advisor:
+
+```text
+User: "Activate advisor-creator to help me consolidate our team's API guidelines and OWASP rules into an api-security-advisor."
+```
+
+The engine will guide you through domain mapping, trade-off analysis, nano-rule distillation, and progressive disclosure scaffolding.
+
+---
+
+## 🤝 Contributing
+
+We welcome community contributions! Please read our **[Contribution Guidelines](CONTRIBUTING.md)** before opening a Pull Request.
 
 Key requirements for all advisors:
-- **Single Facade**: One domain, one comprehensive advisor.
-- **Explicit Conflict Arbitration**: Clarify philosophical clashes before listing rules.
+- **Single Facade**: One technical domain, one comprehensive advisor.
 - **Progressive Disclosure**: `SKILL.md` under 150 lines; place comprehensive treaties in `references/`.
-- **Canonical English Execution**: `SKILL.md` must be written in canonical, rationale-backed English for optimal machine execution across all LLMs.
+- **Explain the Why**: Back engineering rules with causal rationales and explicit trade-offs.
+- **Canonical English Execution**: `SKILL.md` must be written in high-precision, rationale-backed English for deterministic machine execution across all LLM backends.
 
 ---
 

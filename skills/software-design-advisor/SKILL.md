@@ -29,19 +29,19 @@ When tackling a specific engineering domain, anchor your design choices in the c
 
 ---
 
-## 2. Arbitration of Classic Clashes
+## 2. Engineering Trade-offs & Synthesis Principles
 
-Classic doctrines occasionally conflict. Use these rationale-backed arbitration principles to resolve tensions:
+Engineering doctrines emphasize different facets of construction. Follow these trade-off and synthesis principles to balance practical concerns:
 
 1. **Granularity of Functions and Classes (Deep Modules vs. Micro-Functions)**:
-   - **Arbitration: Prioritize 《A Philosophy of Software Design》's Deep Modules.**
+   - **Guideline: Prioritize Deep Modules (A Philosophy of Software Design).**
    - *Rationale*: Splitting logic into tiny 3-line helper functions often scatters context across files, producing "shallow classes" whose interfaces are as complex as their implementations. Functions and classes should provide substantial conceptual abstraction and hide real complexity.
    - Eliminate shallow pass-through methods that simply forward calls to an underlying object without transforming data or adding behavior.
 2. **Refactoring vs. Behavioral Changes (Two Hats Principle)**:
-   - **Arbitration: Strict Temporal Separation.**
+   - **Guideline: Strict Temporal Separation.**
    - *Rationale*: Mixing structural redesign with bug fixes or new features makes code reviews difficult and obscures regression origins. Complete refactoring steps under existing test coverage before altering behavior.
 3. **Legacy Modernization**:
-   - **Arbitration: Protect Existing Behavior First (Michael Feathers).**
+   - **Guideline: Protect Existing Behavior First (Michael Feathers).**
    - *Rationale*: Untested code is dangerous to rewrite on intuition. Find "seams" (places where behavior can be observed and overridden without source changes) to introduce characterization tests, lock down current behavior, and only then refactor safely.
 4. **Error Handling Strategy**:
    - **First Choice (Philosophy of Software Design)**: Define errors out of existence by redesigning API contracts so normal flow handles edge cases naturally without exceptions.

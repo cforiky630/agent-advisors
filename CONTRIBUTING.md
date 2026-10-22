@@ -8,15 +8,15 @@ This project aims to replace shallow, unarbitrated prompt clutter with **cohesiv
 
 ## The Advisor Design Charter
 
-Before submitting a Pull Request for a new Advisor (e.g., `frontend-craft-advisor`, `system-reliability-advisor`, `security-guard-advisor`), ensure your proposal fulfills our four core tenets:
+Before submitting a Pull Request for a new Advisor (e.g., an API standards advisor or a domain-specific architecture advisor), ensure your proposal fulfills our four core tenets:
 
 ### 1. The Facade Pattern (Single Unified Advisor)
-- **Do NOT** fragment a domain into dozens of micro-skills (e.g., do not create `react-hooks-skill`, `tailwind-skill`, `css-grid-skill`).
+- **Do NOT** fragment a domain into dozens of micro-skills.
 - **DO** consolidate the entire problem space into one cohesive Advisor with a comprehensive **Scenario Decision Matrix**.
 
-### 2. Explicit Conflict Arbitration
-- Every engineering field has ideological civil wars (e.g., Functional Programming vs. OOP, CSS-in-JS vs. Utility-First, TDD strictness vs. post-facto testing).
-- An Advisor must **never leave conflicts unarbitrated**. You must define an **Arbitration of Clashes** section providing clear, rationale-backed decisions so the agent never vacillates or experiences cognitive dissonance.
+### 2. Engineering Trade-off & Synthesis Guidelines
+- Complex engineering domains involve legitimate technical trade-offs (e.g., simple CRUD vs. full DDD, micro-functions vs. deep modules, strict typing vs. dynamic flexibility).
+- An Advisor must provide clear, rationale-backed decisions and boundary guidelines so the agent never wavers ambiguously across turns.
 
 ### 3. Three-Level Progressive Disclosure
 - **Level 1 (Metadata)**: Frontmatter `description` must be pushy and intent-rich (~30 words) to prevent undertriggering.
@@ -45,7 +45,7 @@ Every `SKILL.md` must follow this standard format:
 1. **YAML Frontmatter**: `name`, `description`, `license: MIT`.
 2. **Introduction**: 1–2 sentences defining the advisor's scope and core directive.
 3. **1. Scenario Decision Matrix**: Table mapping user scenarios to specific methodologies or classics.
-4. **2. Arbitration of Clashes**: Resolution of 3–5 classic ideological disputes with clear rationales.
+4. **2. Engineering Trade-offs & Rationales**: Clear guidance on typical domain trade-offs with causal rationales.
 5. **3. Condensed Nano Rulesets**: Bullet points of non-negotiable principles.
 6. **4. Deep Knowledge Base Pointer**: Exact listing of what lives in `references/` and when to read them.
 7. **5. Output Delivery Format & Checklist**: Required response structure and pre-delivery checklist.
