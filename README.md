@@ -23,11 +23,12 @@ Agent Advisors is a collection of **skills** for AI coding agents, plus small to
 
 A skill is a folder with a `SKILL.md` file. The agent always sees the skill's name and description; it reads the body only when the task matches. That makes a skill a cheap way to give an agent a stable point of view without loading a wall of instructions on every turn.
 
-This repository ships two skills and three tools:
+This repository ships three skills and three tools:
 
 | Piece | What it is | What it is for |
 | :--- | :--- | :--- |
 | [`software-design-advisor`](skills/software-design-advisor/) | One skill + 14 distilled reference notes | Consistent decisions on design, refactoring, legacy code, architecture, DDD, and resilience |
+| [`api-security-advisor`](skills/api-security-advisor/) | One skill + 4 distilled security baselines | Defend against BOLA/IDOR, SSRF, injection, and cryptographic/token vulnerabilities |
 | [`advisor-creator`](skills/advisor-creator/) | A meta-skill | Turn your team's scattered standards into a new advisor |
 | [`audit_skills.mjs`](scripts/audit_skills.mjs) | A read-only command-line tool | See what is installed, what it costs per turn, and which skills compete for the same tasks |
 | [`import_repo.mjs`](scripts/import_repo.mjs) | A quarantine importer | Evaluate skills from another repository without installing them |
@@ -234,6 +235,9 @@ agent-advisors/
 │   ├── software-design-advisor/
 │   │   ├── SKILL.md
 │   │   └── references/         # 14 distilled engineering references
+│   ├── api-security-advisor/
+│   │   ├── SKILL.md
+│   │   └── references/         # 4 distilled security baselines
 │   └── advisor-creator/
 │       ├── SKILL.md
 │       └── references/         # Advisor template

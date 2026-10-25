@@ -15,4 +15,5 @@ This physical separation ensures:
 ## Registry
 
 - [`software-design-advisor.md`](software-design-advisor.md): 14 foundational classics & catalogs covering architecture, refactoring, legacy code, and resilience.
+- [`api-security-advisor.md`](api-security-advisor.md): Application security & defensive API design standards (OWASP API Top 10, RFC 7519, NIST SP 800-63B, CWE/SANS Top 25).
 - [`advisor-creator.md`](advisor-creator.md): Meta-skill lineage (GoF Facade, Progressive Disclosure, Deep Modules).

@@ -23,11 +23,12 @@ Agent Advisors 是一组给 AI 编程助手用的 **skill（技能）**，外加
 
 一个 skill 就是一个带 `SKILL.md` 的文件夹。模型每一轮都能看到它的名字和描述，只有任务对得上时才读正文。这样既能给模型一个稳定的立场，又不用每轮都塞一大段指令。
 
-本仓库包含两个 skill 和三个工具：
+本仓库包含三个 skill 和三个工具：
 
 | 内容 | 是什么 | 用来干什么 |
 | :--- | :--- | :--- |
 | [`software-design-advisor`](skills/software-design-advisor/) | 一个 skill + 14 份提炼笔记 | 让设计、重构、遗留代码、架构、DDD、容错类决策保持一致 |
+| [`api-security-advisor`](skills/api-security-advisor/) | 一个 skill + 4 份安全基线笔记 | 防御水平越权（BOLA/IDOR）、SSRF、注入、密码学与令牌缺陷 |
 | [`advisor-creator`](skills/advisor-creator/) | 元技能 | 把团队散落各处的规范合成一个新顾问 |
 | [`audit_skills.mjs`](scripts/audit_skills.mjs) | 只读命令行工具 | 盘点装了哪些技能、每轮花多少上下文、谁在抢同一类任务 |
 | [`import_repo.mjs`](scripts/import_repo.mjs) | 隔离导入工具 | 评估别的仓库里的技能，但绝不直接安装 |
@@ -234,6 +235,9 @@ agent-advisors/
 │   ├── software-design-advisor/
 │   │   ├── SKILL.md
 │   │   └── references/         # 14 份提炼工程参考
+│   ├── api-security-advisor/
+│   │   ├── SKILL.md
+│   │   └── references/         # 4 份应用安全基线参考
 │   └── advisor-creator/
 │       ├── SKILL.md
 │       └── references/         # 顾问模板
