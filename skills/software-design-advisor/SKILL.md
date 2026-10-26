@@ -1,6 +1,6 @@
 ---
 name: software-design-advisor
-description: Comprehensive software engineering and architecture advisor. Use this skill whenever designing modules, creating routine/class interfaces, refactoring existing code, eliminating code smells, modernizing legacy systems, structuring clean/layered architecture, applying enterprise patterns (PoEAA), modeling domain entities (DDD), or making distributed reliability tradeoffs across 8 core engineering domains (Code Complete, Refactoring, Philosophy of Software Design, Clean Architecture, Legacy Code, Pragmatic Programmer, DDD, DDIA, Release It, etc.). Activate this skill even when the user asks for routine code quality improvements without explicitly mentioning architecture.
+description: Comprehensive software engineering and architecture advisor. Use for designing modules, defining routine or class interfaces, refactoring existing code, eliminating code smells, modernizing legacy systems, structuring layered architecture, applying enterprise patterns (PoEAA), modeling domain entities (DDD), or evaluating distributed reliability tradeoffs across 8 core domains (Code Complete, Refactoring, Philosophy of Software Design, Clean Architecture, Legacy Code, Pragmatic Programmer, DDD, DDIA, Release It). Applies to both explicit architecture work and routine code structure improvements.
 license: MIT
 ---
 
@@ -18,7 +18,7 @@ This advisor supplies design reasoning; it does not own every workflow:
 
 - **Project conventions first.** Existing architecture decisions, linters, tests, and explicit user instructions outrank any doctrine here. If they conflict, name the conflict and follow the project unless the user asks otherwise.
 - **Defer the workflow, keep the rationale.** When a dedicated review, testing, debugging, or planning skill already governs the task, let that skill run its steps and use this advisor only for the design trade-offs behind them.
-- **Match doctrine to problem size.** Apply a pattern only when its preconditions exist: a CRUD service does not need aggregates, and untested behavior is not rewritten without a seam plan.
+- **Match doctrine to problem size (Proportionality Ladder).** Exhaust existing project patterns, standard library capabilities, and simple flat constructs before introducing new abstractions, layers, or dependencies. Scale rigor to the problem tier: scripts and CRUD endpoints do not need aggregates, and untested behavior is not rewritten without a seam plan.
 
 ---
 
@@ -115,7 +115,7 @@ These summaries are not reproductions of the source works; book titles, authors,
 ## 5. Output Delivery Format & Checklist
 
 When delivering architectural guidance or refactored code, present results in this cohesive structure:
-1. **Design Rationale & Tradeoffs**: Explain which classic principle guided the decision and why.
+1. **Design Rationale, Tradeoffs & Intentional Deferrals**: Explain which classic principle guided the decision, which heavier patterns were deliberately omitted for proportionality, and the concrete trigger threshold that would justify introducing them later.
 2. **Concrete Implementation**: Clean, robust, and well-typed code following deep module standards.
 3. **Verification Checklist**:
    - [ ] **Cognitive Load**: Is the control flow flat, self-documenting, and free of clever tricks?
@@ -123,5 +123,5 @@ When delivering architectural guidance or refactored code, present results in th
    - [ ] **Legacy Safety**: If modifying legacy code, is there a regression test or seam protecting existing behavior?
    - [ ] **Defensive Boundaries**: Are external inputs validated? Are exceptions contextualized and unmasked?
    - [ ] **Orthogonality**: Is core business logic decoupled from framework and persistence details?
-   - [ ] **Proportionality**: Is the applied doctrine proportionate to the problem, with no pattern introduced before its preconditions hold?
+   - [ ] **Proportionality & Precedence**: Is the applied doctrine proportionate to the problem, and were existing project conventions respected?
    - [ ] **Distributed Resilience**: Are timeouts, circuit breakers, and degradation policies addressed for remote I/O?

@@ -172,22 +172,34 @@ export function discover(roots) {
   return { records, broken, skipped };
 }
 
-/** Group records by real path; symlinked installs are one skill, not many. */
+/**
+ * Group records into unique skills by (name, contentHash) or realpath so that
+ * both symlinked installs and identical physical copies across runtimes/stores
+ * are counted as one logical skill with multiple install instances.
+ */
 export function uniqueSkills(records) {
-  const byReal = new Map();
+  const byIdentity = new Map();
   for (const record of records) {
-    const existing = byReal.get(record.realpath);
-    const instance = { agent: record.agent, scope: record.scope, path: record.path };
+    const key = record.contentHash
+      ? `${record.name}\0${record.contentHash}`
+      : record.realpath;
+    const existing = byIdentity.get(key);
+    const instance = {
+      agent: record.agent,
+      scope: record.scope,
+      path: record.path,
+      realpath: record.realpath,
+    };
     if (existing) {
       existing.instances.push(instance);
     } else {
-      byReal.set(record.realpath, {
+      byIdentity.set(key, {
         ...record,
         instances: [instance],
       });
     }
   }
-  return [...byReal.values()];
+  return [...byIdentity.values()];
 }
 
 /** Group records by agent, collapsing symlinked duplicates within that agent. */
@@ -232,14 +244,47 @@ export function analyze(
       issues.push({ level: issue.level, name: skill.name, scope: skill.scope, message: issue.message });
     }
     const dirs = skill.instances.map((instance) => instance.scope);
-    if (new Set(dirs).size > 1) {
+    const distinctScopes = [...new Set(dirs)];
+    if (distinctScopes.length > 1) {
+      const realpaths = new Set(
+        skill.instances.map((instance) => instance.realpath ?? skill.realpath),
+      );
       issues.push({
         level: "info",
         name: skill.name,
-        scope: dirs.join(", "),
-        message: `installed through ${dirs.length} roots (same real path)`,
+        scope: distinctScopes.join(", "),
+        message:
+          realpaths.size === 1
+            ? `installed through ${dirs.length} roots (same real path)`
+            : `identical copy across ${realpaths.size} directories (${distinctScopes.join(", ")})`,
       });
     }
+  }
+
+  // Detect cross-runtime / cross-store content drift (same skill name, different contentHash
+  // across different agents/stores such as claude vs cc-switch or codex).
+  const byGlobalName = new Map();
+  for (const skill of skills) {
+    if (skill.readError) continue;
+    if (!byGlobalName.has(skill.name)) byGlobalName.set(skill.name, []);
+    byGlobalName.get(skill.name).push(skill);
+  }
+  for (const [name, variants] of byGlobalName) {
+    if (variants.length < 2) continue;
+    const allAgents = new Set(
+      variants.flatMap((v) => v.instances.map((inst) => inst.agent)),
+    );
+    // Single-agent collisions are handled with finer granularity in the per-agent loop below.
+    if (allAgents.size < 2) continue;
+    const scopes = [
+      ...new Set(variants.flatMap((v) => v.instances.map((inst) => inst.scope))),
+    ];
+    issues.push({
+      level: "warn",
+      name,
+      scope: scopes.join(", "),
+      message: `content drift across roots (${variants.length} distinct versions across ${scopes.join(", ")})`,
+    });
   }
 
   for (const [agent, list] of agents) {
@@ -454,6 +499,7 @@ export function buildLock(result, { roots, generatedAt = new Date() } = {}) {
           agent: inst.agent,
           scope: inst.scope,
           path: toPosix(inst.path),
+          realpath: toPosix(inst.realpath ?? skill.realpath),
         })),
         contentHash: skill.contentHash,
         description: skill.description,
@@ -548,7 +594,13 @@ export function runAudit(argv = process.argv.slice(2)) {
     const budgets = Object.entries(result.budgets)
       .map(([agent, budget]) => `${AGENT_LABELS[agent] ?? agent}: ${budget.skills} skills, ~${budget.descriptionTokens} tokens/turn`)
       .join("; ");
-    console.log(`Scanned ${result.skills.length} unique skills.`);
+    const totalInstances = result.skills.reduce(
+      (sum, skill) => sum + (skill.instances?.length ?? 1),
+      0,
+    );
+    console.log(
+      `Scanned ${result.skills.length} unique skills (${totalInstances} installed instances).`,
+    );
     console.log(budgets || "No skills found.");
     console.log(`${errors} error(s), ${warnings} warning(s), ${pairs} overlap candidate pair(s).`);
     console.log(`Report: ${toPosix(join(options.out, "audit-report.md"))}`);

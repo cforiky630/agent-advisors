@@ -20,7 +20,7 @@
 
 ## 项目概述
 
-**Agent Advisors** 是一套面向主流 AI 编程智能体运行时（Claude Code、Cursor、Codex CLI、Google Antigravity / Gemini CLI）的**生产级工程领域顾问库（Domain Advisors）**与**零依赖技能治理 CLI 工具链**。
+**Agent Advisors** 是一套面向主流 AI 编程智能体运行时（Claude Code、Cursor、Codex CLI、Google Antigravity / Gemini CLI）的**结构化工程领域顾问库（Domain Advisors）**与**零依赖技能治理 CLI 工具链**。
 
 在实际工程应用中，随着智能体挂载的细粒度技能（Micro-Skills）不断累加，通常会引发三类系统性问题：
 1. **常驻上下文开销膨胀（Context Tax）**：每个已安装技能的 Frontmatter 描述都会在每一轮对话中常驻系统提示词，持续消耗上下文预算。
@@ -37,6 +37,7 @@
 | [`api-security-advisor`](skills/api-security-advisor/) | 领域顾问 | 覆盖 4 大应用安全与防御性 API 设计基线：对象级与功能级鉴权（BOLA/BOPLA/BFLA）、令牌与会话安全（JWT/OAuth2/PKCE）、边界解析与注入防御、密码学原语与时序安全。 |
 | [`data-storage-advisor`](skills/data-storage-advisor/) | 领域顾问 | 覆盖 4 大数据持久化架构方向：B-Tree 复合索引（ESR 准则）与游标分页、关系型 Schema 反模式规避、MVCC 事务隔离与并发锁控制、连接池容量计算与读写分离一致性。 |
 | [`advisor-creator`](skills/advisor-creator/) | 元技能 | 提供五阶段合成流水线与标准结构模板，用于将团队内部技术规范或领域文献合成为符合校验规范的领域顾问。 |
+| [`link_skills.mjs`](scripts/link_skills.mjs) | 分发挂载 CLI | 跨平台符号链接与 Windows Junction 挂载工具，支持多运行时一键分发及 `AGENTS.md` 通用回退文件生成。 |
 | [`audit_skills.mjs`](scripts/audit_skills.mjs) | 治理工具 CLI | 只读静态分析工具：盘点多运行时已安装技能、估算每轮描述 Token 预算、检测结构缺陷，并计算触发描述重叠度。 |
 | [`import_repo.mjs`](scripts/import_repo.mjs) | 隔离导入 CLI | 将外部 Git 仓库克隆至系统临时隔离区，执行开源协议检测与可执行文件拦截，结合本地锁文件对比生成合入评估报告。 |
 | [`validate_skills.mjs`](scripts/validate_skills.mjs) | 质量门禁 CLI | 校验 Frontmatter 元数据规范、正文行数上限（`<= 150` 行）、必填章节结构、双向引用完整性与文档相对链接有效性。 |
@@ -69,6 +70,7 @@
 - **项目既有规范优先**：代码库现有的架构决策、Linter 规则、测试套件及用户的显式指令优先级高于顾问默认准则。
 - **专用工作流让渡**：领域顾问专注于架构设计与代码实现决策；当触发专用的代码审查（Code Review）、测试执行或故障排查工作流时，主动让渡流程控制权。
 - **因果化权衡仲裁**：拒绝无条件教条，针对典型技术冲突给出明确的适用前提与切换阈值（例如明确何时应采用事务脚本而非富领域模型）。
+- **比例原则与显式延迟（Proportionality & Intentional Deferral）**：架构复杂度严格匹配任务规模；针对简单任务避免过度设计，并在交付清单中显式声明有意识延迟或省略的重型模式及其依据。
 
 ### 3. 零 Token 文献溯源分离（Provenance Separation）
 
@@ -80,7 +82,20 @@
 
 ### 1. 挂载领域顾问
 
-可选择安装单个顾问，或一次性将全部领域顾问软链至智能体运行时的技能目录：
+推荐使用跨平台分发工具一键挂载（在 macOS/Linux 下自动创建符号链接，在 Windows 下创建无需管理员权限的目录联接 Junction），或生成单文件 `AGENTS.md` 通用回退指令集：
+
+```bash
+# 一键挂载全部领域顾问至 Claude Code（也可直接运行：node scripts/link_skills.mjs --agent claude）
+npm run link -- --agent claude
+
+# 挂载至 Google Antigravity / Gemini CLI、Cursor 或 Codex
+npm run link -- --agent gemini
+
+# 生成确定性的单文件 AGENTS.md 通用回退文件
+npm run link -- --emit-agents AGENTS.md
+```
+
+也可通过终端命令手动创建软链或联接：
 
 ```bash
 # macOS / Linux（Claude Code）
@@ -167,8 +182,9 @@ Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"
 单个技能无法感知宿主环境中其他技能的存在。运行 `node scripts/audit_skills.mjs` 可对全局技能集执行只读诊断：
 
 - **分运行时 Token 预算统计**：分别计算 Claude Code、Cursor、Codex 与 Gemini/Antigravity 每轮常驻描述的 Token 开销（自动排除 `~/.cc-switch/skills` 等静态分发存储目录）。
-- **结构完整性诊断**：检测缺失的 YAML Frontmatter、失效的 `references/` 引用链接、损坏的符号链接以及同名技能指向不同目录的冲突。
-- **触发面重叠度分析**：基于描述词项相似度（$0.6 \times \text{Dice}$）与领域标签交集（$0.4 \times \text{Jaccard}$）识别潜在竞争同一提示词的技能对。
+- **跨目录副本去重与内容漂移检测**：基于 `(name, contentHash)` 自动合并跨运行时与分发存储目录（如 `cc-switch` 同步至 `claude`/`codex`）的相同物理副本，并针对同名不同哈希的跨目录内容漂移及单运行时作用域冲突发出告警。
+- **结构完整性与全目录相对资产断链检测**：检测缺失的 YAML Frontmatter、损坏的符号链接，以及 `references/`、`agents/`、`scripts/`、`assets/`、`eval-viewer/`、`templates/`、`examples/`、`resources/` 等全目录相对资产断链。
+- **中英双语触发重叠度计算**：基于中英双语描述分词（拉丁词干提取 + 中文双字 Bigram，$0.6 \times \text{Dice}$）与双语领域标签交集（$0.4 \times \text{Jaccard}$，结合词汇支撑度阻尼抑制单标签误报）识别潜在竞争同一提示词的技能对。
 - **宽泛触发词预警**：标记描述中使用 `whenever`、`anything`、`every time` 等无条件宽泛措辞的技能，降低误激活率。
 
 详细发现规则与计算模型请参阅 [`docs/AUDIT.md`](docs/AUDIT.md)。
@@ -226,6 +242,7 @@ agent-advisors/
 │   ├── lib/skill.mjs               # Frontmatter 解析、Token 估算与重叠度计算核心库
 │   ├── audit_skills.mjs            # 多运行时技能盘点与重叠分析工具
 │   ├── import_repo.mjs             # 隔离克隆与外部技能评估报告生成工具
+│   ├── link_skills.mjs             # 跨平台符号链接/Junction 挂载与 AGENTS.md 生成工具
 │   └── validate_skills.mjs         # 仓库结构不变量与链接完整性校验器
 ├── skills/
 │   ├── advisor-creator/            # 领域顾问合成元技能与标准模板
@@ -244,7 +261,7 @@ agent-advisors/
 
 | 优先级 | 交付项 | 类别 | 核心技术范围与工程价值 | 状态 |
 | :---: | :--- | :--- | :--- | :---: |
-| **P0** | `scripts/link_skills.mjs` | 工具链 | 零依赖跨平台符号链接与 Junction 分发管理工具，支持 Claude Code、Cursor、Codex 与 Gemini/Antigravity | 规划中 |
+| **P0** | `scripts/link_skills.mjs` | 工具链 | 零依赖跨平台符号链接与 Junction 分发管理工具，支持 Claude Code、Cursor、Codex 与 Gemini/Antigravity | 已完成 |
 | **P1** | `frontend-craft-advisor` | 领域顾问 | 现代前端架构与状态治理顾问（涵盖 W3C WAI-ARIA 无障碍规范、无头状态逻辑抽离、错误边界与骨架屏降级） | 规划中 |
 | **P1** | 自动化测试套件扩充 | 质量门禁 | 覆盖全部领域顾问与脚本边界条件的自动化结构断言与安全回归测试 | 进行中 |
 | **P2** | `observability-advisor` | 领域顾问 | 生产环境可观测性与可靠性顾问（涵盖 OpenTelemetry 链路追踪、结构化日志、RED/USE 指标体系与告警治理） | 提案阶段 |
@@ -280,6 +297,9 @@ npm test
 
 # 执行本地已安装技能盘点与触发重叠度审计
 npm run audit
+
+# 查看各运行时领域顾问挂载状态
+npm run link -- --status
 
 # 在临时隔离区评估外部 Git 仓库中的候选技能
 npm run import -- <git-url>

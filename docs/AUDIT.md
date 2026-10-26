@@ -27,8 +27,11 @@ Rules:
 
 - **Marketplace checkouts are not installed skills.** Only `installPath` entries
   in `installed_plugins.json` are scanned.
-- **Symlinks are collapsed by real path.** A skill linked into two roots is one
-  skill with two install points, not two skills.
+- **Symlinks and identical copies are deduplicated.** Within a runtime, symlinks
+  collapse by real path. Across roots, unique skills are deduplicated by
+  `(name, contentHash)` so physical copies (e.g. `cc-switch` to `claude`/`codex`)
+  are counted as one logical skill with multiple installed instances, and
+  cross-root content drift is flagged as a warning.
 - **Budgets are per runtime.** Claude Code, Codex, and Gemini load different
   sets; summing them would overstate what any one agent pays.
 - A missing root is reported as skipped, not as an error.
@@ -41,8 +44,9 @@ Rules:
 | Broken symlink in a skill root | error | The install point resolves to a missing target. |
 | Same name resolving to different content across scopes within one runtime | error | Which copy wins is ambiguous and behavior differs. |
 | Identical copies of the same skill name across scopes within one runtime | warn | Redundant install; check which scope the loader prefers. |
+| Same name resolving to different `contentHash` across runtimes or stores | warn | Cross-root content drift between installed copies. |
 | Same name in a plugin and another scope | warn | Plugin skills are namespaced; check semantic overlap. |
-| Linked `references/...` file does not exist | warn | The skill points at content it does not ship. |
+| Missing relative asset across `references/`, `agents/`, `scripts/`, `assets/`, `eval-viewer/`, `templates/`, `examples/`, and `resources/` | warn | The skill points at content or scripts it does not ship. |
 | Line count, description length, executable files | info | Authoring preferences or review flags, not correctness. |
 | Broad trigger wording (`whenever`, `anything`, `any task`) | info | A common cause of over-triggering. |
 
@@ -53,8 +57,8 @@ third-party skills are only held to correctness here.
 
 The score uses **descriptions only**, because that is what competes at load time:
 
-- 0.6 × Dice coefficient over normalized description terms (stopwords removed)
-- 0.4 × Jaccard coefficient over domain tags extracted from the descriptions
+- 0.6 × Dice coefficient over bilingual normalized description terms (Latin term stemming + CJK character bigrams, stopwords removed)
+- 0.4 × Jaccard coefficient over bilingual domain tags extracted from the descriptions, with lexical-support damping when shared terms < 2 or term Dice < 0.18 to prevent single-tag false positives
 - Pairs with the same name are excluded (they are already reported as collisions)
 - Default threshold: 0.4; override with `--threshold`
 - Overlap analysis defaults to Claude Code; pass `--agents all` to compare every runtime

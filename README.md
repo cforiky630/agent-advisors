@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>Cohesive, Deep-Module Engineering Advisors and Skill Governance Tooling for AI Coding Agents</strong><br>
-  Consolidating fragmented prompt rules into deterministic, token-efficient domain facades.
+  Consolidating fragmented prompt rules into consistent, token-efficient domain facades.
 </p>
 
 <p align="center">
@@ -20,7 +20,7 @@
 
 ## Overview
 
-**Agent Advisors** provides production-grade **Domain Advisors** (implemented as agent `SKILL.md` packages) and a **zero-dependency governance CLI** for AI coding runtimes including Claude Code, Cursor, Codex CLI, and Google Antigravity / Gemini CLI.
+**Agent Advisors** provides a **structured library of domain engineering advisors** (implemented as agent `SKILL.md` packages) and a **zero-dependency governance CLI** for AI coding runtimes including Claude Code, Cursor, Codex CLI, and Google Antigravity / Gemini CLI.
 
 In typical agent configurations, accumulating dozens of granular micro-skills leads to three systemic problems:
 1. **Persistent Context Tax**: Every installed skill's frontmatter description is loaded into the system prompt on every turn.
@@ -37,6 +37,7 @@ Agent Advisors resolves these issues by applying the **Facade Pattern** (one aut
 | [`api-security-advisor`](skills/api-security-advisor/) | Domain Advisor | Enforces defensive API engineering across 4 security baselines: object-level authorization (BOLA/BOPLA/BFLA), token and session hygiene (JWT/OAuth2/PKCE), boundary validation and injection prevention, and cryptographic primitives. |
 | [`data-storage-advisor`](skills/data-storage-advisor/) | Domain Advisor | Governs persistence architecture across 4 reference guides: B-Tree composite indexing (ESR rule) and keyset pagination, relational schema antipatterns, MVCC transaction isolation and concurrency locking, and connection pool sizing. |
 | [`advisor-creator`](skills/advisor-creator/) | Meta-Skill | Five-stage synthesis pipeline and structural template for consolidating internal team standards or technical literature into a compliant domain advisor. |
+| [`link_skills.mjs`](scripts/link_skills.mjs) | Installer CLI | Cross-platform symlink/junction installer for Claude Code, Cursor, Codex, and Gemini/Antigravity, plus deterministic `AGENTS.md` fallback compilation. |
 | [`audit_skills.mjs`](scripts/audit_skills.mjs) | Governance CLI | Read-only static analyzer that inventories installed skills across runtimes, estimates per-turn token budgets, flags structural errors, and computes trigger overlap scores. |
 | [`import_repo.mjs`](scripts/import_repo.mjs) | Quarantine CLI | Clones external Git repositories into an isolated temporary directory, inspects licenses and executable surfaces, compares candidates against the local lockfile, and emits an adoption proposal. |
 | [`validate_skills.mjs`](scripts/validate_skills.mjs) | Quality Gate CLI | Enforces frontmatter schema compliance, line budgets (`<= 150` lines), required advisor sections, bidirectional reference integrity, and documentation link validity. |
@@ -69,6 +70,7 @@ Foundation models already possess parametric knowledge of classic engineering te
 - **Project Conventions First**: Existing repository architecture, linter configurations, test suites, and explicit user instructions strictly outrank advisor defaults.
 - **Workflow Deferral**: Advisors govern design and implementation decisions; they explicitly defer to dedicated code-review, test-runner, or debugging workflows when invoked.
 - **Causal Trade-off Arbitration**: Instead of unconditional dogma, advisors define concrete conditions under which one pattern supersedes another (e.g., when Transaction Script is preferred over a Domain Model).
+- **Proportionality & Intentional Deferral**: Architectural ceremony scales strictly with task complexity; advisors explicitly document what was intentionally omitted and why when simpler patterns suffice.
 
 ### 3. Zero-Token Provenance Separation
 
@@ -80,7 +82,20 @@ Bibliographic attributions, ISBN-13 identifiers, RFC/NIST/OWASP standard mapping
 
 ### 1. Link Domain Advisors
 
-Install a single advisor or link all domain advisors into your runtime's skill directory:
+Use the cross-platform installer CLI (creates symlinks on macOS/Linux and directory junctions on Windows), or compile a single-file `AGENTS.md` fallback for universal agent compatibility:
+
+```bash
+# Link all domain advisors into Claude Code (or use: node scripts/link_skills.mjs --agent claude)
+npm run link -- --agent claude
+
+# Link into Google Antigravity / Gemini CLI, Cursor, or Codex
+npm run link -- --agent gemini
+
+# Emit a deterministic single-file AGENTS.md fallback
+npm run link -- --emit-agents AGENTS.md
+```
+
+Or link manually via shell commands:
 
 ```bash
 # macOS / Linux (Claude Code)
@@ -162,13 +177,14 @@ Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"
 
 ## Skill Governance & Quarantine Import
 
-### Auditing Installed Skills (`scripts/audit_skills.mjs`)
+### Installed Skill Static Audit (`scripts/audit_skills.mjs`)
 
 An individual skill has no visibility into other installed skills competing for the same prompts. Running `node scripts/audit_skills.mjs` inspects the active environment and reports:
 
 - **Per-Runtime Token Budgets**: Estimated persistent token overhead across Claude Code, Cursor, Codex, and Gemini/Antigravity (excluding passive distribution stores such as `~/.cc-switch/skills`).
-- **Structural Diagnostics**: Missing YAML frontmatter, broken `references/` links, broken symlinks, and duplicate skill names resolving to divergent directories.
-- **Trigger Overlap Candidates**: Pairs of skills scored by description term similarity ($0.6 \times \text{Dice}$) and domain tag intersection ($0.4 \times \text{Jaccard}$).
+- **Cross-Store Copy Deduplication & Drift Detection**: Deduplicates identical skill copies across runtimes and stores by `(name, contentHash)` while flagging cross-root content drift and within-runtime scope collisions.
+- **Structural & Full Skill Asset Link Diagnostics**: Detects missing YAML frontmatter, broken symlinks, and missing relative assets across `references/`, `agents/`, `scripts/`, `assets/`, `eval-viewer/`, `templates/`, `examples/`, and `resources/`.
+- **Bilingual Trigger Overlap Scoring**: Scores candidate pairs using bilingual description tokenization (Latin term stemming + CJK character bigrams, $0.6 \times \text{Dice}$) and domain tag intersection ($0.4 \times \text{Jaccard}$ with lexical-support damping).
 - **Over-Broad Trigger Detection**: Descriptions using unconditional phrasing (`whenever`, `anything`, `every time`) that cause false activations.
 
 See [`docs/AUDIT.md`](docs/AUDIT.md) for the discovery model, scoring methodology, and operational boundaries.
@@ -226,6 +242,7 @@ agent-advisors/
 │   ├── lib/skill.mjs               # Frontmatter parser, token estimator, and overlap scorer
 │   ├── audit_skills.mjs            # Multi-runtime inventory and overlap analyzer
 │   ├── import_repo.mjs             # Quarantine git importer and proposal generator
+│   ├── link_skills.mjs             # Cross-platform symlink/junction installer and AGENTS.md compiler
 │   └── validate_skills.mjs         # Repository structural and link validator
 ├── skills/
 │   ├── advisor-creator/            # Meta-skill and structural template
@@ -244,7 +261,7 @@ agent-advisors/
 
 | Priority | Deliverable | Category | Technical Scope | Status |
 | :---: | :--- | :--- | :--- | :---: |
-| **P0** | `scripts/link_skills.mjs` | Tooling | Cross-platform symlink and junction manager for Claude Code, Cursor, Codex, and Gemini/Antigravity | Planned |
+| **P0** | `scripts/link_skills.mjs` | Tooling | Cross-platform symlink and junction manager for Claude Code, Cursor, Codex, and Gemini/Antigravity | Completed |
 | **P1** | `frontend-craft-advisor` | Domain Advisor | Frontend architecture and state governance (W3C WAI-ARIA, headless state isolation, error boundaries, and skeleton states) | Planned |
 | **P1** | Test Suite Expansion | Quality Gate | Automated invariant and structural assertions across all shipped domain advisors | In Progress |
 | **P2** | `observability-advisor` | Domain Advisor | Production reliability and observability (OpenTelemetry tracing, structured logging, RED/USE metrics, and alert hygiene) | Proposed |
@@ -254,7 +271,7 @@ agent-advisors/
 ## Technical Boundaries & FAQ
 
 **Does an advisor add new factual knowledge to the model?**
-No. Foundation models are already pre-trained on standard engineering literature and specifications. An advisor establishes a deterministic architectural stance, explicit trade-off arbitrations, and a verification checklist so engineering decisions remain consistent across sessions.
+No. Foundation models are already pre-trained on standard engineering literature and specifications. An advisor establishes a consistent architectural stance, explicit trade-off arbitrations, and a verification checklist so engineering decisions remain coherent across sessions.
 
 **Is skill activation deterministic?**
 Skill routing is model-driven based on Level-1 metadata. Each advisor is paired with a benchmark in [`evals/`](evals/trigger-cases.md) defining positive activation cases, dormant (anti-trigger) cases, and workflow deferral cases.
@@ -280,6 +297,9 @@ npm test
 
 # Run local skill inventory and overlap audit
 npm run audit
+
+# Inspect cross-runtime advisor link status
+npm run link -- --status
 
 # Evaluate an external repository in quarantine
 npm run import -- <git-url>

@@ -136,3 +136,73 @@ test("requires full references/<file> path when checking unlinkedReferences and 
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test("detects missing non-references/ skill assets while ignoring fenced code blocks", () => {
+  const dir = mkdtempSync(join(tmpdir(), "aa-skill-assets-"));
+  try {
+    mkdirSync(join(dir, "scripts"), { recursive: true });
+    writeFileSync(join(dir, "scripts", "existing.py"), "# exists\n", "utf8");
+    writeFileSync(
+      join(dir, "SKILL.md"),
+      [
+        "---",
+        "name: asset-skill",
+        "description: Skill referencing relative assets.",
+        "license: MIT",
+        "---",
+        "Read `agents/grader.md` and run `scripts/run_eval.py` or `scripts/existing.py`.",
+        "Generate the report with `eval-viewer/generate_review.py` using template `assets/eval_review.html`.",
+        "",
+        "```bash",
+        "python scripts/ignored_in_fence.py --template assets/ignored_template.html",
+        "```",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const record = readSkill(dir);
+    assert.deepEqual(
+      record.missingReferences.sort(),
+      [
+        "agents/grader.md",
+        "assets/eval_review.html",
+        "eval-viewer/generate_review.py",
+        "scripts/run_eval.py",
+      ],
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("tokenizes CJK bigrams and extracts bilingual domain tags for overlap scoring", () => {
+  const descA = "设计并产出接口文档 当用户提到接口文档 API 文档时使用";
+  const descB = "接口文档设计 生成 REST API 文档与 OpenAPI 规范";
+  const a = { terms: descriptionTerms(descA), tags: domainTags(descA) };
+  const b = { terms: descriptionTerms(descB), tags: domainTags(descB) };
+
+  for (const term of ["接口", "文档", "设计", "api"]) {
+    assert.ok(a.terms.has(term), `expected a.terms to contain ${term}`);
+    assert.ok(b.terms.has(term), `expected b.terms to contain ${term}`);
+  }
+  assert.ok(a.tags.has("docs") && b.tags.has("docs"));
+  assert.ok(a.tags.has("architecture") && b.tags.has("architecture"));
+
+  const overlap = overlapScore(a, b);
+  assert.ok(overlap.score > 0.65, `expected score > 0.65, got ${overlap.score}`);
+});
+
+test("dampens single-tag false positives when lexical overlap is weak", () => {
+  const poster = {
+    terms: descriptionTerms("Create visual canvas poster artwork and illustrations in pdf format"),
+    tags: domainTags("Create visual canvas poster artwork and illustrations in pdf format"),
+  };
+  const docx = {
+    terms: descriptionTerms("Edit Word docx files tracked changes comments and pdf exports"),
+    tags: domainTags("Edit Word docx files tracked changes comments and pdf exports"),
+  };
+  const result = overlapScore(poster, docx);
+  assert.ok(result.sharedTags.includes("deliverables"));
+  assert.ok(result.score < 0.4, `expected damped score < 0.4, got ${result.score}`);
+});
+

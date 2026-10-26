@@ -408,7 +408,9 @@ export function importRepo(options) {
     if (within.startsWith("..") || isAbsolute(within)) {
       throw new Error("--subdir points outside the cloned repository");
     }
-    if (!existsSync(root)) throw new Error(`--subdir does not exist: ${options.subdir}`);
+    if (!existsSync(root) || !statSync(root).isDirectory()) {
+      throw new Error(`--subdir does not exist: ${options.subdir}`);
+    }
     const realRoot = realpathSync(root);
     const realWithin = relative(realCloneDir, realRoot);
     if (realWithin.startsWith("..") || isAbsolute(realWithin)) {

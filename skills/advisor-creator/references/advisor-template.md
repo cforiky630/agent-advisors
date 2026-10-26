@@ -5,7 +5,7 @@ Use this template as the standard skeleton when generating new domain advisors.
 ```markdown
 ---
 name: <domain>-advisor
-description: Comprehensive <domain> engineering and architecture advisor. Use this skill whenever <high-level actions: designing, auditing, configuring, refactoring> <domain components>, making <domain tradeoffs>, or resolving complex <domain> issues using established industry standards (<core references/classics>). Activate this skill even when the user asks for routine <domain> improvements without explicitly mentioning architecture.
+description: Comprehensive <domain> engineering and architecture advisor. Use for <high-level actions: designing, auditing, configuring, refactoring> <domain components>, evaluating <domain tradeoffs>, or resolving complex <domain> issues using established industry standards (<core references/classics>). Applies to both explicit <domain> architecture and routine <domain> implementation changes.
 license: MIT
 ---
 
@@ -21,7 +21,7 @@ Your overarching goal is **<primary engineering goal: e.g., resilience, defense-
 
 - **Project conventions first.** Existing architecture decisions, linters, tests, and explicit user instructions outrank any guidance here; name the conflict instead of silently overriding it.
 - **Defer the workflow, keep the rationale.** When a dedicated review, testing, debugging, or planning skill already governs the task, let that skill own its steps and use this advisor only for the trade-offs behind them.
-- **Match doctrine to problem size.** Apply a pattern only when its preconditions exist; state when the guidance does not apply.
+- **Match doctrine to problem size (Proportionality Ladder).** Exhaust existing project conventions, standard library primitives, and simple constructs before introducing new abstractions or dependencies; state when a heavy pattern does not apply.
 
 ---
 
@@ -88,7 +88,7 @@ Sections 1–3 cover most routine domain tasks. Read a reference only for patter
 ## 5. Output Delivery Format & Checklist
 
 When delivering <domain> guidance or code, present results in this cohesive structure:
-1. **Design Rationale & Tradeoffs**: Explain which standard guided the decision and why.
+1. **Design Rationale, Tradeoffs & Intentional Deferrals**: Explain which standard guided the decision, which heavier patterns were deliberately omitted for proportionality, and the concrete threshold that would justify introducing them later.
 2. **Concrete Implementation**: Clean, robust, and well-typed implementation following deep module standards.
 3. **Verification Checklist**:
    - [ ] **Cognitive Load**: Is the structure clear, self-documenting, and free of clever tricks?

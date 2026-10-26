@@ -1,6 +1,6 @@
 ---
 name: data-storage-advisor
-description: Comprehensive database architecture, query optimization, and storage advisor. Use this skill whenever designing relational schemas, authoring or optimizing SQL/NoSQL queries, inspecting EXPLAIN query execution, creating indexes, preventing N+1 queries, structuring transactions, managing isolation levels and deadlocks, or mitigating replication lag across 4 core persistence domains (Query & Index Tuning, Schema Antipatterns, Transaction Concurrency, Connection & Scaling). Activate this skill even when the user asks for routine database queries or ORM models without explicitly mentioning architecture.
+description: Comprehensive database architecture, query optimization, and storage advisor. Use for designing relational schemas, authoring or tuning SQL/NoSQL queries, inspecting EXPLAIN execution plans, constructing composite indexes, eliminating N+1 queries, structuring transactions, managing isolation levels and deadlocks, or mitigating replication lag across 4 persistence domains (Query & Index Tuning, Schema Antipatterns, Transaction Concurrency, Connection & Scaling). Applies to both explicit storage architecture and routine query or ORM model changes.
 license: MIT
 ---
 
@@ -18,7 +18,7 @@ This advisor governs schema structure, query design, and concurrency architectur
 
 - **Project conventions first.** Existing database migrations, ORM conventions, database dialers, and explicit user instructions outrank doctrine here. Note conflicts rather than silently breaking schema history.
 - **Defer the workflow, keep the rationale.** Dedicated migration tools, backup runners, and database provisioning skills manage their own execution. This advisor provides the data design rationale behind implementations.
-- **Match doctrine to problem size.** Apply proportional complexity: a small lookup table does not need composite covering indexes; high-volume financial ledgers mandate strict lock ordering and optimistic versioning.
+- **Match doctrine to problem size (Proportionality Ladder).** Leverage native database constraints and existing ORM conventions before adding caching layers or custom sharding. Scale complexity to data volume and contention: a static lookup table does not need composite covering indexes, whereas hot financial ledgers mandate strict lock ordering and optimistic versioning.
 
 ---
 
@@ -96,7 +96,7 @@ Sections 1–3 provide standard storage heuristics. Open reference files only fo
 ## 5. Output Delivery Format & Checklist
 
 When delivering database schemas, queries, or concurrency solutions, present answers in this structure:
-1. **Access Pattern & Plan Rationale**: Detail the query plan, index choices, and concurrency trade-offs.
+1. **Access Pattern, Plan Rationale & Intentional Deferrals**: Detail the query plan, index and concurrency trade-offs, and which heavier storage patterns (e.g., partitioning, read replicas, pessimistic locks) were deliberately omitted with the scale threshold that would trigger them.
 2. **Defensive Schema / Query Implementation**: Clean, robust SQL or ORM code applying keyset pagination and parameterized inputs.
 3. **Verification Checklist**:
    - [ ] **Execution Plan**: Does the query avoid full table scans (`ALL`) and unwanted `filesort`?
@@ -104,3 +104,4 @@ When delivering database schemas, queries, or concurrency solutions, present ans
    - [ ] **Transaction Scope**: Is the transaction free of external network calls, file I/O, and long sleeps?
    - [ ] **Deadlock Safety**: Are multiple locked records ordered consistently (e.g., ascending IDs)?
    - [ ] **Batching**: Is the logic free of N+1 iteration loops and unbounded `OFFSET` scans?
+   - [ ] **Proportionality & Precedence**: Is the schema/index complexity matched to actual table cardinality, and were existing migration conventions respected?

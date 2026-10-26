@@ -1,6 +1,6 @@
 ---
 name: api-security-advisor
-description: Comprehensive application security and defensive API design advisor. Use this skill whenever designing authentication/authorization endpoints, mitigating OWASP vulnerabilities (BOLA/IDOR, BFLA, SSRF, injection), handling untrusted inputs, choosing cryptographic primitives, managing API secrets, or configuring security boundaries across 4 core defense domains (OWASP API Security, Authentication Standards, Input Boundary Defense, Cryptographic Hygiene). Activate this skill even when the user asks for routine API design or endpoint implementation without explicitly mentioning security.
+description: Comprehensive application security and defensive API design advisor. Use for designing authentication or authorization endpoints, mitigating OWASP API vulnerabilities (BOLA/IDOR, BFLA, SSRF, injection), parsing untrusted inputs, selecting cryptographic primitives, managing API secrets, or hardening security boundaries across 4 defense domains (OWASP API Security, Authentication Standards, Input Boundary Defense, Cryptographic Hygiene). Applies to both explicit security reviews and routine endpoint implementation.
 license: MIT
 ---
 
@@ -18,7 +18,7 @@ This advisor governs application-level code construction and API architecture; i
 
 - **Project conventions first.** Existing authentication middleware, security policies, and explicit user instructions outrank doctrine here. Note conflicts rather than silently breaking working code.
 - **Defer the workflow, keep the rationale.** Dedicated penetration testing, vulnerability scanning (SAST/DAST), and auditing tools manage their own execution. This advisor provides the defensive design rationale behind implementations.
-- **Match doctrine to problem size.** Apply proportional defense: public endpoints require strict rate-limiting and authorization checks; local developer CLI tools do not need multi-tenant tenant isolation.
+- **Match doctrine to problem size (Proportionality Ladder).** Reuse existing project middleware and platform crypto/validation primitives before adding dependencies. Scale controls to the threat boundary: public multi-tenant APIs require strict rate-limiting and subject-bound authorization, whereas local CLI tools do not need distributed token introspection.
 
 ---
 
@@ -99,7 +99,7 @@ Sections 1–3 provide standard defensive heuristics. Access reference files onl
 ## 5. Output Delivery Format & Checklist
 
 When delivering security-conscious API designs or defensive code, present answers in this structure:
-1. **Threat Model & Attack Surface**: Identify potential vulnerabilities (e.g., IDOR, injection, timing attack) and defensive trade-offs.
+1. **Threat Model, Tradeoffs & Intentional Deferrals**: Identify concrete attack surfaces (e.g., IDOR, injection, timing leaks), defensive trade-offs, and which heavier controls were deliberately deferred with the threat threshold that would require them.
 2. **Defensive Implementation**: Clean, robust, and well-typed code applying fail-closed and parameterized patterns.
 3. **Verification Checklist**:
    - [ ] **Authorization (BOLA)**: Is the query or mutation bound to the authenticated subject/tenant?
@@ -107,3 +107,4 @@ When delivering security-conscious API designs or defensive code, present answer
    - [ ] **Injection Safety**: Are database queries parameterized and subprocesses invoked without shell execution?
    - [ ] **Cryptographic Hygiene**: Are secrets compared in constant time, passwords hashed with KDFs, and IVs unique?
    - [ ] **Fail-Closed Safety**: Do unexpected errors and timeouts fail into a safe denial state (HTTP 401/403)?
+   - [ ] **Proportionality & Precedence**: Are controls matched to the actual threat boundary, and were existing project security middlewares respected?

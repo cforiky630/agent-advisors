@@ -113,7 +113,10 @@ function checkSkill(skillMd) {
     fail(skillMd, `reference is never linked: references/${file}`);
   }
   for (const file of record.missingReferences) {
-    fail(skillMd, `linked reference does not exist: references/${file}`);
+    fail(skillMd, `linked reference does not exist: ${file.includes("/") ? file : `references/${file}`}`);
+  }
+  if (record.overbroad.length > 0) {
+    fail(skillMd, `broad trigger wording in description: ${record.overbroad.join(", ")}`);
   }
 
   checkProhibited(skillMd, text);

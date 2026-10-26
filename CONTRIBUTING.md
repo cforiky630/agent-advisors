@@ -90,6 +90,7 @@ Every `SKILL.md` must follow this standard format:
 | :--- | :--- |
 | `node scripts/validate_skills.mjs` | Structure and link validation for this repository |
 | `node --test` | Tooling tests |
+| `node scripts/link_skills.mjs` | Cross-platform skill linker and optional `AGENTS.md` compiler |
 | `node scripts/audit_skills.mjs` | Read-only inventory of installed skills and overlap candidates |
 | `node scripts/import_repo.mjs <url>` | Quarantine clone and import proposal |
 

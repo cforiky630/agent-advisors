@@ -1,6 +1,6 @@
 ---
 name: advisor-creator
-description: Meta-advisor skill for synthesizing fragmented domain knowledge, books, rules, or micro-skills into cohesive, deep-module AI agent advisors. Use this skill whenever creating a new domain advisor (e.g., frontend-craft-advisor, security-guard-advisor, system-reliability-advisor), consolidating multiple prompt rules into a unified facade, extracting scenario decision matrices from engineering classics, or arbitrating conflicting engineering dogmas using three-level progressive disclosure.
+description: Meta-advisor skill for synthesizing fragmented domain knowledge, engineering books, team standards, or micro-skills into cohesive, deep-module AI agent advisors. Use for creating a new domain advisor (e.g., frontend-craft-advisor, observability-advisor), consolidating scattered prompt rules into a unified facade, extracting scenario decision matrices from technical standards, or arbitrating conflicting engineering doctrines using three-level progressive disclosure.
 license: MIT
 ---
 
@@ -42,7 +42,7 @@ Every mature domain contains doctrinal civil wars (e.g., OOP vs. FP, 3-line func
 - Distill the curated sources into compact, high-density Nano Rules:
   - Keep rules actionable, imperative, and focused on construction discipline.
   - Explain the **WHY** behind constraints rather than using hollow, capitalized `MUST` commands.
-- Define a standardized **Output Delivery Format** to ensure the new advisor delivers structured responses (Tradeoffs -> Implementation -> Verification Checklist).
+- Define a standardized **Output Delivery Format** to ensure the new advisor delivers structured responses (Rationale, Tradeoffs & Intentional Deferrals -> Implementation -> Verification Checklist).
 
 ### Step 5: Progressive Disclosure Scaffolding & Compliance Audit
 Scaffold the target advisor under `skills/<advisor-name>/`, starting from [`references/advisor-template.md`](references/advisor-template.md) rather than inventing section names:
@@ -59,7 +59,7 @@ The YAML frontmatter of the generated advisor is the critical Level-1 entrypoint
 - **`description`**: Must contain:
   1. What the advisor synthesizes (scope and foundational classics).
   2. Concrete triggers (e.g., designing, refactoring, configuring, auditing).
-  3. A pushy activation prompt: *"Activate this skill even when the user asks for routine <domain> improvements without explicitly mentioning architecture."*
+  3. A scoped activation clause covering routine domain tasks without using unconditional trigger words (`whenever`, `even when`, `anything`, `all tasks`) that trip `audit_skills.mjs`.
 
 ---
 

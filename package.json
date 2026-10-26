@@ -12,6 +12,7 @@
     "validate": "node scripts/validate_skills.mjs",
     "audit": "node scripts/audit_skills.mjs",
     "import": "node scripts/import_repo.mjs",
+    "link": "node scripts/link_skills.mjs",
     "test": "node --test"
   }
 }

@@ -121,14 +121,27 @@ test("rejects --subdir traversal outside the cloned repository", () => {
 
     let hasSymlink = false;
     try {
-      symlinkSync(outside, join(repo, "escape-link"), "junction");
+      symlinkSync(outside, join(repo, "escape-link"), "dir");
       hasSymlink = true;
     } catch {
       // Ignore if symlink creation is disallowed by OS policy.
     }
 
     execFileSync("git", ["init", "-q"], { cwd: repo });
-    execFileSync("git", ["add", "."], { cwd: repo });
+    execFileSync("git", ["-c", "core.symlinks=true", "add", "."], { cwd: repo });
+    if (!hasSymlink) {
+      const linkBlob = execFileSync("git", ["hash-object", "-w", "--stdin"], {
+        cwd: repo,
+        input: outside,
+        encoding: "utf8",
+      }).trim();
+      execFileSync(
+        "git",
+        ["update-index", "--add", "--cacheinfo", `120000,${linkBlob},escape-link`],
+        { cwd: repo },
+      );
+      hasSymlink = true;
+    }
     execFileSync(
       "git",
       ["-c", "user.email=test@example.com", "-c", "user.name=Test", "commit", "-qm", "init"],

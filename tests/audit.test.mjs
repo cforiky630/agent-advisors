@@ -6,8 +6,10 @@ import test from "node:test";
 
 import {
   analyze,
+  buildLock,
   discover,
   installedPluginRoots,
+  renderMarkdown,
 } from "../scripts/audit_skills.mjs";
 
 function makeSkill(root, name, { description, body = "# Skill\n", extra = "" } = {}) {
@@ -185,3 +187,110 @@ test("reports broken symlinks as errors in analyze", () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("deduplicates physical copies across claude-user, codex, and cc-switch into one logical skill", () => {
+  const claudeRoot = tempRoot();
+  const codexRoot = tempRoot();
+  const storeRoot = tempRoot();
+  try {
+    const spec = { description: "Refactor legacy modules with characterization tests." };
+    makeSkill(claudeRoot, "shared-skill", spec);
+    makeSkill(codexRoot, "shared-skill", spec);
+    makeSkill(storeRoot, "shared-skill", spec);
+
+    const roots = [
+      { scope: "claude-user", agent: "claude", path: claudeRoot },
+      { scope: "codex", agent: "codex", path: codexRoot },
+      { scope: "cc-switch", agent: "store", path: storeRoot },
+    ];
+    const { records, broken } = discover(roots);
+    const result = analyze(records, {}, broken);
+
+    assert.equal(result.skills.length, 1);
+    assert.equal(result.skills[0].instances.length, 3);
+    const copyNote = result.issues.find((issue) =>
+      /identical copy across 3 directories/.test(issue.message),
+    );
+    assert.ok(copyNote, "expected an identical copy info note across 3 directories");
+    assert.equal(copyNote.level, "info");
+  } finally {
+    rmSync(claudeRoot, { recursive: true, force: true });
+    rmSync(codexRoot, { recursive: true, force: true });
+    rmSync(storeRoot, { recursive: true, force: true });
+  }
+});
+
+test("emits a warn issue when the same skill name has content drift across roots", () => {
+  const claudeRoot = tempRoot();
+  const storeRoot = tempRoot();
+  try {
+    makeSkill(claudeRoot, "drifted-skill", {
+      description: "Review API designs and module contracts.",
+      body: "# Version 1\n",
+    });
+    makeSkill(storeRoot, "drifted-skill", {
+      description: "Review API designs, module contracts, and OpenAPI schemas.",
+      body: "# Version 2\n",
+    });
+
+    const roots = [
+      { scope: "claude-user", agent: "claude", path: claudeRoot },
+      { scope: "cc-switch", agent: "store", path: storeRoot },
+    ];
+    const { records, broken } = discover(roots);
+    const result = analyze(records, {}, broken);
+
+    assert.equal(result.skills.length, 2);
+    const driftIssue = result.issues.find((issue) =>
+      /content drift across roots/.test(issue.message),
+    );
+    assert.ok(driftIssue, "expected content drift warning");
+    assert.equal(driftIssue.level, "warn");
+    assert.equal(driftIssue.name, "drifted-skill");
+  } finally {
+    rmSync(claudeRoot, { recursive: true, force: true });
+    rmSync(storeRoot, { recursive: true, force: true });
+  }
+});
+
+test("renders end-to-end markdown report and builds lockfile JSON structure", () => {
+  const claudeRoot = tempRoot();
+  try {
+    makeSkill(claudeRoot, "alpha", {
+      description: "Refactor legacy code with seams and characterization tests whenever needed.",
+    });
+    makeSkill(claudeRoot, "beta", {
+      description: "Refactor legacy code using seams and characterization tests.",
+    });
+
+    const roots = [{ scope: "claude-user", agent: "claude", path: claudeRoot }];
+    const { records, broken, skipped } = discover(roots);
+    const result = analyze(records, { threshold: 0.2, overlapAgents: new Set(["claude"]) }, broken);
+    const generatedAt = new Date("2026-01-15T00:00:00.000Z");
+
+    const markdown = renderMarkdown(result, { roots, broken, skipped, generatedAt });
+    assert.match(markdown, /^# Skill Audit/m);
+    assert.match(markdown, /^## Trigger budget/m);
+    assert.match(markdown, /^## Problems/m);
+    assert.match(markdown, /^## Overlap candidates/m);
+    assert.match(markdown, /^## What this report cannot tell you/m);
+    assert.match(markdown, /`alpha` ↔ `beta`/);
+
+    const lock = buildLock(result, { roots, generatedAt });
+    assert.equal(lock.version, 1);
+    assert.equal(lock.generatedAt, "2026-01-15T00:00:00.000Z");
+    assert.equal(lock.roots.length, 1);
+    assert.ok(lock.budgets.claude);
+    assert.ok(Array.isArray(lock.issues));
+    assert.equal(lock.skills.length, 2);
+    assert.deepEqual(
+      lock.skills.map((s) => s.name),
+      ["alpha", "beta"],
+    );
+    assert.ok(lock.skills[0].contentHash);
+    assert.equal(lock.skills[0].instances.length, 1);
+  } finally {
+    rmSync(claudeRoot, { recursive: true, force: true });
+  }
+});
+
