@@ -17,7 +17,7 @@ This document records the design lineage, structural methodology, and references
 2. **Three-Level Progressive Disclosure**:
    - *Lineage*: Human-Computer Interaction (HCI) information architecture pattern adapted for LLM context optimization.
    - *Structure*:
-     - Level 1: Frontmatter metadata (~30–140 tokens persistent per turn).
+     - Level 1: Frontmatter metadata (~90–140 tokens persistent per turn).
      - Level 2: Core directive `SKILL.md` (≤ 150 lines, loaded only on intent match).
      - Level 3: Distilled references (`references/*.md`, strictly 1–2 files read on demand).
 3. **Deep Modules & Information Hiding**:

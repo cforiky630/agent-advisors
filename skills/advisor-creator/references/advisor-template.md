@@ -38,7 +38,7 @@ When tackling a specific engineering scenario, anchor your design choices in the
 
 ---
 
-## 2. Arbitration of Classic Clashes
+## 2. Engineering Trade-offs & Arbitration
 
 Conflicting dogmas inevitably arise in this domain. Use these rationale-backed principles to arbitrate tensions:
 

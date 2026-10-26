@@ -1,6 +1,8 @@
 # Engineering Reference: Clean Code by Robert C. Martin
 
-This file defines mandatory working rules for this repository. Follow these instructions before making any code, test, refactor, review, or documentation change.
+## Purpose
+
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale, deferring to established project conventions, tests, and explicit user instructions when they conflict.
 
 ## Priority and behavior
 
@@ -257,7 +259,7 @@ For every non-trivial task:
 - Prefer explicit, boring, maintainable solutions.
 - Prefer standard library and existing project patterns over new dependencies.
 - Do not add a dependency unless it clearly reduces overall complexity.
-- Reuse established project conventions unless they conflict with these rules or the user explicitly asks otherwise.
+- Reuse established project conventions unless the user explicitly asks otherwise.
 - Keep interfaces small.
 - Keep state transitions obvious.
 - Avoid premature optimization.

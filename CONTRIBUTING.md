@@ -20,7 +20,7 @@ Before submitting a Pull Request for a new Advisor (e.g., an API standards advis
 - An Advisor must state what it does **not** own: project conventions, adjacent review/test/debug skills, and explicit user instructions take precedence.
 
 ### 3. Three-Level Progressive Disclosure
-- **Level 1 (Metadata)**: Frontmatter `description` must be pushy and intent-rich (~30 words) to prevent undertriggering.
+- **Level 1 (Metadata)**: Frontmatter `description` must be pushy and intent-rich (~60–90 words / ~90–140 tokens, strictly <= 1200 chars) to prevent undertriggering.
 - **Level 2 (`SKILL.md`)**: The root file must remain compact (**under 150 lines**). Provide operating boundaries, decision matrices, arbitration principles, nano-rulesets, and a delivery checklist.
 - **Level 3 (`references/`)**: Put distilled source summaries, pattern catalogs, and cheat-sheets into a private `references/` subfolder. They must be your own condensation rather than reproductions, and the agent reads at most one or two per task.
 

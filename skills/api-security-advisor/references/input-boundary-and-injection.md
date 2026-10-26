@@ -65,17 +65,16 @@ This reference establishes defensive, production-tested engineering heuristics f
   - Resolving relative paths (`../`) is insufficient if archives contain symlinks pointing outside the extraction root (Zip Slip).
   - Canonicalize paths using `fs.realpathSync` or assert that neither the file nor its parent directories are symlinks escaping `safeRoot`:
   ```typescript
-  const safeRoot = path.resolve('/var/app/uploads');
+  const safeRoot = fs.realpathSync('/var/app/uploads');
   const targetPath = path.resolve(safeRoot, userInput);
   if (!targetPath.startsWith(safeRoot + path.sep)) {
     throw new SecurityException('Path traversal attempt detected');
   }
-  // If file exists, verify physical realpath resolves inside root:
-  if (fs.existsSync(targetPath)) {
-    const realTarget = fs.realpathSync(targetPath);
-    if (!realTarget.startsWith(safeRoot + path.sep)) {
-      throw new SecurityException('Symlink path traversal detected');
-    }
+  // Verify physical realpath of target (or its parent dir for new files) resolves inside root:
+  const dirToCheck = fs.existsSync(targetPath) ? targetPath : path.dirname(targetPath);
+  const realTarget = fs.realpathSync(dirToCheck);
+  if (realTarget !== safeRoot && !realTarget.startsWith(safeRoot + path.sep)) {
+    throw new SecurityException('Symlink path traversal detected');
   }
   ```
 - **Discard User-Supplied File Names**: Store uploaded files using server-generated UUIDs on disk or object stores (S3). Keep original file names only as database metadata.

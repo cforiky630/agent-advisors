@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -106,6 +106,61 @@ test("imports a local repository into quarantine and writes a proposal", () => {
     assert.match(proposal, /Commit/);
   } finally {
     rmSync(repo, { recursive: true, force: true });
+    rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test("rejects --subdir traversal outside the cloned repository", () => {
+  const repo = mkdtempSync(join(tmpdir(), "aa-import-traversal-"));
+  const outside = mkdtempSync(join(tmpdir(), "aa-import-outside-"));
+  const out = mkdtempSync(join(tmpdir(), "aa-import-out-"));
+  try {
+    mkdirSync(join(repo, "skills", "demo"), { recursive: true });
+    writeFileSync(join(repo, "skills", "demo", "SKILL.md"), SKILL, "utf8");
+    writeFileSync(join(outside, "SKILL.md"), SKILL, "utf8");
+
+    let hasSymlink = false;
+    try {
+      symlinkSync(outside, join(repo, "escape-link"), "junction");
+      hasSymlink = true;
+    } catch {
+      // Ignore if symlink creation is disallowed by OS policy.
+    }
+
+    execFileSync("git", ["init", "-q"], { cwd: repo });
+    execFileSync("git", ["add", "."], { cwd: repo });
+    execFileSync(
+      "git",
+      ["-c", "user.email=test@example.com", "-c", "user.name=Test", "commit", "-qm", "init"],
+      { cwd: repo },
+    );
+
+    assert.throws(
+      () =>
+        importRepo({
+          source: repo,
+          allowLocal: true,
+          subdir: "../outside",
+          out,
+        }),
+      /--subdir points outside the cloned repository/,
+    );
+
+    if (hasSymlink) {
+      assert.throws(
+        () =>
+          importRepo({
+            source: repo,
+            allowLocal: true,
+            subdir: "escape-link",
+            out,
+          }),
+        /--subdir (?:points outside the cloned repository|does not exist)/,
+      );
+    }
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+    rmSync(outside, { recursive: true, force: true });
     rmSync(out, { recursive: true, force: true });
   }
 });

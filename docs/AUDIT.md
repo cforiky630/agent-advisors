@@ -38,7 +38,9 @@ Rules:
 | Check | Level | Why |
 | :--- | :--- | :--- |
 | Unreadable or missing frontmatter, missing description | error | The loader cannot route it. |
-| Same name resolving to different directories within one runtime | error | Which one wins is ambiguous. |
+| Broken symlink in a skill root | error | The install point resolves to a missing target. |
+| Same name resolving to different content across scopes within one runtime | error | Which copy wins is ambiguous and behavior differs. |
+| Identical copies of the same skill name across scopes within one runtime | warn | Redundant install; check which scope the loader prefers. |
 | Same name in a plugin and another scope | warn | Plugin skills are namespaced; check semantic overlap. |
 | Linked `references/...` file does not exist | warn | The skill points at content it does not ship. |
 | Line count, description length, executable files | info | Authoring preferences or review flags, not correctness. |

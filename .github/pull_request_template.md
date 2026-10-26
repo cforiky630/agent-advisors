@@ -14,5 +14,5 @@ Briefly describe the proposed Advisor or enhancements.
 - [ ] Core ideological conflicts in the domain are explicitly arbitrated.
 - [ ] `references/` contains distilled summaries, not reproductions, and each file is linked from `SKILL.md`.
 - [ ] Includes a pre-delivery verification checklist.
-- [ ] Tested locally against the cases in `evals/trigger-cases.md` with at least one major Agent (Claude Code / Cursor / Codex / Antigravity).
-- [ ] `node scripts/validate_skills.mjs` passes.
+- [ ] Tested locally against the relevant cases in `evals/*trigger-cases.md` (e.g., `evals/trigger-cases.md`, `evals/api-security-trigger-cases.md`, `evals/data-storage-trigger-cases.md`) with at least one major Agent (Claude Code / Cursor / Codex / Antigravity).
+- [ ] `node scripts/validate_skills.mjs` and `node --test` pass.

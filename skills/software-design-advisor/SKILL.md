@@ -28,14 +28,14 @@ When tackling a specific engineering domain, anchor your design choices in the c
 
 | Engineering Domain | Primary Foundational Reference | Key Architectural Focus |
 | :--- | :--- | :--- |
-| **Routine Construction / Naming / Defensiveness** | **《Code Complete》** & **《The Pragmatic Programmer》** | Intent-revealing names, flat control flow (guard clauses), zero magic numbers, DRY, orthogonality. |
-| **Module Encapsulation / Interface Design / Complexity** | **《A Philosophy of Software Design》** | **Deep Modules**: Simple interface hiding deep implementations; eliminate pass-through methods and shallow classes. |
-| **Code Smell Elimination / Standard Refactoring** | **《Refactoring》** & **Refactoring.Guru Catalog** | Smell-driven refactoring, small verifiable steps, behavior preservation, OOP design patterns and refactoring catalogs. |
-| **Legacy Code Modernization / Untested Code** | **《Working Effectively with Legacy Code》** | Identify seams, break dependency cycles, and establish characterization tests before modifications. |
-| **Core Domain Modeling / Complex Business Rules** | **《DDD》Original** / **《IDDD》** / **《DDD Distilled》** | Ubiquitous language, bounded contexts, aggregate root invariants, entities, value objects, ACLs. |
-| **Enterprise Application Architecture / Persistence** | **《Patterns of Enterprise App Architecture》** (PoEAA) | Unit of Work, Repository, Data Mapper, concurrency control, transaction scripts vs domain models. |
-| **System Layering / Dependency Direction / Decoupling** | **《Clean Architecture》** & **《Clean Code》** | Dependency Inversion Principle (DIP), core domain independent of frameworks/DBs (guided by Deep Modules). |
-| **High Availability / Distributed Systems / Resilience** | **《DDIA》 & 《Release It!》** | Circuit breakers, bulkheads, replication/partitioning tradeoffs, graceful degradation, slow-call defense. |
+| **Routine Construction / Naming / Defensiveness** | ***Code Complete*** & ***The Pragmatic Programmer*** | Intent-revealing names, flat control flow (guard clauses), zero magic numbers, DRY, orthogonality. |
+| **Module Encapsulation / Interface Design / Complexity** | ***A Philosophy of Software Design*** | **Deep Modules**: Simple interface hiding deep implementations; eliminate pass-through methods and shallow classes. |
+| **Code Smell Elimination / Standard Refactoring** | ***Refactoring*** & **Refactoring.Guru Catalog** | Smell-driven refactoring, small verifiable steps, behavior preservation, OOP design patterns and refactoring catalogs. |
+| **Legacy Code Modernization / Untested Code** | ***Working Effectively with Legacy Code*** | Identify seams, break dependency cycles, and establish characterization tests before modifications. |
+| **Core Domain Modeling / Complex Business Rules** | ***DDD* (Evans)** / ***IDDD*** / ***DDD Distilled*** | Ubiquitous language, bounded contexts, aggregate root invariants, entities, value objects, ACLs. |
+| **Enterprise Application Architecture / Persistence** | ***Patterns of Enterprise App Architecture*** (PoEAA) | Unit of Work, Repository, Data Mapper, concurrency control, transaction scripts vs domain models. |
+| **System Layering / Dependency Direction / Decoupling** | ***Clean Architecture*** & ***Clean Code*** | Dependency Inversion Principle (DIP), core domain independent of frameworks/DBs (guided by Deep Modules). |
+| **High Availability / Distributed Systems / Resilience** | ***DDIA* & *Release It!*** | Circuit breakers, bulkheads, replication/partitioning tradeoffs, graceful degradation, slow-call defense. |
 
 ---
 

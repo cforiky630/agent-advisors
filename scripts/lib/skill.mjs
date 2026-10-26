@@ -19,20 +19,20 @@ const STOPWORDS = new Set(
 );
 
 const DOMAIN_TAGS = [
-  ["review", /\b(review|audit|inspection|checklist)\b/i],
-  ["refactor", /\b(refactor|code smell|technical debt|legacy|moderni[sz]e)\b/i],
-  ["testing", /\b(test|tdd|coverage|fixture|assert|regression)\b/i],
-  ["debugging", /\b(debug|diagnos|bug|flaky|stack trace)\b/i],
-  ["architecture", /\b(architect|module|interface|abstraction|layering|dependency|deep module)\b/i],
-  ["domain-modeling", /\b(domain|ddd|aggregate|entity|value object|bounded context)\b/i],
-  ["frontend", /\b(frontend|ui|ux|react|css|html|component|design system)\b/i],
-  ["docs", /\b(document|docs|readme|spec|writing|proposal|memo)\b/i],
-  ["deliverables", /\b(slide|deck|presentation|pptx|docx|xlsx|pdf|spreadsheet|poster|artifact)\b/i],
-  ["security", /\b(security|vulnerab|threat model|owasp|authentication|authorization|cve)\b/i],
-  ["data", /\b(sql|database|schema|etl|analytics|pipeline|storage)\b/i],
-  ["ops", /\b(deploy|ci|cd|kubernetes|docker|incident|sre|monitor|release)\b/i],
-  ["research", /\b(research|investigat|sources|evidence|citation)\b/i],
-  ["planning", /\b(plan|ticket|backlog|roadmap|estimate|breakdown)\b/i],
+  ["review", /\b(review(?:s|ing)?|audit(?:s|ing)?|inspection(?:s)?|checklist(?:s)?)\b/i],
+  ["refactor", /\b(refactor(?:s|ing)?|code smells?|technical debt|legacy|moderni[sz](?:e|ing|ation|es)?)\b/i],
+  ["testing", /\b(test(?:s|ing|ed)?|tdd|coverage|fixtures?|assert(?:s|ing|ion|ions)?|regression(?:s)?)\b/i],
+  ["debugging", /\b(debug(?:s|ging)?|diagnos(?:e|es|ing|is|tic)?|bugs?|flaky|stack traces?)\b/i],
+  ["architecture", /\b(architect(?:s|ure|ural)?|modules?|interfaces?|abstractions?|layerings?|dependenc(?:y|ies)|deep modules?)\b/i],
+  ["domain-modeling", /\b(domains?|ddd|aggregates?|entit(?:y|ies)|value objects?|bounded contexts?)\b/i],
+  ["frontend", /\b(frontend|ui|ux|react|css|html|components?|design systems?)\b/i],
+  ["docs", /\b(document(?:s|ing|ation)?|docs?|readmes?|specs?|writing|proposals?|memos?)\b/i],
+  ["deliverables", /\b(slides?|decks?|presentations?|pptx|docx|xlsx|pdfs?|spreadsheets?|posters?|artifacts?)\b/i],
+  ["security", /\b(secur(?:e|ity)|vulnerab(?:le|ility|ilities)?|threat models?|owasp|authenticat(?:e|ion)|authoriz(?:e|ation)|cves?)\b/i],
+  ["data", /\b(sql|databases?|schemas?|etl|analytics|pipelines?|storages?)\b/i],
+  ["ops", /\b(deploy(?:s|ment|ing)?|ci|cd|kubernetes|docker|incidents?|sre|monitors?|monitoring|releases?)\b/i],
+  ["research", /\b(research(?:es|ing)?|investigat(?:e|es|ing|ion)?|sources?|evidences?|citations?)\b/i],
+  ["planning", /\b(plans?|planning|tickets?|backlogs?|roadmaps?|estimates?|estimating|estimation|breakdowns?)\b/i],
 ];
 
 const SCRIPT_EXTENSIONS = new Set([
@@ -67,21 +67,73 @@ export const OVERBROAD_PATTERNS = [
 
 /** Parse leading YAML-ish frontmatter without a YAML dependency. */
 export function parseFrontmatter(text) {
-  const source = String(text ?? "").replace(/^﻿/, "");
+  const source = String(text ?? "").replace(/^\uFEFF/, "");
   const match = source.match(FRONTMATTER);
   if (!match) return { found: false, meta: {}, body: source };
   const meta = {};
-  for (const raw of match[1].split(/\r?\n/)) {
+  const lines = match[1].split(/\r?\n/);
+  for (let i = 0; i < lines.length; i += 1) {
+    const raw = lines[i];
     if (!raw.trim() || raw.trimStart().startsWith("#") || /^[ \t]/.test(raw)) continue;
     const colon = raw.indexOf(":");
     if (colon <= 0) continue;
     const key = raw.slice(0, colon).trim();
     let value = raw.slice(colon + 1).trim();
-    if (
+    const isQuoted =
       (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
+      (value.startsWith("'") && value.endsWith("'"));
+    if (isQuoted) {
       value = value.slice(1, -1);
+    } else {
+      value = value.replace(/\s+#.*$/, "").trim();
+    }
+
+    const isBlockScalar = !isQuoted && /^[|>][-+]?$/.test(value);
+    const hasIndentedContinuation =
+      !isQuoted &&
+      i + 1 < lines.length &&
+      /^[ \t]+\S/.test(lines[i + 1]) &&
+      !lines[i + 1].trimStart().startsWith("#");
+
+    if (isBlockScalar || (!isQuoted && value === "") || hasIndentedContinuation) {
+      const indicator = isBlockScalar ? value[0] : "";
+      const blockLines = [];
+      while (i + 1 < lines.length) {
+        const next = lines[i + 1];
+        if (/^[ \t]+\S/.test(next)) {
+          blockLines.push(next);
+          i += 1;
+          continue;
+        }
+        if (!next.trim()) {
+          let lookahead = i + 2;
+          while (lookahead < lines.length && !lines[lookahead].trim()) lookahead += 1;
+          if (lookahead < lines.length && /^[ \t]+\S/.test(lines[lookahead])) {
+            blockLines.push("");
+            i += 1;
+            continue;
+          }
+        }
+        break;
+      }
+      if (indicator === "|") {
+        const indents = blockLines
+          .filter((line) => line.trim().length > 0)
+          .map((line) => line.match(/^[ \t]*/)[0].length);
+        const minIndent = indents.length > 0 ? Math.min(...indents) : 0;
+        value = blockLines.map((line) => (line ? line.slice(minIndent) : "")).join("\n").trim();
+      } else if (indicator === ">") {
+        value = blockLines
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .join(" ");
+      } else if (blockLines.length > 0) {
+        const continued = blockLines
+          .map((line) => line.replace(/\s+#.*$/, "").trim())
+          .filter((line) => line && !line.startsWith("#"))
+          .join(" ");
+        value = value ? `${value} ${continued}` : continued;
+      }
     }
     meta[key] = value;
   }
@@ -105,6 +157,66 @@ export function sha256(text) {
   return createHash("sha256").update(text, "utf8").digest("hex");
 }
 
+const NON_PLURAL_ENDINGS = /(?:ss|us|is|os)$/;
+const NON_PLURAL_WORDS = new Set([
+  "postgres",
+  "redis",
+  "nextjs",
+  "nodejs",
+  "nestjs",
+  "nuxtjs",
+  "reactjs",
+  "vuejs",
+  "serverless",
+  "kubernetes",
+  "prometheus",
+  "jenkins",
+  "alias",
+  "canvas",
+  "series",
+  "species",
+  "lens",
+  "cors",
+]);
+const FOUR_LETTER_PLURALS = new Set([
+  "apis",
+  "bugs",
+  "docs",
+  "logs",
+  "jobs",
+  "keys",
+  "urls",
+  "rows",
+  "tags",
+  "runs",
+  "apps",
+  "pdfs",
+  "cves",
+  "sdks",
+  "clis",
+  "orms",
+  "jwts",
+  "rpcs",
+  "slos",
+  "slas",
+]);
+
+function stemTerm(word) {
+  if (!word.endsWith("s") || NON_PLURAL_WORDS.has(word)) {
+    return word;
+  }
+  if (FOUR_LETTER_PLURALS.has(word)) {
+    return word.slice(0, -1);
+  }
+  if (NON_PLURAL_ENDINGS.test(word)) {
+    return word;
+  }
+  if (word.length > 4) {
+    return word.slice(0, -1);
+  }
+  return word;
+}
+
 export function descriptionTerms(description) {
   return new Set(
     String(description ?? "")
@@ -113,7 +225,7 @@ export function descriptionTerms(description) {
       .split(/\s+/)
       .map((word) => word.replace(/^[-+]+|[-+]+$/g, ""))
       .filter((word) => word.length >= 3 && !STOPWORDS.has(word))
-      .map((word) => (word.length > 4 && word.endsWith("s") ? word.slice(0, -1) : word))
+      .map(stemTerm)
       .filter((word) => word.length >= 3),
   );
 }
@@ -174,7 +286,7 @@ export function findExecutableSurface(skillDir) {
       return;
     }
     for (const entry of entries) {
-      if (entry.name === "references" || entry.name === ".git" || entry.name === "node_modules") continue;
+      if (entry.name === ".git" || entry.name === "node_modules") continue;
       const full = join(dir, entry.name);
       if (entry.isDirectory()) {
         walk(full, depth + 1);
@@ -189,7 +301,8 @@ export function findExecutableSurface(skillDir) {
         }
       }
       if (isFile) {
-        const extension = entry.name.slice(entry.name.lastIndexOf(".")).toLowerCase();
+        const dotIndex = entry.name.lastIndexOf(".");
+        const extension = dotIndex > 0 ? entry.name.slice(dotIndex).toLowerCase() : "";
         if (SCRIPT_EXTENSIONS.has(extension)) {
           found.push(relative(skillDir, full).split(sep).join("/"));
         }
@@ -212,7 +325,7 @@ export function readSkill(skillDir, { scope = "unknown", agent = "unknown" } = {
   const referenceFiles = existsSync(referencesDir)
     ? readdirSync(referencesDir).filter((file) => file.endsWith(".md")).sort()
     : [];
-  const unlinkedReferences = referenceFiles.filter((file) => !body.includes(file));
+  const unlinkedReferences = referenceFiles.filter((file) => !body.includes(`references/${file}`));
   const missingReferences = [
     ...new Set(
       [...body.matchAll(/references\/([A-Za-z0-9._/-]+\.md)/g)]

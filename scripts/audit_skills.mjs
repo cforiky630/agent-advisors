@@ -12,7 +12,7 @@
  *                                 [--json] [--fail-on-issues]
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -143,7 +143,7 @@ export function discover(roots) {
           path: dir,
           dirName: basename(dir),
           realpath: realpathSync(dir),
-          isSymlink: dir !== realpathSync(dir),
+          isSymlink: lstatSync(dir).isSymbolicLink(),
         });
       } catch (error) {
         records.push({
@@ -177,12 +177,13 @@ export function uniqueSkills(records) {
   const byReal = new Map();
   for (const record of records) {
     const existing = byReal.get(record.realpath);
+    const instance = { agent: record.agent, scope: record.scope, path: record.path };
     if (existing) {
-      existing.instances.push({ scope: record.scope, path: record.path });
+      existing.instances.push(instance);
     } else {
       byReal.set(record.realpath, {
         ...record,
-        instances: [{ scope: record.scope, path: record.path }],
+        instances: [instance],
       });
     }
   }
@@ -201,11 +202,26 @@ export function perAgentSkills(records) {
 }
 
 /** Analyze the inventory. Semantic verdicts are deliberately not produced. */
-export function analyze(records, { threshold = 0.4, overlapAgents = new Set(["claude"]) } = {}) {
+export function analyze(
+  records,
+  { threshold = 0.4, overlapAgents = new Set(["claude"]), broken: brokenOption = [] } = {},
+  broken = brokenOption,
+) {
   const skills = uniqueSkills(records);
   const issues = [];
   const collisions = [];
   const agents = perAgentSkills(records);
+
+  for (const item of broken) {
+    issues.push({
+      level: "error",
+      kind: "broken-symlink",
+      name: basename(item.path),
+      scope: item.scope,
+      path: toPosix(item.path),
+      message: `broken symlink: ${toPosix(item.path)}`,
+    });
+  }
 
   for (const skill of skills) {
     if (skill.readError) {
@@ -254,6 +270,7 @@ export function analyze(records, { threshold = 0.4, overlapAgents = new Set(["cl
   const budgets = {};
   const overlaps = {};
   for (const [agent, list] of agents) {
+    if (agent === "store") continue;
     budgets[agent] = {
       skills: list.length,
       descriptionTokens: list.reduce((sum, skill) => sum + (skill.descriptionTokens ?? 0), 0),
@@ -318,7 +335,11 @@ export function renderMarkdown(result, { roots, broken, skipped, generatedAt = n
   lines.push("");
 
   const claudeSkills = result.skills
-    .filter((skill) => skill.agent === "claude")
+    .filter((skill) =>
+      skill.instances
+        ? skill.instances.some((inst) => inst.agent === "claude")
+        : skill.agent === "claude",
+    )
     .sort((a, b) => (b.descriptionTokens ?? 0) - (a.descriptionTokens ?? 0))
     .slice(0, 12);
   if (claudeSkills.length > 0) {
@@ -327,8 +348,9 @@ export function renderMarkdown(result, { roots, broken, skipped, generatedAt = n
     lines.push("| Skill | Scope | Tokens | Lines |");
     lines.push("| :--- | :--- | ---: | ---: |");
     for (const skill of claudeSkills) {
+      const claudeScope = skill.instances?.find((inst) => inst.agent === "claude")?.scope ?? skill.scope;
       lines.push(
-        `| \`${skill.name}\` | ${skill.scope} | ~${skill.descriptionTokens} | ${skill.lineCount} |`,
+        `| \`${skill.name}\` | ${claudeScope} | ~${skill.descriptionTokens} | ${skill.lineCount} |`,
       );
     }
     lines.push("");
@@ -420,6 +442,7 @@ export function buildLock(result, { roots, generatedAt = new Date() } = {}) {
     generatedAt: generatedAt.toISOString(),
     roots: roots.map((root) => ({ scope: root.scope, agent: root.agent, path: toPosix(root.path) })),
     budgets: result.budgets,
+    issues: result.issues,
     skills: result.skills
       .map((skill) => ({
         name: skill.name,
@@ -427,6 +450,11 @@ export function buildLock(result, { roots, generatedAt = new Date() } = {}) {
         scope: skill.scope,
         path: toPosix(skill.path),
         realpath: toPosix(skill.realpath),
+        instances: (skill.instances ?? []).map((inst) => ({
+          agent: inst.agent,
+          scope: inst.scope,
+          path: toPosix(inst.path),
+        })),
         contentHash: skill.contentHash,
         description: skill.description,
         descriptionTokens: skill.descriptionTokens,
@@ -437,7 +465,7 @@ export function buildLock(result, { roots, generatedAt = new Date() } = {}) {
   };
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const options = {
     out: join(CWD, ".advisor-audit"),
     threshold: 0.4,
@@ -447,14 +475,26 @@ function parseArgs(argv) {
     failOnIssues: false,
     overlapAgents: new Set(["claude"]),
   };
+  const nextValue = (arg, value) => {
+    if (!value || value.startsWith("-")) {
+      throw new Error(`Missing or invalid value for ${arg}`);
+    }
+    return value;
+  };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === "--out") options.out = resolve(argv[++i]);
-    else if (arg === "--threshold") options.threshold = Number(argv[++i]);
-    else if (arg === "--root") {
-      const value = argv[++i] ?? "";
+    if (arg === "--out") options.out = resolve(nextValue(arg, argv[++i]));
+    else if (arg === "--threshold") {
+      const raw = nextValue(arg, argv[++i]);
+      const threshold = Number(raw);
+      if (Number.isNaN(threshold) || threshold < 0 || threshold > 1) {
+        throw new Error("--threshold must be a number between 0 and 1");
+      }
+      options.threshold = threshold;
+    } else if (arg === "--root") {
+      const value = nextValue(arg, argv[++i]);
       const split = value.indexOf("=");
-      if (split <= 0) throw new Error("--root expects scope=path");
+      if (split <= 0 || split === value.length - 1) throw new Error("--root expects scope=path");
       options.roots.push({
         scope: value.slice(0, split),
         agent: value.slice(0, split).split("-")[0],
@@ -462,13 +502,11 @@ function parseArgs(argv) {
       });
     } else if (arg === "--no-defaults") options.useDefaults = false;
     else if (arg === "--agents") {
-      const value = argv[++i] ?? "";
-      options.overlapAgents =
-        value === "all"
-          ? null
-          : new Set(value.split(",").map((agent) => agent.trim()).filter(Boolean));
-    }
-    else if (arg === "--json") options.json = true;
+      const value = nextValue(arg, argv[++i]);
+      const list = value.split(",").map((agent) => agent.trim()).filter(Boolean);
+      if (list.length === 0) throw new Error("Missing or invalid value for --agents");
+      options.overlapAgents = value === "all" ? null : new Set(list);
+    } else if (arg === "--json") options.json = true;
     else if (arg === "--fail-on-issues") options.failOnIssues = true;
     else if (arg === "--help" || arg === "-h") {
       console.log("Usage: node scripts/audit_skills.mjs [--out DIR] [--threshold N] [--agents claude|all|list] [--root scope=path]... [--no-defaults] [--json] [--fail-on-issues]");
@@ -486,10 +524,14 @@ export function runAudit(argv = process.argv.slice(2)) {
     ? [...DEFAULT_ROOTS, ...installedPluginRoots(), ...options.roots]
     : options.roots;
   const { records, broken, skipped } = discover(roots);
-  const result = analyze(records, {
-    threshold: options.threshold,
-    overlapAgents: options.overlapAgents,
-  });
+  const result = analyze(
+    records,
+    {
+      threshold: options.threshold,
+      overlapAgents: options.overlapAgents,
+    },
+    broken,
+  );
 
   if (options.json) {
     console.log(JSON.stringify(buildLock(result, { roots }), null, 2));

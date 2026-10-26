@@ -69,7 +69,7 @@ Before declaring a new Advisor complete, verify every item:
 1. **[ ] Single Unified Facade**: Does this advisor replace a scattered constellation of shallow micro-skills with one coherent domain gateway?
 2. **[ ] Rationale-Backed Arbitration**: Are conflicting schools of thought arbitrated with clear engineering rationales rather than dogmatic bias?
 3. **[ ] Progressive Disclosure Hierarchy**:
-   - Level 1: Intent-rich frontmatter metadata (~30 tokens)?
+   - Level 1: Intent-rich frontmatter metadata (~90–140 tokens, <= 1200 chars)?
    - Level 2: Compact `SKILL.md` under 150 lines?
    - Level 3: Distilled references relegated to `references/`, with a one-or-two-file reading cap?
 4. **[ ] Canonical English Execution**: Is `SKILL.md` written in idiomatic, high-precision English for deterministic LLM execution?

@@ -16,17 +16,19 @@ import { execFileSync } from "node:child_process";
 import {
   copyFileSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 import {
   countLines,
@@ -64,6 +66,8 @@ const SCRIPT_EXTENSIONS = new Set([
 
 const MERGE_SAFE_LICENSES = new Set(["MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "0BSD", "CC0-1.0"]);
 
+const toPosix = (value) => String(value).split(sep).join("/");
+
 export function repoSlug(url) {
   const cleaned = String(url).replace(/[\\/]+$/, "").replace(/\.git$/i, "");
   const last = cleaned.split(/[/:]/).filter(Boolean).pop() ?? "repository";
@@ -85,7 +89,7 @@ export function detectLicense(root) {
   const candidates = ["LICENSE", "LICENSE.md", "LICENSE.txt", "COPYING", "COPYING.md"];
   for (const name of candidates) {
     const path = join(root, name);
-    if (!existsSync(path)) continue;
+    if (!existsSync(path) || lstatSync(path).isSymbolicLink()) continue;
     const text = readFileSync(path, "utf8").slice(0, 8192);
     if (/Permission is hereby granted, free of charge/i.test(text)) return { id: "MIT", source: name };
     if (/Apache License/i.test(text) && /Version 2\.0/i.test(text)) return { id: "Apache-2.0", source: name };
@@ -97,7 +101,7 @@ export function detectLicense(root) {
   }
 
   const pkgPath = join(root, "package.json");
-  if (existsSync(pkgPath)) {
+  if (existsSync(pkgPath) && !lstatSync(pkgPath).isSymbolicLink()) {
     try {
       const license = JSON.parse(readFileSync(pkgPath, "utf8")).license;
       if (license) return { id: String(license), source: "package.json" };
@@ -117,7 +121,7 @@ export function classifyFile(relPath, text) {
   if (extension === ".mdc" && /(^|\/)\.cursor\/rules\//.test(relPath.replaceAll("\\", "/"))) {
     return "rule";
   }
-  if (extension !== ".md") return null;
+  if (extension !== ".md" && extension !== ".markdown") return null;
 
   const { found, meta } = parseFrontmatter(text);
   if (found && meta.name && meta.description) return "skill-like";
@@ -281,7 +285,7 @@ function renderProposal({ source, commit, license, candidates, executable, inven
   lines.push("");
   lines.push(`- Commit: \`${commit}\``);
   lines.push(`- License: ${license ? `\`${license.id}\` (${license.source})` : "not found"}`);
-  lines.push(`- Inventory compared: ${inventory ? `\`${inventory.path}\`` : "none"}`);
+  lines.push(`- Inventory compared: ${inventory ? `\`${toPosix(inventory.path)}\`` : "none"}`);
   lines.push(`- Skill candidates copied as data: ${primary.length}`);
   lines.push(`- Reference files copied as data: ${references.length}`);
   lines.push(`- Executable files found (not copied, not run): ${executable.length}`);
@@ -355,21 +359,61 @@ export function importRepo(options) {
   const outDir = resolve(options.out ?? join(CWD, ".advisor-import", repoSlug(options.source)));
 
   try {
-    const args = ["clone", "--depth", "1", "--no-tags"];
+    const isLocal = !/^(https:\/\/|ssh:\/\/|git:\/\/|git@[^:]+:)/.test(source);
+    const gitConfigArgs = [
+      "-c",
+      "core.hooksPath=/dev/null",
+      "-c",
+      "core.fsmonitor=false",
+      "-c",
+      "submodule.recurse=false",
+    ];
+    const args = [...gitConfigArgs, "clone", "--no-tags"];
+    if (!isLocal) args.push("--depth", "1");
     if (options.ref) args.push("--branch", options.ref);
-    const cloneSource = /^(https:\/\/|ssh:\/\/|git:\/\/|git@)/.test(source)
-      ? source
-      : pathToFileURL(source).href;
-    args.push(cloneSource, cloneDir);
-    execFileSync("git", args, { stdio: ["ignore", "pipe", "pipe"], encoding: "utf8" });
+    args.push("--", source, cloneDir);
 
-    const commit = execFileSync("git", ["-C", cloneDir, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+    let commit;
+    try {
+      execFileSync("git", args, { stdio: ["ignore", "pipe", "pipe"], encoding: "utf8" });
+      commit = execFileSync("git", ["-C", cloneDir, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+    } catch (cloneError) {
+      if (!isLocal) throw cloneError;
+      rmSync(cloneDir, { recursive: true, force: true });
+      mkdirSync(cloneDir, { recursive: true });
+      const gitDir = execFileSync("git", ["-C", source, "rev-parse", "--absolute-git-dir"], {
+        stdio: ["ignore", "pipe", "pipe"],
+        encoding: "utf8",
+      }).trim();
+      const targetRef = options.ref ?? "HEAD";
+      commit = execFileSync("git", ["-C", source, "rev-parse", `${targetRef}^{commit}`], {
+        stdio: ["ignore", "pipe", "pipe"],
+        encoding: "utf8",
+      }).trim();
+      const env = { ...process.env, GIT_INDEX_FILE: join(quarantine, "index") };
+      execFileSync(
+        "git",
+        [...gitConfigArgs, "--git-dir", gitDir, "--work-tree", cloneDir, "read-tree", commit],
+        { stdio: ["ignore", "pipe", "pipe"], encoding: "utf8", env },
+      );
+      execFileSync(
+        "git",
+        [...gitConfigArgs, "--git-dir", gitDir, "--work-tree", cloneDir, "checkout-index", "-a", "-f"],
+        { stdio: ["ignore", "pipe", "pipe"], encoding: "utf8", env },
+      );
+    }
+    const realCloneDir = realpathSync(cloneDir);
     const root = options.subdir ? resolve(cloneDir, options.subdir) : cloneDir;
     const within = relative(cloneDir, root);
     if (within.startsWith("..") || isAbsolute(within)) {
       throw new Error("--subdir points outside the cloned repository");
     }
     if (!existsSync(root)) throw new Error(`--subdir does not exist: ${options.subdir}`);
+    const realRoot = realpathSync(root);
+    const realWithin = relative(realCloneDir, realRoot);
+    if (realWithin.startsWith("..") || isAbsolute(realWithin)) {
+      throw new Error("--subdir points outside the cloned repository");
+    }
 
     const license = detectLicense(root) ?? detectLicense(cloneDir);
     const { candidates, executable, scanned } = discoverCandidates(root);
@@ -400,7 +444,7 @@ export function importRepo(options) {
       license,
       scannedFiles: scanned,
       executableFiles: executable,
-      inventory: inventory ? inventory.path : null,
+      inventory: inventory ? toPosix(inventory.path) : null,
       candidates: candidates.map((candidate) => ({
         rel: candidate.rel,
         kind: candidate.kind,
@@ -427,7 +471,7 @@ export function importRepo(options) {
   }
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const options = {
     source: "",
     ref: null,
@@ -438,13 +482,19 @@ function parseArgs(argv) {
     keepClone: false,
     json: false,
   };
+  const nextValue = (arg, value) => {
+    if (!value || value.startsWith("-")) {
+      throw new Error(`Missing or invalid value for ${arg}`);
+    }
+    return value;
+  };
   const positional = [];
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === "--ref") options.ref = argv[++i];
-    else if (arg === "--subdir") options.subdir = argv[++i];
-    else if (arg === "--out") options.out = resolve(argv[++i]);
-    else if (arg === "--inventory") options.inventory = resolve(argv[++i]);
+    if (arg === "--ref") options.ref = nextValue(arg, argv[++i]);
+    else if (arg === "--subdir") options.subdir = nextValue(arg, argv[++i]);
+    else if (arg === "--out") options.out = resolve(nextValue(arg, argv[++i]));
+    else if (arg === "--inventory") options.inventory = resolve(nextValue(arg, argv[++i]));
     else if (arg === "--allow-local") options.allowLocal = true;
     else if (arg === "--keep-clone") options.keepClone = true;
     else if (arg === "--json") options.json = true;

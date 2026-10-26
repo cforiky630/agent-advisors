@@ -41,7 +41,21 @@ const PROHIBITED = [
   [/\b14 classics\b/, "catalog count inconsistent with the 8-domain framing"],
 ];
 
-const SCANNED_DOCS = ["README.md", "README_ZH.md", "CONTRIBUTING.md"];
+const SCANNED_DOCS = [
+  "README.md",
+  "README_ZH.md",
+  "CONTRIBUTING.md",
+  "docs/AUDIT.md",
+  "docs/provenance/README.md",
+  "docs/provenance/advisor-creator.md",
+  "docs/provenance/api-security-advisor.md",
+  "docs/provenance/data-storage-advisor.md",
+  "docs/provenance/software-design-advisor.md",
+  "evals/outcome-protocol.md",
+  "evals/trigger-cases.md",
+  "evals/api-security-trigger-cases.md",
+  "evals/data-storage-trigger-cases.md",
+];
 const MARKDOWN_LINK = /\[[^\]]*\]\(([^)]+)\)/g;
 const HTML_HREF = /href="([^"]+)"/g;
 
@@ -107,9 +121,12 @@ function checkSkill(skillMd) {
 
 function checkDoc(docPath) {
   const text = read(docPath);
-  const targets = [...text.matchAll(MARKDOWN_LINK), ...text.matchAll(HTML_HREF)];
+  const withoutCode = text
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/`[^`\n]+`/g, "");
+  const targets = [...withoutCode.matchAll(MARKDOWN_LINK), ...withoutCode.matchAll(HTML_HREF)];
   for (const match of targets) {
-    const target = match[1].trim();
+    const target = match[1].trim().replace(/\s+(?:"[^"]*"|'[^']*')\s*$/, "").trim();
     if (!target || /^(#|https?:\/\/|mailto:)/.test(target)) continue;
     const local = target.split("#")[0];
     if (local && !existsSync(join(dirname(docPath), local))) {

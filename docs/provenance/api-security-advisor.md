@@ -19,12 +19,12 @@ This document provides formal bibliographic attribution, copyright provenance, a
 
 | Reference File | Primary Standard / Canonical Source | Governing Body / Author | Identifier / Link |
 | :--- | :--- | :--- | :--- |
-| `references/owasp-api-security-top10.md` | *OWASP API Security Top 10 (2023 Release)* | OWASP Foundation | https://owasp.org/API-Security/ |
+| `references/owasp-api-security-top10.md` | *OWASP API Security Top 10 (2023 Release)* | OWASP Foundation | https://owasp.org/API-Security/ (API1–API10, CWE-918) |
 | `references/owasp-api-security-top10.md` | *Application Security Verification Standard (ASVS 4.0)* | OWASP Foundation | https://owasp.org/www-project-application-security-verification-standard/ |
 | `references/authentication-and-tokens.md` | *RFC 7519: JSON Web Token (JWT)* | IETF | RFC 7519 |
 | `references/authentication-and-tokens.md` | *RFC 9068: JSON Web Token (JWT) Profile for OAuth 2.0* | IETF | RFC 9068 |
 | `references/authentication-and-tokens.md` | *NIST SP 800-63B: Digital Identity Guidelines* | NIST | NIST SP 800-63B |
-| `references/input-boundary-and-injection.md` | *CWE/SANS Top 25 Most Dangerous Software Weaknesses* | MITRE / SANS | CWE-89, CWE-78, CWE-22, CWE-918 |
+| `references/input-boundary-and-injection.md` | *CWE/SANS Top 25 Most Dangerous Software Weaknesses* | MITRE / SANS | CWE-89, CWE-78, CWE-22, CWE-502, CWE-611 |
 | `references/input-boundary-and-injection.md` | *Secure by Design* | Dan Bergh Johnsson, Daniel Deogun, Daniel Sawano (Manning, 2019) | ISBN 978-1617294358 |
 | `references/cryptographic-hygiene.md` | *NIST SP 800-38D: Recommendation for GCM Mode* | NIST | NIST SP 800-38D |
 | `references/cryptographic-hygiene.md` | *CWE-208: Observable Timing Discrepancy* | MITRE | CWE-208 |

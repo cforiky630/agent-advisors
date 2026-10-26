@@ -2,7 +2,8 @@
 
 ## Purpose
 
-This repository must follow **Clean Architecture**.
+This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale, deferring to established project conventions, tests, and explicit user instructions when they conflict.
+
 When writing, modifying, or reviewing code, prefer decisions that preserve:
 - independent business rules
 - inward-pointing dependencies
@@ -11,8 +12,6 @@ When writing, modifying, or reviewing code, prefer decisions that preserve:
 - UI independence
 - testability
 - replaceable details
-
-Treat this file as a binding implementation policy: `MUST` is binding, `SHOULD` is a strong default, and `MUST NOT` is forbidden.
 
 ---
 

@@ -16,4 +16,5 @@ This physical separation ensures:
 
 - [`software-design-advisor.md`](software-design-advisor.md): 14 foundational classics & catalogs covering architecture, refactoring, legacy code, and resilience.
 - [`api-security-advisor.md`](api-security-advisor.md): Application security & defensive API design standards (OWASP API Top 10, RFC 7519, NIST SP 800-63B, CWE/SANS Top 25).
+- [`data-storage-advisor.md`](data-storage-advisor.md): Database architecture, indexing, concurrency & schema patterns (*High Performance MySQL*, *SQL Antipatterns*, *DDIA*).
 - [`advisor-creator.md`](advisor-creator.md): Meta-skill lineage (GoF Facade, Progressive Disclosure, Deep Modules).

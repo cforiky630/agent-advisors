@@ -23,7 +23,7 @@ evidence that justifies keeping or expanding an advisor.
    - **Without**: the same environment with the skill removed or disabled.
 5. Run each task twice, alternating the order (With → Without, then
    Without → With). Randomize or alternate so fatigue does not favor one side.
-6. Strip model labels from the six outputs per task and number them.
+6. Strip model labels from the four outputs per task and number them.
 
 ## Scoring
 
@@ -52,7 +52,7 @@ Record only the numbers; do not annotate while blind.
   "changed my decision" outcomes → keep the advisor, and consider whether the
   references earn their maintenance cost.
 - Improvement **< 0.5 points** with no decision changes → keep only the
-  127-line `SKILL.md` if it costs little, or remove the advisor. Cut references
+  compact `SKILL.md` (<= 150 lines) if it costs little, or remove the advisor. Cut references
   first; they are the most expensive part to maintain.
 - The advisor makes outputs **worse** (over-engineering, dogma, ignored project
   conventions) → tighten `Operating Boundaries` or remove it.

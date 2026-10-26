@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -140,5 +140,48 @@ test("skips uninstalled marketplace checkouts", () => {
     assert.match(roots[0].scope, /^claude-plugin:/);
   } finally {
     rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("excludes cc-switch store from runtime budgets", () => {
+  const claudeRoot = tempRoot();
+  const storeRoot = tempRoot();
+  try {
+    makeSkill(claudeRoot, "alpha", { description: "Review code for defects." });
+    makeSkill(storeRoot, "stored", { description: "Stored skill in cc-switch." });
+    const { records, broken } = discover([
+      { scope: "claude-user", agent: "claude", path: claudeRoot },
+      { scope: "cc-switch", agent: "store", path: storeRoot },
+    ]);
+    const result = analyze(records, {}, broken);
+    assert.ok(result.budgets.claude);
+    assert.equal(result.budgets.store, undefined);
+  } finally {
+    rmSync(claudeRoot, { recursive: true, force: true });
+    rmSync(storeRoot, { recursive: true, force: true });
+  }
+});
+
+test("reports broken symlinks as errors in analyze", () => {
+  const root = tempRoot();
+  try {
+    makeSkill(root, "alpha", { description: "Review code for defects." });
+    const brokenPath = join(root, "dangling-skill");
+    let symlinkCreated = false;
+    try {
+      symlinkSync(join(root, "does-not-exist"), brokenPath, "dir");
+      symlinkCreated = true;
+    } catch {
+      // On Windows without Developer Mode/admin privileges, fall back to synthetic broken list.
+    }
+    const { records, broken } = discover([{ scope: "claude-user", agent: "claude", path: root }]);
+    const effectiveBroken = symlinkCreated ? broken : [{ scope: "claude-user", path: brokenPath }];
+    const result = analyze(records, {}, effectiveBroken);
+    const brokenIssue = result.issues.find((issue) => issue.kind === "broken-symlink");
+    assert.ok(brokenIssue, "expected broken-symlink issue");
+    assert.equal(brokenIssue.level, "error");
+    assert.equal(brokenIssue.name, "dangling-skill");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
   }
 });

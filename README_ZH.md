@@ -1,8 +1,8 @@
-# 🏛️ Agent Advisors（智能体专家顾问库）
+# Agent Advisors（AI 编程智能体领域顾问与技能治理工具链）
 
 <p align="center">
-  <strong>每个工程领域一个说话算数的顾问，外加一套审计与扩展技能的工具。</strong><br>
-  少一点提示词堆积，少一点技能互相抢活，多一点稳定的工程判断。
+  <strong>面向 AI 编程智能体的深模块工程领域顾问（Domain Advisors）与技能治理工具集</strong><br>
+  以高内聚的领域门面替代碎片化提示词规则，实现低上下文开销与一致的工程架构决策。
 </p>
 
 <p align="center">
@@ -11,125 +11,126 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/支持客户端-Claude%20Code%20%7C%20Cursor%20%7C%20Codex%20%7C%20Antigravity-orange.svg" alt="Supported Agents">
-  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-欢迎提交-brightgreen.svg" alt="PRs Welcome"></a>
+  <img src="https://img.shields.io/badge/Node.js-%3E%3D20-339933.svg" alt="Node.js >= 20">
+  <img src="https://img.shields.io/badge/支持运行时-Claude%20Code%20%7C%20Cursor%20%7C%20Codex%20%7C%20Antigravity-orange.svg" alt="Supported Agent Runtimes">
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen.svg" alt="PRs Welcome"></a>
 </p>
 
 ---
 
-## 这是什么？
+## 项目概述
 
-Agent Advisors 是一组给 AI 编程助手用的 **skill（技能）**，外加几个管理技能的小工具。
+**Agent Advisors** 是一套面向主流 AI 编程智能体运行时（Claude Code、Cursor、Codex CLI、Google Antigravity / Gemini CLI）的**生产级工程领域顾问库（Domain Advisors）**与**零依赖技能治理 CLI 工具链**。
 
-一个 skill 就是一个带 `SKILL.md` 的文件夹。模型每一轮都能看到它的名字和描述，只有任务对得上时才读正文。这样既能给模型一个稳定的立场，又不用每轮都塞一大段指令。
+在实际工程应用中，随着智能体挂载的细粒度技能（Micro-Skills）不断累加，通常会引发三类系统性问题：
+1. **常驻上下文开销膨胀（Context Tax）**：每个已安装技能的 Frontmatter 描述都会在每一轮对话中常驻系统提示词，持续消耗上下文预算。
+2. **触发面重叠与路由歧义（Trigger Collisions）**：多个技能的描述针对同类开发任务声明触发条件，导致模型路由不确定。
+3. **工程教条冲突与决策漂移（Doctrinal Drift）**：缺乏明确的权衡准则时，智能体容易在相互冲突的工程范式之间摇摆（例如“拆分为极小函数”与“构建深模块”，或对简单 CRUD 盲目套用重型战术 DDD）。
 
-本仓库包含三个 skill 和三个工具：
+本项目通过**门面模式（单一工程领域对应唯一权威顾问）**与**三级渐进式披露架构（Three-Level Progressive Disclosure）**解决上述问题，并提供静态审计与隔离导入工具，协助开发者对本地技能集进行量化治理。
 
-| 内容 | 是什么 | 用来干什么 |
+### 核心组件
+
+| 组件 | 类别 | 覆盖范围与核心职责 |
 | :--- | :--- | :--- |
-| [`software-design-advisor`](skills/software-design-advisor/) | 一个 skill + 14 份提炼笔记 | 让设计、重构、遗留代码、架构、DDD、容错类决策保持一致 |
-| [`api-security-advisor`](skills/api-security-advisor/) | 一个 skill + 4 份安全基线笔记 | 防御水平越权（BOLA/IDOR）、SSRF、注入、密码学与令牌缺陷 |
-| [`advisor-creator`](skills/advisor-creator/) | 元技能 | 把团队散落各处的规范合成一个新顾问 |
-| [`audit_skills.mjs`](scripts/audit_skills.mjs) | 只读命令行工具 | 盘点装了哪些技能、每轮花多少上下文、谁在抢同一类任务 |
-| [`import_repo.mjs`](scripts/import_repo.mjs) | 隔离导入工具 | 评估别的仓库里的技能，但绝不直接安装 |
-| [`validate_skills.mjs`](scripts/validate_skills.mjs) | 结构校验工具 | 检查技能格式是否规范；CI 也会跑 |
-
-**只用顾问的话，完全不需要这些工具。** 工具是给已经装了很多技能、或者想安全吸收外部技能的人用的。
+| [`software-design-advisor`](skills/software-design-advisor/) | 领域顾问 | 综合 8 大软件工程核心领域与 14 份高密度参考指南：涵盖子程序构造、深模块设计、重构、遗留代码接缝、领域驱动设计（DDD）、企业应用架构模式、整洁架构与分布式容错韧性。 |
+| [`api-security-advisor`](skills/api-security-advisor/) | 领域顾问 | 覆盖 4 大应用安全与防御性 API 设计基线：对象级与功能级鉴权（BOLA/BOPLA/BFLA）、令牌与会话安全（JWT/OAuth2/PKCE）、边界解析与注入防御、密码学原语与时序安全。 |
+| [`data-storage-advisor`](skills/data-storage-advisor/) | 领域顾问 | 覆盖 4 大数据持久化架构方向：B-Tree 复合索引（ESR 准则）与游标分页、关系型 Schema 反模式规避、MVCC 事务隔离与并发锁控制、连接池容量计算与读写分离一致性。 |
+| [`advisor-creator`](skills/advisor-creator/) | 元技能 | 提供五阶段合成流水线与标准结构模板，用于将团队内部技术规范或领域文献合成为符合校验规范的领域顾问。 |
+| [`audit_skills.mjs`](scripts/audit_skills.mjs) | 治理工具 CLI | 只读静态分析工具：盘点多运行时已安装技能、估算每轮描述 Token 预算、检测结构缺陷，并计算触发描述重叠度。 |
+| [`import_repo.mjs`](scripts/import_repo.mjs) | 隔离导入 CLI | 将外部 Git 仓库克隆至系统临时隔离区，执行开源协议检测与可执行文件拦截，结合本地锁文件对比生成合入评估报告。 |
+| [`validate_skills.mjs`](scripts/validate_skills.mjs) | 质量门禁 CLI | 校验 Frontmatter 元数据规范、正文行数上限（`<= 150` 行）、必填章节结构、双向引用完整性与文档相对链接有效性。 |
 
 ---
 
-## 60 秒上手
+## 核心架构与设计原则
 
-### 1. 安装顾问（Claude Code）
+### 1. 三级渐进式披露（Three-Level Progressive Disclosure）
+
+每个领域顾问均严格采用分层加载设计，在保障深度工程模式可达性的同时，将每轮对话的固定上下文开销降至最低：
+
+```text
+第 1 层：元数据（YAML Frontmatter）       ~90–140 tokens   每轮对话常驻上下文，用于意图路由判定
+   │
+   ▼  当用户任务匹配领域意图时按需激活
+第 2 层：领域门面（SKILL.md）             <= 150 行        场景决策矩阵、工程权衡仲裁、浓缩微规则与交付清单
+   │
+   ▼  仅在需要具体实现模式细节时按需读取
+第 3 层：高密度参考库（references/*.md）  每次最多 1–2 份   独立提炼的专项工程指南，严禁全量预加载
+```
+
+- **第 1 层（`name` + `description`）**：唯一的常驻上下文成本，明确界定激活场景与不触发边界（Anti-triggers）。
+- **第 2 层（`SKILL.md`）**：包含**场景决策矩阵**、**工程权衡与冲突仲裁**、**浓缩微规则集**、**深度知识库索引**与**输出交付检查清单**。绝大多数架构设计与编码任务在此层即可完成决策。
+- **第 3 层（`references/*.md`）**：独立撰写的工程模式提炼文档。`SKILL.md` 明确约束智能体在单次任务中最多按需读取 1–2 份参考文件，严禁预加载整个目录。
+
+### 2. 确定性优先级与运行边界（Operating Boundaries）
+
+大语言模型本身已具备经典工程著作的参数化知识，其短板在于缺乏**跨会话一致的工程判断立场**。每个领域顾问均明确声明其运行边界：
+- **项目既有规范优先**：代码库现有的架构决策、Linter 规则、测试套件及用户的显式指令优先级高于顾问默认准则。
+- **专用工作流让渡**：领域顾问专注于架构设计与代码实现决策；当触发专用的代码审查（Code Review）、测试执行或故障排查工作流时，主动让渡流程控制权。
+- **因果化权衡仲裁**：拒绝无条件教条，针对典型技术冲突给出明确的适用前提与切换阈值（例如明确何时应采用事务脚本而非富领域模型）。
+
+### 3. 零 Token 文献溯源分离（Provenance Separation）
+
+所有顾问涉及的出版物书目、ISBN-13 编号、RFC/NIST/OWASP 标准映射及版权声明均独立存放在 [`docs/provenance/`](docs/provenance/README.md) 目录下，与 `skills/` 运行时目录物理隔离。该设计确保智能体加载技能时**零额外 Token 损耗**，且通过符号链接分发时仅挂载纯运行时资产。
+
+---
+
+## 快速开始
+
+### 1. 挂载领域顾问
+
+可选择安装单个顾问，或一次性将全部领域顾问软链至智能体运行时的技能目录：
 
 ```bash
-# macOS / Linux
+# macOS / Linux（Claude Code）
 mkdir -p ~/.claude/skills
-ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-advisor
+for advisor in software-design-advisor api-security-advisor data-storage-advisor; do
+  ln -s "$(pwd)/skills/$advisor" ~/.claude/skills/$advisor
+done
 ```
 
 ```powershell
-# Windows（PowerShell，以管理员身份运行）
-New-Item -ItemType SymbolicLink -Path "$HOME\.claude\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
+# Windows PowerShell（Claude Code —— 使用目录联接 Junction）
+New-Item -ItemType Directory -Path "$HOME\.claude\skills" -Force | Out-Null
+Get-ChildItem skills -Directory | Where-Object { $_.Name -ne "advisor-creator" } | ForEach-Object {
+  New-Item -ItemType Junction -Path "$HOME\.claude\skills\$($_.Name)" -Target $_.FullName -Force
+}
 ```
 
-其他客户端见[安装](#安装)。
+### 2. 典型触发任务示例
 
-### 2. 问一个它擅长的问题
+完成挂载后无需额外配置，当提示词命中对应工程领域时，智能体将自动激活相应顾问并输出带权衡依据的实现方案：
 
-```
-帮我重构这个老订单服务。逻辑很缠绕，但不能破坏既有调用方。
-```
+- **软件架构与遗留系统重构（`software-design-advisor`）**：
+  > *"重构这个遗留订单服务以解耦底层支付网关实现，要求在改动前建立接缝且不破坏现有调用方契约。"*
+- **API 安全与越权防御（`api-security-advisor`）**：
+  > *"实现根据订单 ID 获取账单详情的接口，并针对水平越权（BOLA/IDOR）与 SSRF 漏洞执行防御加固。"*
+- **数据库索引与高并发优化（`data-storage-advisor`）**：
+  > *"该分页查询在 `OFFSET 100000` 时出现严重性能退化，请将其重构为游标分页（Keyset Pagination）并设计对应的复合 B-Tree 索引。"*
 
-```
-给支付模块设计接口，调用方不应该关心底层用的是哪个网关。
-```
-
-```
-这个 CRUD 服务有必要上完整 DDD 吗？
-```
-
-不需要任何配置。任务对得上，模型就会加载它，给出理由和代码。
-
-### 3. 可选：看看你还装了什么
+### 3. 审计本地已安装技能（可选）
 
 ```bash
-node scripts/audit_skills.mjs
+npm run audit
 ```
 
-报告会写到 `.advisor-audit/audit-report.md`。当你装了很多技能、开始感觉模型“选择困难”时，就该跑一次。
+该命令将扫描本机各运行时环境，生成可读审计报告 `.advisor-audit/audit-report.md` 与带内容哈希的清单锁文件 `.advisor-audit/skills.lock.json`。
 
 ---
 
-## 顾问到底给了你什么
-
-它不提供新知识——书里的内容模型本来就知道。它提供的是一套**稳定的默认立场**，让回答不会今天说“全部拆成小函数”、明天又说“要深模块”。
-
-比如让它处理一个缠绕的遗留服务，它会推动模型：
-
-1. 先找接缝、补特征测试，再动逻辑；
-2. 把重构和行为变更分开（Fowler 的“两顶帽子”）；
-3. 把透传包装收成更深的模块；
-4. 在边界校验输入，而不是在领域核心里到处防御。
-
-它也明确写了什么时候让位：项目既有约定、测试、用户明确指令优先；专门的审查/测试/调试技能负责自己的流程。见 [SKILL.md](skills/software-design-advisor/SKILL.md)。
-
----
-
-## 怎么工作：三层
-
-```
-第 1 层  名字 + 描述            常驻上下文，约 120–140 token
-   │
-   ▼  任务匹配
-第 2 层  SKILL.md               命中时加载，约 100 行
-   │
-   ▼  需要具体模式
-第 3 层  references/*.md        每次最多读一两份，不预加载
-```
-
-- **第 1 层**是唯一固定成本，用来让模型判断“要不要加载”。
-- **第 2 层**是决策矩阵、冲突仲裁和交付检查表，大多数任务到这里就够了。
-- **第 3 层**是提炼笔记。它们是摘要，不是原书；并且明确要求每次最多读一两份。
-
-重点不是“文档更多”，而是让模型带着一套连贯的工程立场，又不必每轮为它付费。
-
----
-
-## 安装
+## 多运行时安装指南
 
 ### Claude Code
 
 ```bash
 mkdir -p ~/.claude/skills
-ln -s "$(pwd)/skills/software-design-advisor" ~/.claude/skills/software-design-advisor
+ln -s /path/to/agent-advisors/skills/software-design-advisor ~/.claude/skills/software-design-advisor
 ```
-
-Windows 用上面快速上手里的 PowerShell 命令。
 
 ### Cursor
 
-放进或软链到项目的 `.cursor/skills/`：
+将顾问软链至项目级 `.cursor/skills/` 目录：
 
 ```bash
 mkdir -p .cursor/skills
@@ -149,165 +150,157 @@ ln -s /path/to/agent-advisors/skills/software-design-advisor ~/.codex/skills/sof
 New-Item -ItemType Junction -Path "$HOME\.gemini\skills\software-design-advisor" -Target (Resolve-Path "skills\software-design-advisor")
 ```
 
-### 用 cc-switch 管理多个客户端
+### 使用 `cc-switch` 统一管理多端技能
 
-如果你在 Claude Code、Codex、Antigravity、OpenCode 之间切换，可以用 [cc-switch](https://github.com/farion1231/cc-switch) 维护一份中心副本：
+若同时使用 Claude Code、Codex、Antigravity 等多个客户端，可通过 [cc-switch](https://github.com/farion1231/cc-switch) 维护中心化技能副本并统一分发：
 
 ```powershell
 Copy-Item -Recurse "skills\software-design-advisor" "$HOME\.cc-switch\skills\"
 ```
 
-然后在 cc-switch 界面启用。更新中心副本，所有链接到它的客户端一起更新。
-
 ---
 
-## 审计已安装技能
+## 技能审计与外部仓库隔离导入
 
-一个 skill 看不到你装的其他东西，审计工具可以：
+### 已安装技能静态审计（`scripts/audit_skills.mjs`）
+
+单个技能无法感知宿主环境中其他技能的存在。运行 `node scripts/audit_skills.mjs` 可对全局技能集执行只读诊断：
+
+- **分运行时 Token 预算统计**：分别计算 Claude Code、Cursor、Codex 与 Gemini/Antigravity 每轮常驻描述的 Token 开销（自动排除 `~/.cc-switch/skills` 等静态分发存储目录）。
+- **结构完整性诊断**：检测缺失的 YAML Frontmatter、失效的 `references/` 引用链接、损坏的符号链接以及同名技能指向不同目录的冲突。
+- **触发面重叠度分析**：基于描述词项相似度（$0.6 \times \text{Dice}$）与领域标签交集（$0.4 \times \text{Jaccard}$）识别潜在竞争同一提示词的技能对。
+- **宽泛触发词预警**：标记描述中使用 `whenever`、`anything`、`every time` 等无条件宽泛措辞的技能，降低误激活率。
+
+详细发现规则与计算模型请参阅 [`docs/AUDIT.md`](docs/AUDIT.md)。
+
+### 外部仓库隔离导入（`scripts/import_repo.mjs`）
+
+在评估第三方技能仓库时，`import_repo.mjs` 提供严格的沙箱隔离评估流程：
 
 ```bash
-node scripts/audit_skills.mjs
+node scripts/import_repo.mjs https://github.com/owner/repo --ref main
 ```
 
-报告包括：
-
-- **各运行时装了什么**（Claude Code、Codex、Gemini、Cursor）。
-- **固定成本**：每轮要付多少描述 token。
-- **结构问题**：缺描述、坏引用、同名冲突。
-- **重叠候选**：描述里抢同一类任务的技能对。
-- **过宽触发词**：动辄“任何”“只要”，最容易误触发的写法。
-
-产物在 `.advisor-audit/`：
-
-- `audit-report.md` —— 可读报告。
-- `skills.lock.json` —— 带内容哈希的清单，方便对比安装变化。
-
-重叠分数高只代表“这两份值得读一下”，不代表它们冲突。审计不会修改、删除或安装任何东西。方法与边界见 [docs/AUDIT.md](docs/AUDIT.md)。
+核心安全边界：
+1. **安全受限克隆**：克隆至系统临时目录，强制禁用 Git Hooks、文件系统监控与子模块递归（`core.hooksPath=/dev/null`、`core.fsmonitor=false`、`submodule.recurse=false`）。
+2. **符号链接与路径穿越拦截**：扫描过程自动跳过符号链接，并对 `--subdir` 参数执行真实路径（`realpath`）边界校验，防止目录穿越读取宿主文件。
+3. **可执行文件隔离**：仅提取 Markdown 候选文件（`SKILL.md`、`AGENTS.md`、`CLAUDE.md`、`.cursor/rules/*.mdc` 等）；仓库内的可执行脚本仅记录安全告警，绝不复制或执行。
+4. **开源协议门禁与锁文件比对**：自动识别开源许可证（`MIT`、`Apache-2.0`、`BSD` 等），将协议不明或传染性协议标记为 `reference only`（仅作参考），并结合 `.advisor-audit/skills.lock.json` 在 `.advisor-import/<repo>/proposal.md` 中输出合入建议。
 
 ---
 
-## 从其他仓库导入技能
+## 构建自定义领域顾问
 
-```bash
-node scripts/import_repo.mjs https://github.com/owner/skills --ref main
+团队可借助元技能 [`advisor-creator`](skills/advisor-creator/SKILL.md) 将内部架构决策记录（ADR）、安全基线或编码规范整合为标准领域顾问：
+
+```text
+Activate advisor-creator to synthesize our internal API standards and OWASP controls into a custom domain advisor.
 ```
 
-导入工具会：
-
-1. 把仓库克隆到临时隔离目录；
-2. 找出 `SKILL.md`、`AGENTS.md`、`CLAUDE.md`、`.cursor/rules/*.mdc`；
-3. 记录来源：URL、commit SHA、子目录、许可证、内容哈希；
-4. 和你的审计清单比对；
-5. 写出 `.advisor-import/<repo>/proposal.md`，逐个给出建议动作。
-
-它**不安装、不写入技能根目录、不执行仓库代码**。可执行文件只登记、不复制；许可证不明或非宽松许可的候选默认只能作参考。
-
-决定采纳后，先读建议书，再用 `advisor-creator` 合并，最后手动安装。
+`advisor-creator` 将引导智能体依次完成领域聚类、场景决策矩阵构建、技术冲突仲裁、微规则提炼，并基于标准模板 [`advisor-template.md`](skills/advisor-creator/references/advisor-template.md) 生成脚手架，产物可直接通过本仓库的校验与审计工具链。
 
 ---
 
-## 造自己的顾问
-
-如果你有团队专属的规范——API 约定、安全基线、事故处理规则——`advisor-creator` 可以把它变成一个技能：
-
-```
-调用 advisor-creator，把我们团队的 API 规范与 OWASP 要求合成为一个 api-security-advisor。
-```
-
-它会带你走完领域映射、冲突仲裁、规则精简和脚手架。产物结构与 `software-design-advisor` 一致，因此同一套审计、校验和测试都能直接用。
-
----
-
-## 仓库结构
+## 仓库目录结构
 
 ```text
 agent-advisors/
-├── .github/workflows/          # CI：结构校验 + 测试
-├── docs/                       # 审计方法与导入安全模型
-├── evals/                      # 触发用例与盲测协议
+├── .github/
+│   ├── ISSUE_TEMPLATE/             # 新领域顾问提案 Issue 模板
+│   ├── workflows/validate.yml      # CI 流水线：结构校验与自动化测试
+│   └── pull_request_template.md    # Pull Request 质量核查清单
+├── docs/
+│   ├── AUDIT.md                    # 技能审计发现模型、重叠度算法与隔离导入安全模型
+│   └── provenance/                 # 文献溯源注册表、ISBN 记录与标准映射
+│       ├── README.md
+│       ├── advisor-creator.md
+│       ├── api-security-advisor.md
+│       ├── data-storage-advisor.md
+│       └── software-design-advisor.md
+├── evals/
+│   ├── outcome-protocol.md         # 盲测 A/B 评估协议与四维评分量表
+│   ├── trigger-cases.md            # software-design-advisor 触发评测基准
+│   ├── api-security-trigger-cases.md
+│   └── data-storage-trigger-cases.md
 ├── scripts/
-│   ├── lib/skill.mjs           # 共享的解析与比较
-│   ├── audit_skills.mjs        # 只读盘点与重叠报告
-│   ├── import_repo.mjs         # 隔离克隆与建议书
-│   └── validate_skills.mjs     # 本仓库的结构校验
-├── tests/                      # node --test 测试
+│   ├── lib/skill.mjs               # Frontmatter 解析、Token 估算与重叠度计算核心库
+│   ├── audit_skills.mjs            # 多运行时技能盘点与重叠分析工具
+│   ├── import_repo.mjs             # 隔离克隆与外部技能评估报告生成工具
+│   └── validate_skills.mjs         # 仓库结构不变量与链接完整性校验器
 ├── skills/
-│   ├── software-design-advisor/
-│   │   ├── SKILL.md
-│   │   └── references/         # 14 份提炼工程参考
-│   ├── api-security-advisor/
-│   │   ├── SKILL.md
-│   │   └── references/         # 4 份应用安全基线参考
-│   └── advisor-creator/
-│       ├── SKILL.md
-│       └── references/         # 顾问模板
-├── CONTRIBUTING.md
-├── LICENSE
-├── package.json                # 只有脚本，零依赖
-└── README.md / README_ZH.md
+│   ├── advisor-creator/            # 领域顾问合成元技能与标准模板
+│   ├── api-security-advisor/       # 应用安全与防御性 API 设计顾问（含 4 份参考指南）
+│   ├── data-storage-advisor/       # 数据存储、索引与并发架构顾问（含 4 份参考指南）
+│   └── software-design-advisor/    # 软件设计与架构工程顾问（含 14 份参考指南）
+├── tests/                          # 基于 Node.js 原生测试运行器的单元测试套件
+├── CONTRIBUTING.md                 # 顾问设计宪章（Advisor Design Charter）与贡献指南
+├── LICENSE                         # MIT 开源许可证
+└── package.json                    # 零外部依赖工程配置（要求 Node.js >= 20）
 ```
 
 ---
 
-## 常见问题与边界
+## 演进路线图（Roadmap）
 
-**它会让模型多懂一些东西吗？**
-不会。模型本来就知道这些书。顾问改变的是默认判断，并让判断保持稳定；它的价值是判断力，不是知识点。
-
-**能保证每次都触发吗？**
-不能。是否加载由模型决定。[`evals/trigger-cases.md`](evals/trigger-cases.md) 列出了“该触发”“该静默”“该让位”的用例。
-
-**审计能发现两套规范互相矛盾吗？**
-不能。它只能发现结构问题和触发面重叠。是否真的矛盾，需要读正文或让模型做仲裁。见 [docs/AUDIT.md](docs/AUDIT.md)。
-
-**references 是原书内容吗？**
-不是。它们是独立写的摘要。书名与作者归各自权利人所有，本项目与其无隶属关系。
-
-**所有客户端都支持审计吗？**
-预算按运行时分开展示；重叠分析默认只比较 Claude Code（加 `--agents all` 可比较全部）。插件发现目前只支持 Claude Code 的 `installed_plugins.json`。
-
-**工具会自动卸载或改写我的技能吗？**
-不会。审计和导入对已安装技能都是只读的。删不删、合不合并，由你决定。
+| 优先级 | 交付项 | 类别 | 核心技术范围与工程价值 | 状态 |
+| :---: | :--- | :--- | :--- | :---: |
+| **P0** | `scripts/link_skills.mjs` | 工具链 | 零依赖跨平台符号链接与 Junction 分发管理工具，支持 Claude Code、Cursor、Codex 与 Gemini/Antigravity | 规划中 |
+| **P1** | `frontend-craft-advisor` | 领域顾问 | 现代前端架构与状态治理顾问（涵盖 W3C WAI-ARIA 无障碍规范、无头状态逻辑抽离、错误边界与骨架屏降级） | 规划中 |
+| **P1** | 自动化测试套件扩充 | 质量门禁 | 覆盖全部领域顾问与脚本边界条件的自动化结构断言与安全回归测试 | 进行中 |
+| **P2** | `observability-advisor` | 领域顾问 | 生产环境可观测性与可靠性顾问（涵盖 OpenTelemetry 链路追踪、结构化日志、RED/USE 指标体系与告警治理） | 提案阶段 |
 
 ---
 
-## 开发
+## 技术边界与常见问题（FAQ）
 
-只需要 Node.js 20+，没有任何第三方依赖。
+**领域顾问是否向模型注入了新的事实性知识？**
+不是。主流基础模型在预训练阶段已掌握相关工程著作与技术标准。领域顾问的核心价值在于确立**稳定且自洽的工程决策立场**、明确的权衡仲裁准则以及结构化交付清单，避免不同会话间出现架构风格漂移。
+
+**能否保证技能在所有目标场景下 100% 触发？**
+技能路由由宿主模型依据第 1 层元数据自主判定。本仓库在 [`evals/`](evals/trigger-cases.md) 下为各领域顾问配备了标准触发评测集（涵盖正向激活、静默防误触与专用工作流让渡三类用例），用于持续验证触发准确性。
+
+**`audit_skills.mjs` 能否自动检测两个技能正文之间的观点冲突？**
+不能。静态审计工具用于确定性地识别安装冲突、结构缺陷与第 1 层触发面重叠。判断两份技能正文在工程理念上是否矛盾，需要结合人工审阅或借助大模型执行合并仲裁（详见 [`docs/AUDIT.md`](docs/AUDIT.md)）。
+
+**审计与导入工具是否会修改或删除现有的已安装技能？**
+不会。`audit_skills.mjs` 与 `import_repo.mjs` 对宿主智能体的技能安装目录严格保持只读，所有评估产物均输出至项目本地的 `.advisor-audit/` 与 `.advisor-import/` 目录。
+
+---
+
+## 本地开发与校验
+
+本项目仅依赖 **Node.js >= 20** 标准库，无需安装任何第三方 npm 依赖包。
 
 ```bash
-node scripts/validate_skills.mjs
-```
+# 执行技能结构、Frontmatter 规范与文档相对链接校验
+npm run validate
 
-```bash
-node --test
-```
+# 运行单元与集成测试套件
+npm test
 
-```bash
-node scripts/audit_skills.mjs
-```
+# 执行本地已安装技能盘点与触发重叠度审计
+npm run audit
 
-```bash
-node scripts/import_repo.mjs <git-url>
+# 在临时隔离区评估外部 Git 仓库中的候选技能
+npm run import -- <git-url>
 ```
 
 ---
 
 ## 参与贡献
 
-提交 PR 前请读 [CONTRIBUTING.md](CONTRIBUTING.md)。核心规则：
-
-- 一个领域只做一个顾问；
-- `SKILL.md` 控制在 150 行以内，深度内容放 `references/`；
-- 写清理由、权衡，以及这个顾问让位于什么；
-- 跑校验和测试，CI 也会重复一遍。
+在提交 Pull Request 前，请仔细阅读 [`CONTRIBUTING.md`](CONTRIBUTING.md)。所有贡献需遵循以下核心准则：
+- **单一领域单一门面**：每个工程领域仅维护一个高内聚的领域顾问，避免拆分为碎片化微技能。
+- **严守体积与语言规范**：`SKILL.md` 必须使用标准英文撰写且严格控制在 150 行以内；深度实现模式放入 `references/`。
+- **明确权衡与运行边界**：清晰阐述技术取舍的因果依据，并声明在何种条件下向项目既有规范或专用工作流让渡。
+- **通过质量门禁**：提交前确保 `npm run validate` 与 `npm test` 全部通过。
 
 ---
 
-## 开源协议
+## 开源许可与文献归属
 
-MIT，见 [LICENSE](LICENSE)。
+本项目基于 [MIT License](LICENSE) 开源。
 
-### 版权与出处
+### 文献溯源与版权说明
 
-`skills/*/references/` 下的文件是对已出版专著与公开目录的独立提炼与改写，并非原文复制。书名、作者与目录名称归各自权利人所有；本项目与这些作者或出版方无隶属或背书关系，这些摘要也不能替代原著。
+`skills/*/references/` 目录下的所有文档均为独立撰写的工程原则提炼与技术摘要，绝非原著文本复制。所涉书籍名称、作者署名及标准编号均归各自权利人所有；本项目与相关出版机构或原著作者不存在隶属或背书关系，上述参考笔记亦不能替代原著阅读。完整的文献出处、ISBN-13 记录及标准映射关系请查阅 [`docs/provenance/`](docs/provenance/README.md)。
