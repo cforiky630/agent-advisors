@@ -1,0 +1,17 @@
+{
+  "name": "agent-advisors",
+  "version": "0.1.0",
+  "description": "Cohesive, deep-module AI coding agent advisors for software architecture, defensive API security, and database persistence.",
+  "author": {
+    "name": "cqzeng"
+  },
+  "homepage": "https://github.com/cforiky630/agent-advisors",
+  "repository": "https://github.com/cforiky630/agent-advisors",
+  "license": "MIT",
+  "skills": [
+    "./skills/software-design-advisor",
+    "./skills/api-security-advisor",
+    "./skills/data-storage-advisor",
+    "./skills/advisor-creator"
+  ]
+}

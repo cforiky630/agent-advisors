@@ -17,8 +17,10 @@ import test from "node:test";
 import {
   DEFAULT_SKILLS_DIR,
   compileAgentsMarkdown,
+  detectInstalledAgents,
   linkSkills,
   listRepoSkills,
+  parseArgs,
   resolveTargetRoots,
   statusSkills,
   unlinkSkills,
@@ -242,3 +244,70 @@ test("resolveTargetRoots maps agent aliases and listRepoSkills rejects unknown s
   );
 });
 
+test("detectInstalledAgents discovers present runtime directories and falls back cleanly", () => {
+  const fakeHome = tempDir("aa-detect-home-");
+  const fakeCwd = tempDir("aa-detect-cwd-");
+  try {
+    const empty = detectInstalledAgents({ home: fakeHome, cwd: fakeCwd });
+    assert.deepEqual(empty, []);
+
+    mkdirSync(join(fakeHome, ".gemini"), { recursive: true });
+    mkdirSync(join(fakeHome, ".claude"), { recursive: true });
+    mkdirSync(join(fakeCwd, ".cursor"), { recursive: true });
+
+    const detected = detectInstalledAgents({ home: fakeHome, cwd: fakeCwd });
+    assert.ok(detected.includes("claude"));
+    assert.ok(detected.includes("gemini"));
+    assert.ok(detected.includes("cursor-project"));
+
+    const autoRoots = resolveTargetRoots({ home: fakeHome, cwd: fakeCwd, mode: "link" });
+    assert.equal(autoRoots.length, 3);
+  } finally {
+    rmSync(fakeHome, { recursive: true, force: true });
+    rmSync(fakeCwd, { recursive: true, force: true });
+  }
+});
+
+test("copy mode physically copies skill directories allowing repository decoupling", () => {
+  const targetDir = tempDir("aa-copy-");
+  try {
+    const targets = resolveTargetRoots({ customDirs: [targetDir] });
+    const result = linkSkills({
+      targets,
+      only: ["api-security-advisor"],
+      copy: true,
+    });
+
+    assert.equal(result.conflicts.length, 0);
+    assert.equal(result.results[0].status, "copied");
+
+    const installedSkill = join(targetDir, "api-security-advisor");
+    assert.ok(existsSync(join(installedSkill, "SKILL.md")));
+    // Must be a physical directory, not a symbolic link or junction
+    assert.equal(lstatSync(installedSkill).isSymbolicLink(), false);
+  } finally {
+    rmSync(targetDir, { recursive: true, force: true });
+  }
+});
+
+test("parseArgs parses aliases including --client, -c, --project, -p, --all, -a, --copy, and --list", () => {
+  const parsed = parseArgs([
+    "--client",
+    "cursor,gemini",
+    "-p",
+    "/custom/project/path",
+    "-a",
+    "--copy",
+    "--list",
+    "-f",
+    "-n",
+  ]);
+
+  assert.deepEqual(parsed.agents, ["cursor", "gemini"]);
+  assert.equal(parsed.projectDir, "/custom/project/path");
+  assert.equal(parsed.includeMeta, true);
+  assert.equal(parsed.copy, true);
+  assert.equal(parsed.status, true);
+  assert.equal(parsed.force, true);
+  assert.equal(parsed.dryRun, true);
+});
