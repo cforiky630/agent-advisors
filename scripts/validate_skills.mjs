@@ -14,7 +14,13 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { countLines, parseFrontmatter, readSkill } from "./lib/skill.mjs";
+import {
+  countLines,
+  evaluateTriggerCorpus,
+  parseFrontmatter,
+  parseTriggerCases,
+  readSkill,
+} from "./lib/skill.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SKILLS_DIR = join(ROOT, "skills");
@@ -27,6 +33,12 @@ const REQUIRED_ADVISOR_SECTIONS = [
   "## 3. Condensed Nano Rulesets",
   "## 4. Deep Knowledge Base",
   "## 5. Output Delivery Format",
+];
+
+const REQUIRED_ADVISOR_MARKERS = [
+  ["**Probe**:", "evidence-gated codebase probe ('**Probe**:') in Section 2"],
+  ["**Invalidate When**:", "falsifiability counter-indication ('**Invalidate When**:') in Section 2"],
+  ["CP-1", "Runtime Checkpoint Gate ('CP-1'/'CP-2'/'CP-3') in Operating Boundaries"],
 ];
 
 // [pattern, explanation]. These encode defects this repository has already fixed,
@@ -46,6 +58,7 @@ const SCANNED_DOCS = [
   "README_ZH.md",
   "CONTRIBUTING.md",
   "docs/AUDIT.md",
+  "docs/CHECKPOINT_PROTOCOL.md",
   "docs/provenance/README.md",
   "docs/provenance/advisor-creator.md",
   "docs/provenance/api-security-advisor.md",
@@ -55,6 +68,12 @@ const SCANNED_DOCS = [
   "evals/trigger-cases.md",
   "evals/api-security-trigger-cases.md",
   "evals/data-storage-trigger-cases.md",
+];
+
+const TRIGGER_EVAL_DOCS = [
+  ["evals/trigger-cases.md", "software-design-advisor"],
+  ["evals/api-security-trigger-cases.md", "api-security-advisor"],
+  ["evals/data-storage-trigger-cases.md", "data-storage-advisor"],
 ];
 const MARKDOWN_LINK = /\[[^\]]*\]\(([^)]+)\)/g;
 const HTML_HREF = /href="([^"]+)"/g;
@@ -107,6 +126,13 @@ function checkSkill(skillMd) {
     for (const heading of REQUIRED_ADVISOR_SECTIONS) {
       if (!body.includes(heading)) fail(skillMd, `missing required section '${heading}'`);
     }
+    for (const [marker, explanation] of REQUIRED_ADVISOR_MARKERS) {
+      if (!body.includes(marker)) fail(skillMd, `missing ${explanation}`);
+    }
+  }
+
+  if (record.negativeTerms.size === 0) {
+    fail(skillMd, "description is missing explicit anti-trigger boundary ('Do not trigger for...')");
   }
 
   for (const file of record.unlinkedReferences) {
@@ -120,6 +146,7 @@ function checkSkill(skillMd) {
   }
 
   checkProhibited(skillMd, text);
+  return record;
 }
 
 function checkDoc(docPath) {
@@ -148,8 +175,9 @@ function main() {
 
   if (skillFiles.length === 0) fail(SKILLS_DIR, "no skills found");
 
+  const skillRecords = [];
   for (const skillMd of skillFiles) {
-    checkSkill(skillMd);
+    skillRecords.push(checkSkill(skillMd));
     console.log(`checked ${rel(skillMd)}`);
   }
 
@@ -162,6 +190,18 @@ function main() {
     checkDoc(docPath);
     console.log(`checked ${docName}`);
   }
+
+  const triggerSuites = [];
+  for (const [evalDoc, fallbackSkill] of TRIGGER_EVAL_DOCS) {
+    const fullPath = join(ROOT, evalDoc);
+    if (!existsSync(fullPath)) continue;
+    triggerSuites.push(parseTriggerCases(read(fullPath), fallbackSkill));
+  }
+  const evalResult = evaluateTriggerCorpus(skillRecords, triggerSuites);
+  for (const failure of evalResult.failures) {
+    fail(join(ROOT, "evals"), failure.message);
+  }
+  console.log(`evaluated ${evalResult.totalCases} trigger benchmark cases`);
 
   if (errors.length > 0) {
     console.log(`\n${errors.length} problem(s) found:`);

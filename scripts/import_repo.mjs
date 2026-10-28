@@ -35,6 +35,8 @@ import {
   descriptionTerms,
   domainTags,
   estimateTokens,
+  negativeDescriptionTerms,
+  negativeDomainTags,
   overlapScore,
   parseFrontmatter,
   sha256,
@@ -229,7 +231,9 @@ export function loadInventory(path) {
     const skills = (data.skills ?? []).map((skill) => ({
       ...skill,
       terms: descriptionTerms(skill.description ?? ""),
+      negativeTerms: negativeDescriptionTerms(skill.description ?? ""),
       tags: domainTags(skill.description ?? ""),
+      negativeTags: negativeDomainTags(skill.description ?? ""),
     }));
     return {
       path,
@@ -250,9 +254,11 @@ export function compareWithInventory(candidate, inventory) {
   let closest = null;
   if (candidate.description) {
     const terms = descriptionTerms(candidate.description);
+    const negativeTerms = negativeDescriptionTerms(candidate.description);
     const tags = domainTags(candidate.description);
+    const negativeTags = negativeDomainTags(candidate.description);
     for (const skill of inventory.skills) {
-      const result = overlapScore({ terms, tags }, skill);
+      const result = overlapScore({ terms, negativeTerms, tags, negativeTags }, skill);
       if (result.score > 0 && (!closest || result.score > closest.score)) {
         closest = { name: skill.name, score: result.score };
       }

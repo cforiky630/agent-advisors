@@ -13,7 +13,7 @@ const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
 const CJK = /[㐀-鿿豈-﫿぀-ヿ가-힯]/g;
 
 const STOPWORDS = new Set(
-  `a an and any are as at be been being by can could do does for from has have how if in into is it its may might must not of on or should so than that the their them then there these they this those to use used user users using via was were what when where which while who will with without you your whenever even all`.split(
+  `a an and any are as at be been being by can could do does for from has have how if in into is it its may might must not of on or should so than that the their them then there these they this those to use used user users using via was were what when where which while who will with without you your whenever even all explain difference between help write make work works working issue issues okay`.split(
     /\s+/,
   ),
 );
@@ -45,18 +45,18 @@ const CJK_STOP_BIGRAMS = new Set([
 
 const DOMAIN_TAGS = [
   ["review", /(?:\b(?:review(?:s|ing)?|audit(?:s|ing)?|inspection(?:s)?|checklist(?:s)?)\b|审查|审计|评审|走查|检查清单)/i],
-  ["refactor", /(?:\b(?:refactor(?:s|ing)?|code smells?|technical debt|legacy|moderni[sz](?:e|ing|ation|es)?)\b|重构|代码异味|技术债|遗留系统|遗留代码)/i],
+  ["refactor", /(?:\b(?:refactor(?:s|ing)?|code smells?|technical debt|legacy|moderni[sz](?:e|ing|ation|es)?|seams?)\b|重构|代码异味|技术债|遗留系统|遗留代码|接缝)/i],
   ["testing", /(?:\b(?:test(?:s|ing|ed)?|tdd|coverage|fixtures?|assert(?:s|ing|ion|ions)?|regression(?:s)?)\b|测试|单测|回归测试|断言|覆盖率)/i],
   ["debugging", /(?:\b(?:debug(?:s|ging)?|diagnos(?:e|es|ing|is|tic)?|bugs?|flaky|stack traces?)\b|调试|诊断|排查|故障|堆栈)/i],
-  ["architecture", /(?:\b(?:architect(?:s|ure|ural)?|modules?|interfaces?|abstractions?|layerings?|dependenc(?:y|ies)|deep modules?)\b|架构|模块|接口|抽象|分层|解耦|深模块)/i],
-  ["domain-modeling", /(?:\b(?:domains?|ddd|aggregates?|entit(?:y|ies)|value objects?|bounded contexts?)\b|领域驱动|领域建模|聚合根|实体|值对象|限界上下文)/i],
+  ["architecture", /(?:\b(?:architect(?:s|ure|ural)?|modules?|interfaces?|abstractions?|layerings?|dependenc(?:y|ies)|deep modules?|anemic|timeouts?|retries|circuit breakers?|failure modes?)\b|架构|模块|接口|抽象|分层|解耦|深模块|超时|重试)/i],
+  ["domain-modeling", /(?:\b(?:domains?|ddd|aggregates?|entit(?:y|ies)|value objects?|bounded contexts?|invariants?)\b|领域驱动|领域建模|聚合根|实体|值对象|限界上下文)/i],
   ["frontend", /(?:\b(?:frontend|ui|ux|react|css|html|components?|design systems?)\b|前端|界面|组件|样式|设计系统|无障碍)/i],
   ["docs", /(?:\b(?:document(?:s|ing|ation)?|docs?|readmes?|specs?|writing|proposals?|memos?|openapi)\b|文档|接口文档|规范|说明|提案|备忘录)/i],
   ["deliverables", /(?:\b(?:slides?|decks?|presentations?|pptx|docx|xlsx|pdfs?|spreadsheets?)\b|幻灯片|演示文稿|电子表格|表格)/i],
   ["visual-art", /(?:\b(?:posters?|canvas|generative art|algorithmic art|p5\.js|illustrations?)\b|海报|画布|生成艺术|算法艺术|插画)/i],
-  ["security", /(?:\b(?:secur(?:e|ity)|vulnerab(?:le|ility|ilities)?|threat models?|owasp|authenticat(?:e|ion)|authoriz(?:e|ation)|cves?|bola|idor|ssrf)\b|安全|漏洞|威胁建模|鉴权|认证|授权|注入|加密|越权)/i],
-  ["data", /(?:\b(?:sql|databases?|schemas?|etl|analytics|pipelines?|storages?|indexes|indexing|mvcc|transactions?)\b|数据库|索引|查询|事务|存储|表结构|死锁)/i],
-  ["ops", /(?:\b(?:deploy(?:s|ment|ing)?|ci|cd|kubernetes|docker|incidents?|sre|monitors?|monitoring|releases?)\b|部署|运维|监控|容器|发布|告警)/i],
+  ["security", /(?:\b(?:secur(?:e|ity)|vulnerab(?:le|ility|ilities)?|threat models?|owasp|authenticat(?:e|ion)|authoriz(?:e|ation)|cves?|bola|bopla|bfla|idor|ssrf|jwt|oauth2?|passwords?|hmac|webhooks?|cryptograph(?:y|ic)|signatures?|traversal)\b|安全|漏洞|威胁建模|鉴权|认证|授权|注入|加密|越权|上传文件|密码|签名|令牌)/i],
+  ["data", /(?:\b(?:sql|databases?|schemas?|etl|analytics|pipelines?|storages?|indexes|indexing|mvcc|transactions?|pagination|offset|keyset|deadlocks?|concurrency|orms?|columns?|tables?|foreign keys?|unique constraints?|comma-separated|jaywalking)\b|数据库|索引|查询|事务|存储|表结构|死锁|分页|并发|软删除|字段)/i],
+  ["ops", /(?:\b(?:deploy(?:s|ment|ing)?|ci|cd|kubernetes|docker|incidents?|sre|monitors?|monitoring|release\s+pipelines?)\b|部署|运维|监控|容器|发布|告警)/i],
   ["research", /(?:\b(?:research(?:es|ing)?|investigat(?:e|es|ing|ion)?|sources?|evidences?|citations?)\b|调研|检索|研究|文献|引用)/i],
   ["planning", /(?:\b(?:plans?|planning|tickets?|backlogs?|roadmaps?|estimates?|estimating|estimation|breakdowns?)\b|规划|计划|排期|拆解|路线图|估算)/i],
 ];
@@ -243,8 +243,63 @@ function stemTerm(word) {
   return word;
 }
 
-export function descriptionTerms(description) {
-  const source = String(description ?? "").toLowerCase();
+const NEGATIVE_CLAUSE_MARKER =
+  /\b(?:do\s+not|don't|never)\s+(?:trigger|use|activate|apply|invoke|load)\b|\b(?:not\s+for\s+use\s+with|not\s+intended\s+for|skip\s+(?:it\s+)?when|defer\s+to)\b|(?:不要|切勿|严禁|不)(?:触发|用于|使用|适用)/i;
+
+/**
+ * Separate a skill description into positive trigger text and negative
+ * anti-trigger / deferral clauses so that explicit boundary exclusions
+ * ("DO NOT trigger for SQL, databases...") do not pollute positive matching.
+ */
+export function splitTriggerSurface(description) {
+  const source = String(description ?? "");
+  if (!source.trim()) return { positive: "", negative: "" };
+
+  const positiveParts = [];
+  const negativeParts = [];
+
+  // Split by sentence/line boundaries first while keeping bullet lines separate.
+  const segments = source
+    .split(/(?<=[.!?。！？;\n])\s+|\r?\n+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  let inNegativeBlock = false;
+  for (const segment of segments) {
+    // A positive trigger header resets negative block state
+    if (/^(?:trigger(?:\s+immediately|\s+when|\s+on)?|use\s+(?:this\s+skill\s+)?(?:when|for)|applies\s+to)\b/i.test(segment)) {
+      inNegativeBlock = false;
+    }
+
+    const match = NEGATIVE_CLAUSE_MARKER.exec(segment);
+    if (match) {
+      const before = segment.slice(0, match.index).replace(/[\s—–-]+$/, "").trim();
+      const after = segment.slice(match.index).trim();
+      if (before) positiveParts.push(before);
+      if (after) negativeParts.push(after);
+      // If the segment ends with a colon (e.g. "DO NOT trigger for:"), subsequent bullet lines belong to negative
+      if (/:$/.test(segment)) {
+        inNegativeBlock = true;
+      }
+      continue;
+    }
+
+    if (inNegativeBlock && /^[-*•]/.test(segment)) {
+      negativeParts.push(segment);
+    } else {
+      if (!/^[-*•]/.test(segment)) inNegativeBlock = false;
+      positiveParts.push(segment);
+    }
+  }
+
+  return {
+    positive: positiveParts.join(" "),
+    negative: negativeParts.join(" "),
+  };
+}
+
+function extractRawTerms(text) {
+  const source = String(text ?? "").toLowerCase();
   const terms = new Set(
     source
       .replace(CJK, " ")
@@ -271,12 +326,35 @@ export function descriptionTerms(description) {
   return terms;
 }
 
-export function domainTags(text) {
+export function descriptionTerms(description, { includeAllClauses = false } = {}) {
+  if (includeAllClauses) return extractRawTerms(description);
+  const { positive } = splitTriggerSurface(description);
+  return extractRawTerms(positive);
+}
+
+export function negativeDescriptionTerms(description) {
+  const { negative } = splitTriggerSurface(description);
+  return extractRawTerms(negative);
+}
+
+function extractRawTags(text) {
   const tags = new Set();
+  const source = String(text ?? "");
   for (const [tag, pattern] of DOMAIN_TAGS) {
-    if (pattern.test(String(text ?? ""))) tags.add(tag);
+    if (pattern.test(source)) tags.add(tag);
   }
   return tags;
+}
+
+export function domainTags(text, { includeAllClauses = false } = {}) {
+  if (includeAllClauses) return extractRawTags(text);
+  const { positive } = splitTriggerSurface(text);
+  return extractRawTags(positive);
+}
+
+export function negativeDomainTags(text) {
+  const { negative } = splitTriggerSurface(text);
+  return extractRawTags(negative);
 }
 
 function dice(a, b) {
@@ -297,10 +375,15 @@ function jaccard(a, b) {
 
 /** Compare two skills' trigger surfaces. Returns a score in [0, 1]. */
 export function overlapScore(a, b) {
-  const sharedTerms = [...a.terms].filter((term) => b.terms.has(term));
-  const sharedTags = [...a.tags].filter((tag) => b.tags.has(tag));
-  const termDice = dice(a.terms, b.terms);
-  const rawTagJaccard = jaccard(a.tags, b.tags);
+  const aTerms = a.terms ?? new Set();
+  const bTerms = b.terms ?? new Set();
+  const aTags = a.tags ?? new Set();
+  const bTags = b.tags ?? new Set();
+
+  const sharedTerms = [...aTerms].filter((term) => bTerms.has(term));
+  const sharedTags = [...aTags].filter((tag) => bTags.has(tag));
+  const termDice = dice(aTerms, bTerms);
+  const rawTagJaccard = jaccard(aTags, bTags);
   // Prevent a single shared coarse domain tag from contributing the full 0.40
   // when lexical overlap is weak (< 0.18 Dice or fewer than 2 shared terms).
   const lexicalSupport =
@@ -308,11 +391,196 @@ export function overlapScore(a, b) {
       ? 1
       : Math.min(1, (termDice / 0.18) * (sharedTerms.length / 2));
   const effectiveTagScore = rawTagJaccard * lexicalSupport;
+  const rawScore = 0.6 * termDice + 0.4 * effectiveTagScore;
+
+  // Orthogonality discount when one skill explicitly declares anti-triggers
+  // targeting the other skill's positive trigger surface.
+  const aNegTerms = a.negativeTerms ?? new Set();
+  const bNegTerms = b.negativeTerms ?? new Set();
+  const aNegTags = a.negativeTags ?? new Set();
+  const bNegTags = b.negativeTags ?? new Set();
+
+  const excludedTerms = [
+    ...new Set([
+      ...[...aNegTerms].filter((term) => bTerms.has(term)),
+      ...[...bNegTerms].filter((term) => aTerms.has(term)),
+    ]),
+  ];
+  const excludedTags = [
+    ...new Set([
+      ...[...aNegTags].filter((tag) => bTags.has(tag)),
+      ...[...bNegTags].filter((tag) => aTags.has(tag)),
+    ]),
+  ];
+
+  const orthogonalityDiscount = Math.min(
+    0.55,
+    excludedTags.length * 0.18 + excludedTerms.length * 0.07,
+  );
+  const finalScore = Number((rawScore * (1 - orthogonalityDiscount)).toFixed(3));
+
   return {
-    score: Number((0.6 * termDice + 0.4 * effectiveTagScore).toFixed(3)),
+    score: finalScore,
     sharedTerms: sharedTerms.slice(0, 8),
     sharedTags,
+    excludedTerms: excludedTerms.slice(0, 6),
+    excludedTags,
   };
+}
+
+/**
+ * Parse a trigger evaluation markdown document (`evals/*-trigger-cases.md`)
+ * into structured cases (`activate`, `dormant`, `defer`).
+ */
+export function parseTriggerCases(markdown, fallbackSkill = null) {
+  const text = String(markdown ?? "").replace(/\r\n/g, "\n");
+  const skillMatch = text.match(/Manual evaluation set for `([a-z0-9-]+)`/i);
+  const skill = skillMatch ? skillMatch[1] : fallbackSkill;
+
+  const cases = [];
+  let currentKind = null;
+  for (const rawLine of text.split("\n")) {
+    const line = rawLine.trim();
+    if (/^##\s+Should activate\b/i.test(line)) {
+      currentKind = "activate";
+      continue;
+    }
+    if (/^##\s+Should stay dormant\b/i.test(line)) {
+      currentKind = "dormant";
+      continue;
+    }
+    if (/^##\s+Should defer\b/i.test(line)) {
+      currentKind = "defer";
+      continue;
+    }
+    if (/^##\s+/.test(line)) {
+      currentKind = null;
+      continue;
+    }
+    if (!currentKind || !line.startsWith("|")) continue;
+
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+    if (cells.length < 3 || !/^\d+$/.test(cells[0])) continue;
+
+    const id = Number(cells[0]);
+    const quotedMatch = cells[1].match(/^"([\s\S]*?)"/);
+    const prompt = quotedMatch ? quotedMatch[1].trim() : cells[1].replace(/^"|"$/g, "").trim();
+    const expectation = cells[2];
+
+    cases.push({
+      id,
+      kind: currentKind,
+      skill,
+      prompt,
+      expectation,
+    });
+  }
+
+  return { skill, cases };
+}
+
+/**
+ * Score how strongly a user prompt activates a skill record.
+ * Combines Level-1 positive description terms/tags with Level-2 body scenario terms,
+ * while penalizing matches against explicit negative anti-trigger surfaces.
+ */
+export function promptMatchScore(skill, prompt) {
+  const pTerms = extractRawTerms(prompt);
+  const pTags = extractRawTags(prompt);
+  if (pTerms.size === 0 && pTags.size === 0) {
+    return { score: 0, matchedTerms: [], matchedTags: [], blockedByAntiTrigger: false };
+  }
+
+  const sTerms = skill.terms ?? new Set();
+  const sBodyTerms = skill.bodyTerms ?? new Set();
+  const sTags = skill.tags ?? new Set();
+  const sNegTerms = skill.negativeTerms ?? new Set();
+  const sNegTags = skill.negativeTags ?? new Set();
+
+  const matchedDescTerms = [...pTerms].filter((term) => sTerms.has(term));
+  const matchedBodyTerms = [...pTerms].filter((term) => !sTerms.has(term) && sBodyTerms.has(term));
+  const matchedTags = [...pTags].filter((tag) => sTags.has(tag));
+
+  const negTermHits = [...pTerms].filter((term) => sNegTerms.has(term));
+  const negTagHits = [...pTags].filter((tag) => sNegTags.has(tag) && !sTags.has(tag));
+  const positiveStrength = matchedDescTerms.length + matchedTags.length * 2 + matchedBodyTerms.length * 0.5;
+  const negativeStrength = negTermHits.length + negTagHits.length * 1.5;
+  const blockedByAntiTrigger =
+    negativeStrength > 0 && negativeStrength > positiveStrength;
+
+  // Body-only lexical matches without description term or domain tag support are weak
+  // (e.g. generic programming words like "type" or "array" appearing in a reference body).
+  const bodyWeight = matchedDescTerms.length > 0 || matchedTags.length > 0 ? 0.5 : 0.15;
+  const termRecall =
+    pTerms.size > 0
+      ? (matchedDescTerms.length + bodyWeight * matchedBodyTerms.length) / Math.min(pTerms.size, 6)
+      : 0;
+  const isCrossLingual = /[㐀-鿿]/.test(prompt) !== /[㐀-鿿]/.test(skill.description ?? "");
+  const hasLexicalSupport =
+    isCrossLingual || matchedDescTerms.length >= 1 || matchedBodyTerms.length >= 2;
+  const tagDamping = hasLexicalSupport ? 1 : 0.35;
+  const tagSignal = matchedTags.length > 0 ? Math.min(1, matchedTags.length * 0.65) * tagDamping : 0;
+  const raw = Math.min(1, 0.55 * Math.min(1, termRecall) + 0.45 * tagSignal);
+  const penalty = blockedByAntiTrigger
+    ? 0.75
+    : matchedTags.length > 0 && matchedDescTerms.length > 0
+      ? 0
+      : Math.min(0.35, negTagHits.length * 0.15 + negTermHits.length * 0.08);
+
+  return {
+    score: Number(Math.max(0, raw * (1 - penalty)).toFixed(3)),
+    matchedTerms: [...matchedDescTerms, ...matchedBodyTerms].slice(0, 8),
+    matchedTags,
+    blockedByAntiTrigger,
+  };
+}
+
+/**
+ * Evaluate a set of skills against parsed trigger benchmark suites (`evals/*-trigger-cases.md`).
+ */
+export function evaluateTriggerCorpus(
+  skills,
+  suites,
+  { activateFloor = 0.2, dormantCeiling = 0.25 } = {},
+) {
+  const byName = new Map(skills.map((skill) => [skill.name, skill]));
+  const failures = [];
+  let totalCases = 0;
+
+  for (const suite of suites) {
+    const owner = byName.get(suite.skill);
+    if (!owner) continue;
+
+    for (const testCase of suite.cases) {
+      totalCases += 1;
+      const ownerResult = promptMatchScore(owner, testCase.prompt);
+
+      if (testCase.kind === "activate" && ownerResult.score < activateFloor) {
+        failures.push({
+          skill: suite.skill,
+          caseId: testCase.id,
+          kind: "under-trigger",
+          prompt: testCase.prompt,
+          score: ownerResult.score,
+          message: `activate #${testCase.id} scored ${ownerResult.score} (< ${activateFloor}) on ${suite.skill}`,
+        });
+      } else if (testCase.kind === "dormant" && ownerResult.score >= dormantCeiling) {
+        failures.push({
+          skill: suite.skill,
+          caseId: testCase.id,
+          kind: "over-trigger",
+          prompt: testCase.prompt,
+          score: ownerResult.score,
+          message: `dormant #${testCase.id} scored ${ownerResult.score} (>= ${dormantCeiling}) on ${suite.skill}`,
+        });
+      }
+    }
+  }
+
+  return { totalCases, failures };
 }
 
 export function findOverbroad(description) {
@@ -413,7 +681,10 @@ export function readSkill(skillDir, { scope = "unknown", agent = "unknown" } = {
     missingReferences,
     executableFiles: findExecutableSurface(skillDir),
     terms: descriptionTerms(description),
+    negativeTerms: negativeDescriptionTerms(description),
+    bodyTerms: extractRawTerms(withoutFences),
     tags: domainTags(description),
+    negativeTags: negativeDomainTags(description),
     overbroad: findOverbroad(description),
     contentHash: sha256(text.replace(/\r\n/g, "\n").trim()),
   };

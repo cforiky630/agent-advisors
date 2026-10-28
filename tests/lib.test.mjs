@@ -1,20 +1,26 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 import {
   countLines,
   descriptionTerms,
   domainTags,
   estimateTokens,
+  evaluateTriggerCorpus,
   findExecutableSurface,
   findOverbroad,
+  negativeDescriptionTerms,
+  negativeDomainTags,
   overlapScore,
   parseFrontmatter,
+  parseTriggerCases,
   readSkill,
   slugify,
+  splitTriggerSurface,
 } from "../scripts/lib/skill.mjs";
 
 test("parses frontmatter with CRLF line endings", () => {
@@ -205,4 +211,80 @@ test("dampens single-tag false positives when lexical overlap is weak", () => {
   assert.ok(result.sharedTags.includes("deliverables"));
   assert.ok(result.score < 0.4, `expected damped score < 0.4, got ${result.score}`);
 });
+
+test("separates positive trigger clauses from negative anti-trigger clauses in English and Chinese", () => {
+  const enDesc =
+    "Frontend React component and CSS layout advisor. Use for accessible UI components. Do not trigger for SQL queries, database schemas, or backend migrations.";
+  const splitEn = splitTriggerSurface(enDesc);
+  assert.match(splitEn.positive, /Frontend React component/);
+  assert.match(splitEn.negative, /SQL queries/);
+
+  const posTerms = descriptionTerms(enDesc);
+  const negTerms = negativeDescriptionTerms(enDesc);
+  const posTags = domainTags(enDesc);
+  const negTags = negativeDomainTags(enDesc);
+
+  assert.ok(posTerms.has("react"));
+  assert.equal(posTerms.has("sql"), false);
+  assert.equal(posTerms.has("database"), false);
+  assert.ok(negTerms.has("sql"));
+  assert.ok(negTerms.has("database"));
+  assert.ok(posTags.has("frontend"));
+  assert.equal(posTags.has("data"), false);
+  assert.ok(negTags.has("data"));
+
+  const zhDesc = "前端组件与界面样式顾问。用于 React 组件设计。不适用于数据库查询与 SQL 索引优化。";
+  assert.ok(domainTags(zhDesc).has("frontend"));
+  assert.equal(domainTags(zhDesc).has("data"), false);
+  assert.ok(negativeDomainTags(zhDesc).has("data"));
+});
+
+test("applies orthogonality discount when skills explicitly exclude each other via anti-triggers", () => {
+  const withoutExclusionA = {
+    terms: descriptionTerms("Design architecture for service endpoints and APIs"),
+    tags: domainTags("Design architecture for service endpoints and APIs"),
+  };
+  const withoutExclusionB = {
+    terms: descriptionTerms("Design architecture for database endpoints and SQL queries"),
+    tags: domainTags("Design architecture for database endpoints and SQL queries"),
+  };
+  const rawResult = overlapScore(withoutExclusionA, withoutExclusionB);
+
+  const withExclusionA = {
+    ...withoutExclusionA,
+    negativeTerms: negativeDescriptionTerms(
+      "Design architecture for service endpoints. Do not trigger for database endpoints or SQL queries.",
+    ),
+    negativeTags: negativeDomainTags(
+      "Design architecture for service endpoints. Do not trigger for database endpoints or SQL queries.",
+    ),
+  };
+  const discountedResult = overlapScore(withExclusionA, withoutExclusionB);
+
+  assert.ok(
+    discountedResult.score < rawResult.score,
+    `expected discounted score (${discountedResult.score}) < raw score (${rawResult.score})`,
+  );
+  assert.ok(discountedResult.excludedTags.includes("data"));
+  assert.ok(discountedResult.excludedTerms.includes("database"));
+});
+
+test("evaluates all 57 trigger benchmark cases in evals/ with zero activation or dormancy failures", () => {
+  const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const skills = [
+    readSkill(join(repoRoot, "skills", "software-design-advisor")),
+    readSkill(join(repoRoot, "skills", "api-security-advisor")),
+    readSkill(join(repoRoot, "skills", "data-storage-advisor")),
+  ];
+  const suites = [
+    parseTriggerCases(readFileSync(join(repoRoot, "evals", "trigger-cases.md"), "utf8"), "software-design-advisor"),
+    parseTriggerCases(readFileSync(join(repoRoot, "evals", "api-security-trigger-cases.md"), "utf8"), "api-security-advisor"),
+    parseTriggerCases(readFileSync(join(repoRoot, "evals", "data-storage-trigger-cases.md"), "utf8"), "data-storage-advisor"),
+  ];
+
+  const { totalCases, failures } = evaluateTriggerCorpus(skills, suites);
+  assert.equal(totalCases, 57);
+  assert.deepEqual(failures, []);
+});
+
 

@@ -53,15 +53,18 @@ Rules:
 The repository's own validator applies stricter rules to `skills/`; installed
 third-party skills are only held to correctness here.
 
-## Trigger overlap score
+## Trigger overlap score & Positive/Negative Ontology
 
-The score uses **descriptions only**, because that is what competes at load time:
+The score uses **descriptions only**, because that is what competes at load time, but explicitly separates **positive trigger clauses** from **negative anti-trigger / deferral clauses** (`splitTriggerSurface`):
 
-- 0.6 × Dice coefficient over bilingual normalized description terms (Latin term stemming + CJK character bigrams, stopwords removed)
-- 0.4 × Jaccard coefficient over bilingual domain tags extracted from the descriptions, with lexical-support damping when shared terms < 2 or term Dice < 0.18 to prevent single-tag false positives
-- Pairs with the same name are excluded (they are already reported as collisions)
-- Default threshold: 0.4; override with `--threshold`
-- Overlap analysis defaults to Claude Code; pass `--agents all` to compare every runtime
+- **Positive vs. Negative Surface Separation**: Clauses starting with `Do not trigger for...`, `Don't use for...`, `Never use for...`, `Skip when...`, or `Defer to...` (and Chinese equivalents `不要用于`/`不适用于`) are parsed into `negativeTerms` and `negativeTags` rather than polluting positive `terms` and `tags`. Writing explicit anti-triggers never inflates overlap with the excluded domain.
+- **0.6 × Dice coefficient** over bilingual normalized positive description terms (Latin term stemming + CJK character bigrams, stopwords removed).
+- **0.4 × Jaccard coefficient** over bilingual positive domain tags, with lexical-support damping when shared terms < 2 or term Dice < 0.18 to prevent single-tag false positives.
+- **Orthogonality Discount**: When Skill A's `negativeTerms`/`negativeTags` explicitly exclude Skill B's positive trigger surface (or vice versa), the raw overlap score is discounted by up to 55% (`excludedTerms` / `excludedTags`), rewarding authors who declare clean domain boundaries.
+- **Counterfactual Trigger Corpus Validation**: For this repository's own advisors, `scripts/validate_skills.mjs` also evaluates all 57 prompt cases in `evals/*-trigger-cases.md` (`Should activate`, `Should stay dormant`, `Should defer`) via `evaluateTriggerCorpus` to ensure positive prompts activate their owner advisor while dormant prompts remain below the activation ceiling.
+- Pairs with the same name are excluded (they are already reported as collisions).
+- Default threshold: 0.4; override with `--threshold`.
+- Overlap analysis defaults to Claude Code; pass `--agents all` to compare every runtime.
 
 This is a **candidate generator**, not a verdict. Two skills can score high and
 still complement each other (a pipeline of writing stages), or score low and

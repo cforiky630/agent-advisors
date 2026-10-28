@@ -60,6 +60,8 @@ This reference establishes heuristics for transaction boundaries, concurrency an
   UPDATE accounts SET balance = balance - :amount WHERE id = :account_id;
   COMMIT;
   ```
+- **When This Default Fails (Counter-Indications)**:
+  - **OCC Retry Storms on Hot Rows**: Optimistic locking (`WHERE version = :expected`) degrades catastrophically on hot flash-sale inventory or shared tenant counters where 50 concurrent workers collide on the same row—49 transactions fail and retry in a loop, amplifying database CPU load. Switch to a single atomic `UPDATE inventory SET stock = stock - :qty WHERE id = :id AND stock >= :qty` or short pessimistic `FOR UPDATE` locks.
 
 ---
 

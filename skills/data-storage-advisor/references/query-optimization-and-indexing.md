@@ -80,3 +80,7 @@ ORDER BY created_at DESC, id DESC
 LIMIT 20;
 ```
 Enforce composite index: `(created_at DESC, id DESC)`.
+
+### When This Default Fails (Counter-Indications)
+- **Small Bounded Tables ($< 10,000$ rows) or Mandatory Random Page Jumps**: Back-office admin tables that require jumping directly to "Page 42" cannot use pure keyset cursors alone. For those cases, cap maximum offset depth (e.g., `OFFSET <= 5000`) and use a **Deferred Join** (`SELECT a.* FROM articles a JOIN (SELECT id FROM articles ORDER BY created_at DESC LIMIT 20 OFFSET 1000) idx USING (id)`) so the offset scan touches only the narrow covering index.
+- **Random `UUIDv4` Clustered Keys**: In InnoDB or clustered B-Tree tables, using random `UUIDv4` as the tie-breaker primary key causes random page splits on `INSERT`; prefer time-ordered `UUIDv7` / `KSUID` or `BIGINT` identity keys.

@@ -20,10 +20,12 @@
 
 ## 核心定位
 
+> **首行选型边界 —— 静态领域门面 + 运行时断点裁决协议**：当前生态中的“Advisor”分为两类——一类是在任务匹配时按需加载的**领域知识门面**（旨在消除工程判断随机性、压降常驻上下文税），另一类是在长会话关键决策时刻动态介入的**运行时咨询协议**。**Agent Advisors** 以**零依赖技能治理与深模块领域门面**为核心底座，并通过无需外部守护进程的 **[运行时断点裁决协议（Checkpoint Protocol）](docs/CHECKPOINT_PROTOCOL.md)** 补齐长会话动态决策介入能力。
+
 **Agent Advisors** 采用清晰的双层解耦架构设计：
 
-1. **核心产品 —— 领域顾问库（`skills/`）**：独立于任何脚本或运行时的纯净工程技能资产。每个顾问扮演单一领域的权威门面（软件架构设计、防御性 API 安全、数据持久化架构），通过清晰的场景决策矩阵、冲突仲裁因果律与交付清单，赋予大模型跨会话稳定自洽的工程决策能力。
-2. **辅助设施 —— 技能治理与开发工具链（`scripts/`）**：一套零外部依赖的静态治理工具，专为管理多端技能、审计常驻 Token 预算、检测描述重叠及沙箱隔离导入外部技能而设计。
+1. **核心产品 —— 领域顾问库（`skills/`）**：独立于任何脚本或运行时的纯净工程技能资产。每个顾问扮演单一领域的证据门控门面（软件架构设计、防御性 API 安全、数据持久化架构），通过**代码库前置探针（`Probe`）**、**冲突仲裁因果律（`Arbitration`）**与**可证伪失效边界（`Invalidate When`）**，赋予大模型跨会话稳定、可检验的工程决策能力。
+2. **辅助设施 —— 技能治理与开发工具链（`scripts/`）**：一套零外部依赖的静态治理工具，支持多运行时常驻 Token 预算审计、**正/负向触发本体分离与正交豁免分析**、**57 项真实提示词反事实路由基准校验**，以及外部不可信技能仓库的操作系统级隔离导入。
 
 > **免工具运行说明**：`skills/` 目录下的所有顾问均为完全自闭环的 Markdown 规范文件（`SKILL.md` + `references/`）。普通用户可以直接在任何智能体环境中使用这些顾问，**无需安装 Node.js 依赖，也无需运行任何本地脚本**。
 
@@ -103,33 +105,45 @@ node scripts/link_skills.mjs --unlink
 
 ## 核心设计哲学
 
-### 1. 三级渐进式披露（Three-Level Progressive Disclosure）
+### 1. 三级渐进式披露与仓库证据门控（Evidence-Gated Disclosure）
 
-已安装技能的描述会在每一轮对话中持续占用系统上下文。Agent Advisors 将常驻开销控制在极低水平，同时保留按需调阅深度工程模式的能力：
+已安装技能的描述会在每一轮对话中持续占用系统上下文。Agent Advisors 在压降常驻开销的同时，将工程决策锚定在**可验证的代码库事实而非盲从教条**之上：
 
 ```text
-第 1 层：元数据（YAML Frontmatter）       ~90–140 tokens   每轮对话常驻，用于意图触发与防误触
+第 1 层：正/负向触发本体（Frontmatter）    ~90–140 tokens   每轮常驻，声明正向触发与显式 Do not trigger for 边界
    │
-   ▼  当用户任务命中领域意图时按需载入
-第 2 层：领域门面（SKILL.md）             <= 150 行        决策矩阵、权衡仲裁因果律、微规则与交付检查单
+   ▼  当用户任务命中正向领域意图时按需载入
+第 2 层：证据门控门面（SKILL.md）          <= 150 行        合一路由表、代码库探针（Probe）与证伪边界（Invalidate When）
    │
-   ▼  仅在需要深入具体设计模式时按需读取
-第 3 层：高密度参考库（references/*.md）  每次最多 1–2 篇   独立提炼的专项指南，严禁全量预加载
+   ▼  仅在需要深入具体模式细节时按需读取
+第 3 层：可证伪参考库（references/*.md）   每次最多 1–2 篇   高密度总结 + 显式反指征（When This Default Fails）
 ```
 
-- **第 1 层（`name` + `description`）**：唯一的常驻固定成本，具备精确的触发范围与反触发边界（Anti-triggers）。
-- **第 2 层（`SKILL.md`）**：包含**场景决策矩阵**、**工程权衡与冲突仲裁**、**浓缩微规则集**、**深度知识库索引**与**输出交付检查清单**。绝大多数架构与实现任务在此层即可得出确定结论。
-- **第 3 层（`references/*.md`）**：独立撰写的高密度工程总结。每个 `SKILL.md` 严格约束智能体在单次任务中最多按需查阅 1–2 份参考文件，严禁全目录预加载。
+- **第 1 层（`name` + `description`）**：显式配对正向触发范围与负向反触发声明（`Do not trigger for...`），确保正交技能互不干扰。
+- **第 2 层（`SKILL.md`）**：消除双重路由冗余（在第 1 节直接映射 `references/*.md`），释放预算用于第 2 节的**证据门控权衡仲裁**：
+  - **`Probe`（前置探针）**：做决定前必须先在代码库中核查的具体证据（如现有单测接缝、`EXPLAIN` 执行计划、鉴权中间件状态）；
+  - **`Arbitration`（确定性仲裁）**：默认分支及其工程因果律；
+  - **`Invalidate When`（证伪边界）**：明确列出该默认准则何时失效并必须反转。
+- **第 3 层（`references/*.md`）**：包含显式的 `When This Default Fails (Counter-Indications)` 反指征章节，并完成跨顾问一致性对齐（如对齐 API 安全的防枚举 ID 与数据存储的 B-Tree 聚簇局部性，优先采用 `UUIDv7`/`KSUID`）。
 
-### 2. 运行边界与按比例适配法则（Proportionality Ladder）
+### 2. 双模运行机制：静态领域门面 + 运行时断点裁决协议（Checkpoint Protocol）
 
-大模型已具备丰富的经典理论知识，其主要瓶颈在于缺乏**稳定、可预测且严谨的工业级决策立场**。每个领域顾问均声明了严格的运行边界：
+第 1 轮加载的指南无法阻止第 80 轮的上下文污染。每个顾问同时支持两种运行模式（详见 [`docs/CHECKPOINT_PROTOCOL.md`](docs/CHECKPOINT_PROTOCOL.md)）：
+- **模式 A —— 静态领域门面（默认）**：任务初始匹配领域意图时自动挂载。
+- **模式 B —— 运行时断点裁决门控（`CP-1` / `CP-2` / `CP-3`）**：用三个客观状态谓词打破“模型不知何时该咨询”的自指死锁：
+  1. **`CP-1`（不可逆边界变更）**：修改数据库迁移、公网 API 契约或鉴权/密码学原语；
+  2. **`CP-2`（退化震荡循环）**：同一模块连续发生 $\ge 2$ 次测试/构建回归或反复回滚；
+  3. **`CP-3`（比例阶梯跃迁）**：单次改动跨越多层抽象或波及 $> 3$ 个文件。
+  触发断点时，智能体剥离嘈杂的历史对话，组装 $\le 200$ tokens 的**去污染咨询包（Consultation Packet）**，交由隔离的只读子代理（Subagent）或自审块给出结构化裁决（`Verdict: APPROVE | REVISE | ESCALATE_TO_USER`，单任务上限 2 次）。
+
+### 3. 运行边界与按比例适配法则（Proportionality Ladder）
+
+每个领域顾问均声明了严格的优先级边界：
 - **项目既有规范优先**：代码库现有的架构决策、数据库迁移脚本、中间件、Linter、测试套件及用户的显式指令，优先级严格高于顾问默认准则。
-- **专用工作流让渡**：领域顾问专注于架构设计与实现判断；当用户唤起专用的代码审查、测试执行或故障排查工作流时，主动让渡流程控制权，仅提供底层的工程取舍逻辑。
-- **按比例适配阶梯（Proportionality Ladder）**：架构复杂度严格与业务问题规模匹配。优先用尽既有模式与标准库能力，杜绝过早引入复杂抽象层。
-- **显式推迟说明（Intentional Deferrals）**：当为了保持适度比例而推迟引入重型模式（如完整 DDD 聚合根或读写分离）时，明确指出未来触发引入的具体规模或风险阈值。
+- **专用工作流让渡**：当用户唤起专用的代码审查、测试执行或故障排查工作流时，主动让渡流程控制权，仅提供底层的工程取舍逻辑。
+- **按比例适配与显式推迟说明（Intentional Deferrals）**：优先用尽既有模式与标准库能力；当推迟引入重型模式时，明确指出未来触发引入的具体规模或风险阈值。
 
-### 3. 零 Token 溯源物理隔离（Provenance Separation）
+### 4. 零 Token 溯源物理隔离（Provenance Separation）
 
 所有正式的书目出版信息、ISBN-13 记录、工业技术标准编号（RFC、NIST、OWASP、CWE）与版权声明均独立存放于 [`docs/provenance/`](docs/provenance/README.md) 中，与 `skills/` 运行时目录物理隔离，确保运行时零额外 Token 损耗。
 
@@ -171,7 +185,8 @@ npm run audit
 
 - **分运行时 Token 开销评估**：分别计算 Claude Code、Cursor、Codex 与 Gemini/Antigravity 每轮系统提示词的描述常驻开销。
 - **跨目录物理副本去重**：自动识别并合并跨运行时的相同物理副本，同时检测同名技能在不同目录下的内容漂移。
-- **触发面重叠度分析**：通过词项相似度（$0.6 \times \text{Dice}$）与领域标签交集（$0.4 \times \text{Jaccard}$）计算潜在竞争同一类开发任务的技能对。
+- **正/负向触发本体分离与重叠度分析**：通过 `splitTriggerSurface` 自动剥离 `Do not trigger for...` 反触发子句，结合词项相似度（$0.6 \times \text{Dice}$）、领域标签交集（$0.4 \times \text{Jaccard}$）与**正交边界豁免折扣（Orthogonality Discount）**识别真正的竞争技能对。
+- **反事实触发基准校验（`npm run validate`）**：自动运行 `evals/*-trigger-cases.md` 中的全部 57 项基准提示词，验证正向激活召回与休眠防误触。
 - **输出产物**：在 `.advisor-audit/audit-report.md` 输出诊断报告，在 `.advisor-audit/skills.lock.json` 输出确定性清单锁文件（详见 [`docs/AUDIT.md`](docs/AUDIT.md)）。
 
 ### 2. 外部仓库沙箱隔离导入（`import_repo.mjs`）
@@ -187,15 +202,15 @@ node scripts/import_repo.mjs https://github.com/owner/repo --ref main
 - 仅提取 Markdown 候选资产（`SKILL.md`、`AGENTS.md`、`CLAUDE.md`、`.cursor/rules/*.mdc`）；可执行脚本仅做安全标记，绝不执行与复制；
 - 在 `.advisor-import/<repo>/proposal.md` 输出采纳评估报告。
 
-### 3. 构建专属团队顾问（`advisor-creator`）
+### 3. 脏规则/ADR 冲突编译与构建专属顾问（`advisor-creator`）
 
-将团队内部的架构决策记录（ADR）、代码评审规范或安全要求合成为标准领域顾问：
+将团队内部杂乱的架构决策记录（`docs/adr/*.md`）、`.cursor/rules/*.mdc` 或 `CLAUDE.md` 编译为证据门控领域顾问：
 
 ```text
-调用 advisor-creator，把我们团队的微服务规范与 API 安全基线合成为一个新的领域顾问。
+调用 advisor-creator，扫描我们项目的 docs/adr/ 与 .cursor/rules/，提取其中的冲突规则并编译为一个新的领域顾问。
 ```
 
-引导智能体依次完成领域边界聚类、场景决策矩阵构建、工程冲突仲裁、微规则浓缩，并基于 [`advisor-template.md`](skills/advisor-creator/references/advisor-template.md) 生成标准脚手架。
+无需用户手动做领域建模，`advisor-creator` 会自动扫描散落规则中的自相矛盾点与无保护的 `ALWAYS`/`NEVER` 绝对化指令，基于 [`advisor-template.md`](skills/advisor-creator/references/advisor-template.md) 注入 `Probe` 与 `Invalidate When` 边界，并输出**编译收益评分卡（Compilation ROI Scorecard）**（常驻 Token 压缩率、消解冲突数、新增比例护栏数）。
 
 ---
 

@@ -20,8 +20,11 @@ This reference provides actionable, production-grade engineering heuristics base
   SELECT * FROM orders WHERE id = :order_id AND tenant_id = :authenticated_tenant_id;
   ```
 - **Compound Keys & Policy Enforcement**: In microservices or ORMs, perform row-level filtering in the repository layer or run an explicit policy assertion (`policy.can(user, 'read', order)`) before exposing the resource.
-- **Use Unpredictable Identifiers**: Prefer UUIDv4 or KSUID over sequential integers (`id=1234`) to defeat automated enumeration, while maintaining database authorization checks.
+- **Use Non-Sequential, B-Tree-Friendly Public Identifiers**: Avoid exposing raw sequential integers (`id=1234`) in public URLs to defeat automated enumeration. To avoid B-Tree clustered index page fragmentation caused by completely random `UUIDv4` primary keys (see `data-storage-advisor`), prefer **time-ordered CSPRNG identifiers (`UUIDv7` or `KSUID`)** or maintain an internal `BIGINT` clustered primary key paired with an external indexed public token (`public_id`).
 - **Fail Closed on Missing Subject**: If the caller's identity context cannot be established, abort with HTTP 401/403 before executing data access routines.
+- **When This Default Fails (Counter-Indications)**:
+  - Unpredictable identifiers (`UUIDv4`/`UUIDv7`/`KSUID`) are **never** a substitute for row-level authorization; treating unguessable URLs as access control ("security by obscurity") fails whenever URLs leak via logs, `Referer` headers, or shared links.
+  - Public, unauthenticated content catalogs (e.g., documentation slugs, public blog posts) intentionally use human-readable slugs and do not require tenant binding on `SELECT`.
 
 ---
 

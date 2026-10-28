@@ -43,13 +43,13 @@ skills/<advisor-name>/
 
 ### Required `SKILL.md` Structure
 Every `SKILL.md` must follow this standard format:
-1. **YAML Frontmatter**: `name`, `description`, `license: MIT`.
-2. **Introduction & Operating Boundaries**: 1–2 sentences defining the advisor's scope and core directive, plus what it defers to (project conventions, adjacent skills, explicit user instructions).
-3. **1. Scenario Decision Matrix**: Table mapping user scenarios to specific methodologies or references.
-4. **2. Engineering Trade-offs & Rationales**: Clear guidance on typical domain trade-offs with causal rationales.
-5. **3. Condensed Nano Rulesets**: Bullet points of non-negotiable principles.
-6. **4. Deep Knowledge Base Pointer**: Exact listing of what lives in `references/` and when to read them, with an explicit cap of one or two files per task.
-7. **5. Output Delivery Format & Checklist**: Required response structure and pre-delivery checklist.
+1. **YAML Frontmatter**: `name`, `description` (including an explicit `Do not trigger for...` anti-trigger boundary), `license: MIT`.
+2. **Introduction & Operating Boundaries**: Defines scope across **Static Facade Mode** and **Runtime Checkpoint Mode** (`CP-1`/`CP-2`/`CP-3`; see [`docs/CHECKPOINT_PROTOCOL.md`](docs/CHECKPOINT_PROTOCOL.md)), plus what it defers to (project conventions, adjacent skills, explicit user instructions).
+3. **1. Scenario Decision Matrix**: Unified table mapping scenarios to primary standards, architectural focus, and on-demand `references/<file>.md` targets.
+4. **2. Engineering Trade-offs & Rationales**: Evidence-gated rules where each trade-off specifies **`Probe`** (codebase evidence to inspect first), **`Arbitration`** (default choice and causal rationale), and **`Invalidate When`** (counter-indications where the default fails).
+5. **3. Condensed Nano Rulesets**: Actionable principles grouped under `### A.` to `### D.`.
+6. **4. Deep Knowledge Base (`references/`)**: Enforces the 1–2 file on-demand reading cap and epistemic humility (codebase evidence outranks book defaults).
+7. **5. Output Delivery Format & Checklist**: Required response structure and pre-delivery verification checklist.
 
 ---
 

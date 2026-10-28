@@ -18,6 +18,9 @@ connections = (CPU_cores * 2) + effective_spindle_count
 - Example: An 8-core database server with SSD storage operates optimally with approximately `(8 * 2) + 1 = 17` to `25` active connections.
 - Set application pool sizes conservatively (e.g., 10–20 connections per service instance).
 - Use an external connection pooler (e.g., **PgBouncer** in transaction pooling mode or **ProxySQL**) to multiplex thousands of microservice clients onto a small, optimal pool of backend database connections.
+- **When This Default Fails (Counter-Indications)**:
+  - **External Transaction Multiplexers (PgBouncer / RDS Proxy / Supavisor)**: The `(CPU_cores * 2) + 1` cap applies to **active physical database backend connections**, not to logical application client pools sitting in front of a transaction-mode pooler.
+  - **High-Wait Foreign Data Wrappers (FDW) or Long Lock Waits**: If backend sessions spend most of their wall-clock time blocked on remote network FDW calls rather than local CPU/NVMe I/O, active backend concurrency must be sized via Little's Law ($L = \lambda W$) while isolating slow workloads into a separate pool.
 
 ---
 

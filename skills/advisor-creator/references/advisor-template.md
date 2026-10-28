@@ -5,7 +5,7 @@ Use this template as the standard skeleton when generating new domain advisors.
 ```markdown
 ---
 name: <domain>-advisor
-description: Comprehensive <domain> engineering and architecture advisor. Use for <high-level actions: designing, auditing, configuring, refactoring> <domain components>, evaluating <domain tradeoffs>, or resolving complex <domain> issues using established industry standards (<core references/classics>). Applies to both explicit <domain> architecture and routine <domain> implementation changes.
+description: Comprehensive <domain> engineering and architecture advisor. Use for <high-level actions: designing, auditing, configuring, refactoring> <domain components>, evaluating <domain tradeoffs>, or resolving complex <domain> issues using established industry standards (<core references/classics>). Applies to both explicit <domain> architecture and routine <domain> implementation changes. Do not trigger for <orthogonal domains, trivial syntax fixes, or unrelated workflows>.
 license: MIT
 ---
 
@@ -19,38 +19,43 @@ Your overarching goal is **<primary engineering goal: e.g., resilience, defense-
 
 ## Operating Boundaries
 
+This advisor governs <domain> architecture across **Static Facade Mode** (task start) and **Runtime Checkpoint Mode** (mid-session escalation):
+
 - **Project conventions first.** Existing architecture decisions, linters, tests, and explicit user instructions outrank any guidance here; name the conflict instead of silently overriding it.
 - **Defer the workflow, keep the rationale.** When a dedicated review, testing, debugging, or planning skill already governs the task, let that skill own its steps and use this advisor only for the trade-offs behind them.
 - **Match doctrine to problem size (Proportionality Ladder).** Exhaust existing project conventions, standard library primitives, and simple constructs before introducing new abstractions or dependencies; state when a heavy pattern does not apply.
+- **Runtime Checkpoint Gate (`CP-1`/`CP-2`/`CP-3`).** Pause coding and run a context-stripped checkpoint (`Verdict: APPROVE | REVISE | ESCALATE_TO_USER`, max 2/task) when: (`CP-1`) mutating irreversible contracts/schemas, (`CP-2`) hitting $\ge 2$ consecutive test/build regressions, or (`CP-3`) escalating complexity across $>3$ files or a new architectural layer.
 
 ---
 
-## 1. Scenario Decision Matrix (<N> Standards Mapping)
+## 1. Scenario Decision Matrix (<N> Standards & Level-3 Routing)
 
-When tackling a specific engineering scenario, anchor your design choices in the corresponding standard:
+Anchor design choices in the matching scenario and load its Level-3 reference **only** when pattern-level detail is needed:
 
-| Scenario / Subdomain | Primary Foundational Standard | Key Architectural Focus |
-| :--- | :--- | :--- |
-| **<Scenario 1>** | **<Standard / Book 1>** | <Key architectural focus & trade-off rationale> |
-| **<Scenario 2>** | **<Standard / Book 2>** | <Key architectural focus & trade-off rationale> |
-| **<Scenario 3>** | **<Standard / Book 3>** | <Key architectural focus & trade-off rationale> |
-| **<Scenario 4>** | **<Standard / Book 4>** | <Key architectural focus & trade-off rationale> |
+| Scenario / Subdomain | Primary Foundational Standard | Key Architectural Focus | Level-3 Reference (On-Demand Only) |
+| :--- | :--- | :--- | :--- |
+| **<Scenario 1>** | **<Standard / Book 1>** | <Key architectural focus & default posture> | `references/<file-1>.md` |
+| **<Scenario 2>** | **<Standard / Book 2>** | <Key architectural focus & default posture> | `references/<file-2>.md` |
+| **<Scenario 3>** | **<Standard / Book 3>** | <Key architectural focus & default posture> | `references/<file-3>.md` |
 
 ---
 
 ## 2. Engineering Trade-offs & Arbitration
 
-Conflicting dogmas inevitably arise in this domain. Use these rationale-backed principles to arbitrate tensions:
+Before selecting a design branch, run the **Codebase Probe** and check **Invalidate When** counter-indications:
 
-1. **<Clash 1: e.g., School A vs. School B>**:
-   - **Arbitration**: <Clear decision favoring the deeper, more maintainable pattern>.
-   - *Rationale*: <Explain why this choice yields lower cognitive load, defect reduction, or operational simplicity>.
+1. **<Clash 1: e.g., Pattern A vs. Pattern B>**:
+   - **Probe**: <Concrete codebase artifact, metric, or test state to inspect before deciding>.
+   - **Arbitration**: <Clear decision favoring the deeper, more maintainable pattern and why>.
+   - **Invalidate When**: <Exact empirical counter-indication where this default fails and must be reversed>.
 2. **<Clash 2: e.g., Strict Rule X vs. Pragmatic Y>**:
+   - **Probe**: <Concrete codebase artifact, metric, or test state to inspect before deciding>.
    - **Arbitration**: <Clear boundary where X applies and where Y applies>.
-   - *Rationale*: <Explain the failure mode of over-applying X prematurely>.
-3. **<Clash 3: e.g., Tradeoff between Performance vs. Abstraction>**:
+   - **Invalidate When**: <Exact empirical counter-indication where this default fails>.
+3. **<Clash 3: e.g., Performance vs. Abstraction>**:
+   - **Probe**: <Concrete codebase artifact, metric, or test state to inspect before deciding>.
    - **Arbitration**: <Clear guidance on measurement and default choice>.
-   - *Rationale*: <Explain the long-term maintenance cost>.
+   - **Invalidate When**: <Exact empirical counter-indication where this default fails>.
 
 ---
 
@@ -72,29 +77,20 @@ Conflicting dogmas inevitably arise in this domain. Use these rationale-backed p
 
 ## 4. Deep Knowledge Base (`references/`)
 
-Sections 1–3 cover most routine domain tasks. Read a reference only for pattern-level detail that the sections above cannot supply:
-
-- Read at most **1–2 reference files per task**; never preload the directory.
-- Prefer the narrowest file that answers the question, and say which file you chose.
-- Treat these files as distilled summaries, not reproductions; the rationale in Sections 1–3 outranks an unsourced bullet.
-- `MUST` / `SHOULD` in references express severity, not authority over project conventions.
-
-- <Deep Topic 1> -> `references/<file-1>.md`
-- <Deep Topic 2> -> `references/<file-2>.md`
-- <Deep Topic 3> -> `references/<file-3>.md`
+Sections 1–3 cover most routine domain tasks. When loading a Level-3 file from the **Scenario Decision Matrix** (Section 1), enforce these limits:
+- Read **at most 1–2 reference files per task**; never preload `references/`.
+- Treat reference files as **falsifiable engineering summaries**, not unquestionable dogma: verify codebase evidence first and respect every **Invalidate When** counter-indication.
 
 ---
 
 ## 5. Output Delivery Format & Checklist
 
 When delivering <domain> guidance or code, present results in this cohesive structure:
-1. **Design Rationale, Tradeoffs & Intentional Deferrals**: Explain which standard guided the decision, which heavier patterns were deliberately omitted for proportionality, and the concrete threshold that would justify introducing them later.
+1. **Repo Probe, Tradeoffs & Intentional Deferrals**: State what codebase evidence was inspected, which standard guided the decision, which heavier patterns were deliberately omitted for proportionality, and the concrete threshold that would justify introducing them later.
 2. **Concrete Implementation**: Clean, robust, and well-typed implementation following deep module standards.
 3. **Verification Checklist**:
-   - [ ] **Cognitive Load**: Is the structure clear, self-documenting, and free of clever tricks?
-   - [ ] **Boundary Protection**: Are boundary edges strictly defended against invalid states?
-   - [ ] **Failure Modes**: Are failure states, recovery paths, and degradation addressed?
+   - [ ] **Cognitive Load & Depth**: Is the structure clear, interface narrow, and pass-through glue eliminated?
+   - [ ] **Boundary & Failure Safety**: Are boundary edges defended and failure/degradation paths addressed?
    - [ ] **Orthogonality**: Is core domain logic decoupled from external transport/framework specifics?
-   - [ ] **Proportionality**: Is the guidance proportionate to the problem, with no pattern introduced before its preconditions hold?
-   - [ ] **Precedence**: Were project conventions and explicit user instructions respected when they conflicted with this guidance?
+   - [ ] **Proportionality & Precedence**: Does complexity match the problem tier while respecting existing project conventions?
 ```
