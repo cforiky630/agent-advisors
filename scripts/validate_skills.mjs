@@ -39,6 +39,7 @@ const REQUIRED_ADVISOR_MARKERS = [
   ["**Probe**:", "evidence-gated codebase probe ('**Probe**:') in Section 2"],
   ["**Invalidate When**:", "falsifiability counter-indication ('**Invalidate When**:') in Section 2"],
   ["CP-1", "Runtime Checkpoint Gate ('CP-1'/'CP-2'/'CP-3') in Operating Boundaries"],
+  ["### Runtime Checkpoint Procedure", "self-contained runtime checkpoint procedure"],
 ];
 
 // [pattern, explanation]. These encode defects this repository has already fixed,
@@ -201,7 +202,7 @@ function main() {
   for (const failure of evalResult.failures) {
     fail(join(ROOT, "evals"), failure.message);
   }
-  console.log(`evaluated ${evalResult.totalCases} trigger benchmark cases`);
+  console.log(`checked ${evalResult.checkedCases} static trigger cases; ${evalResult.manualCases.length} deferral cases require manual runtime evaluation (${evalResult.totalCases} total)`);
 
   if (errors.length > 0) {
     console.log(`\n${errors.length} problem(s) found:`);

@@ -22,7 +22,11 @@ Before submitting a Pull Request for a new Advisor (e.g., an API standards advis
 ### 3. Three-Level Progressive Disclosure
 - **Level 1 (Metadata)**: Frontmatter `description` must be pushy and intent-rich (~60–90 words / ~90–140 tokens, strictly <= 1200 chars) to prevent undertriggering.
 - **Level 2 (`SKILL.md`)**: The root file must remain compact (**under 150 lines**). Provide operating boundaries, decision matrices, arbitration principles, nano-rulesets, and a delivery checklist.
-- **Level 3 (`references/`)**: Put distilled source summaries, pattern catalogs, and cheat-sheets into a private `references/` subfolder. They must be your own condensation rather than reproductions, and the agent reads at most one or two per task.
+- **Level 3 (`references/`)**: Put distilled source summaries, pattern catalogs, and cheat-sheets into a private `references/` subfolder. They must be technical notes subordinate to the entrypoint, without an independent workflow or mandatory output contract. They must be your own condensation rather than reproductions, and the agent starts with one or two narrowly relevant files, expanding only to resolve a concrete question.
+
+### Source Use and Task Focus
+
+The primary quality criterion is better domain decisions and completed user tasks with proportionate effort. Keep stable engineering principles and pinned standards usable. Verify editions when differences materially affect safety, compatibility or a requested conformance claim; ordinary advisor use does not require searching for the newest publication. Source metadata supports reasoning rather than becoming a separate compliance workflow. Do not invent trade-offs, numeric thresholds, benchmarks or mandatory reports to fill a template.
 
 ### 4. Canonical English Execution
 - Machine-executable `SKILL.md` files must be written in **precise, idiomatic English**. English ensures optimal parameter activation across major LLM foundation models (Claude, GPT, Gemini) and minimizes token consumption.
@@ -44,12 +48,12 @@ skills/<advisor-name>/
 ### Required `SKILL.md` Structure
 Every `SKILL.md` must follow this standard format:
 1. **YAML Frontmatter**: `name`, `description` (including an explicit `Do not trigger for...` anti-trigger boundary), `license: MIT`.
-2. **Introduction & Operating Boundaries**: Defines scope across **Static Facade Mode** and **Runtime Checkpoint Mode** (`CP-1`/`CP-2`/`CP-3`; see [`docs/CHECKPOINT_PROTOCOL.md`](docs/CHECKPOINT_PROTOCOL.md)), plus what it defers to (project conventions, adjacent skills, explicit user instructions).
+2. **Introduction & Operating Boundaries**: Defines scope across **Static Facade Mode** and **Runtime Checkpoint Mode** (`CP-1`/`CP-2`/`CP-3`; see [`docs/CHECKPOINT_PROTOCOL.md`](docs/CHECKPOINT_PROTOCOL.md)), plus what it defers to (project conventions, adjacent skills, explicit user instructions). Place concise Quick Use instructions and the scenario matrix before detailed operating rules. Keep the scope/cooperation rules and minimum checkpoint procedure self-contained later in the entrypoint.
 3. **1. Scenario Decision Matrix**: Unified table mapping scenarios to primary standards, architectural focus, and on-demand `references/<file>.md` targets.
-4. **2. Engineering Trade-offs & Rationales**: Evidence-gated rules where each trade-off specifies **`Probe`** (codebase evidence to inspect first), **`Arbitration`** (default choice and causal rationale), and **`Invalidate When`** (counter-indications where the default fails).
+4. **2. Engineering Trade-offs & Rationales**: Evidence-gated rules where each trade-off specifies **`Probe`** (codebase evidence to inspect first), **`Arbitration`** (default choice and causal rationale), and **`Invalidate When`** (observable conditions selecting a named alternative). Review a paired scenario for each branch; an unrelated warning or a restatement of the default is insufficient.
 5. **3. Condensed Nano Rulesets**: Actionable principles grouped under `### A.` to `### D.`.
-6. **4. Deep Knowledge Base (`references/`)**: Enforces the 1–2 file on-demand reading cap and epistemic humility (codebase evidence outranks book defaults).
-7. **5. Output Delivery Format & Checklist**: Required response structure and pre-delivery verification checklist.
+6. **4. Deep Knowledge Base (`references/`)**: Starts with 1–2 relevant files and permits focused expansion; repository evidence outranks book defaults.
+7. **5. Output Delivery Format & Checklist**: Task-scaled delivery guidance and an internal verification checklist; do not force every reply into a full report.
 
 ---
 
@@ -75,7 +79,7 @@ Every `SKILL.md` must follow this standard format:
    node scripts/validate_skills.mjs
    node --test
    ```
-   The validator checks frontmatter, the 150-line limit, required sections, unresolved reference links, and prohibited patterns. CI runs both commands on every push and pull request.
+   The validator checks frontmatter, the 150-line limit, required sections, unresolved reference links, prohibited patterns, and 48 static lexical/domain trigger cases. The 9 deferral cases and actual model loading/outcome quality require manual runtime evaluation; do not report them as automated passes. CI runs both commands on every push and pull request.
 7. **Commit with conventional commits**:
    ```bash
    git commit -m "feat(skills): add frontend-craft-advisor with state machine and token matrix"

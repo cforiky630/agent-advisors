@@ -19,7 +19,7 @@ This document records the design lineage, structural methodology, and references
    - *Structure*:
      - Level 1: Frontmatter metadata (~90–140 tokens persistent per turn).
      - Level 2: Core directive `SKILL.md` (≤ 150 lines, loaded only on intent match).
-     - Level 3: Distilled references (`references/*.md`, strictly 1–2 files read on demand).
+     - Level 3: Distilled references (`references/*.md`, start with 1–2 relevant files and expand for a concrete unresolved question).
 3. **Deep Modules & Information Hiding**:
    - *Lineage*: John Ousterhout (2018/2021). *A Philosophy of Software Design*. Yaknyam Press.
    - *Application*: Ensuring every generated advisor presents a minimal, high-abstraction interface while encapsulating deep operational and architectural rationale.

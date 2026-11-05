@@ -1,17 +1,20 @@
 # Engineering Reference: Clean Code by Robert C. Martin
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale, deferring to established project conventions, tests, and explicit user instructions when they conflict.
 
 ## Priority and behavior
 
-- Treat every unqualified rule in this file as `MUST`; treat `Prefer` as `SHOULD`; treat `Do not`, `Avoid`, and `Never` as `MUST NOT` unless the user explicitly overrides it.
+- Apply design recommendations as contextual heuristics under the parent advisor. Wording such as "avoid" or "must" does not make style advice a safety invariant.
 - Prefer readability, maintainability, correctness, and safe change over cleverness or speed hacks.
 - Optimize for the next human reader.
 - When trade-offs exist, choose the option that reduces long-term complexity.
-- Never preserve bad structure just because it already exists.
-- Apply the Boy Scout Rule: leave touched code cleaner than you found it.
+- Improve structure only when it obstructs the requested change or causes a demonstrated defect.
+- Keep cleanup local and useful; do not enlarge a task solely to satisfy style preferences.
 
 ## Core clean code principles
 
@@ -52,7 +55,7 @@ This reference provides distilled engineering guidelines. Use these principles t
 - Organize code top-down so readers see the high-level story before details.
 - Prefer descriptive names over short names.
 - Minimize the number of parameters.
-- Avoid boolean flag parameters. Split behavior into separate functions instead.
+- Split boolean mode flags when they hide distinct workflows; keep cohesive predicates where they remain clear.
 - Avoid output parameters unless language conventions make them necessary.
 - Eliminate hidden side effects.
 - Separate commands from queries.
@@ -279,15 +282,6 @@ Before finishing, verify all of the following:
 - The code reads cleanly from top to bottom.
 - The design is simpler or at least not more complex than before.
 - The change follows existing project conventions.
-
-## Output Expectations
-
-When making changes:
-
-- Briefly explain what changed.
-- State what tests or checks were run.
-- Call out any unresolved risk, assumption, or trade-off.
-- If a requested change conflicts with these rules, follow the user request but mention the conflict explicitly.
 
 ## Hard rules
 

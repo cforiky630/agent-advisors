@@ -1,5 +1,8 @@
 # Engineering Reference: Clean Architecture by Robert C. Martin
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This reference provides distilled engineering guidelines. Use these principles to reason about design tradeoffs and architectural rationale, deferring to established project conventions, tests, and explicit user instructions when they conflict.
@@ -15,7 +18,7 @@ When writing, modifying, or reviewing code, prefer decisions that preserve:
 
 ---
 
-## Non-Negotiable Rules
+## Layering Invariants When This Architecture Applies
 
 1. **Follow the Dependency Rule**
    - Source code dependencies must point inward, toward higher-level policies.
@@ -415,28 +418,9 @@ When modifying existing code:
 
 ---
 
-## Output Expectations
+## Applying the Architecture Within Scope
 
-When asked to implement a feature, default to producing:
-- a domain model or entity if business invariants exist
-- a focused use case
-- input and output models if needed
-- ports/interfaces for external dependencies
-- adapters for web, persistence, or messaging details
-- composition root wiring outside the use case
-
-When asked to modify existing code:
-- keep or improve dependency direction
-- avoid adding framework dependencies to inner layers
-- call out architectural debt explicitly if it cannot be fixed safely now
-
-When asked to review code:
-- identify boundary violations
-- identify dependency rule violations
-- identify framework leakage
-- identify misplaced business rules
-- identify god services and layer bypass
-- propose concrete refactorings toward Clean Architecture
+Use the parent advisor's output format and the existing project's boundaries. For a feature, add a use case, port or adapter only when it hides a real dependency or protects an invariant; a local CRUD change need not introduce every layer. In reviews, report relevant boundary violations with their consequences and a minimal remedy, rather than prescribing migration to Clean Architecture.
 
 ---
 
@@ -458,7 +442,7 @@ Before finalizing any change, verify:
 - Did we avoid creating another god service?
 - Did we keep details replaceable?
 
-If any answer is no, revise the design before shipping.
+Use relevant findings to correct a demonstrated defect within scope; an inapplicable checklist item does not require redesign.
 
 ---
 
@@ -502,7 +486,7 @@ Choose the design that minimizes long-term coupling, not the one that is only sh
 
 ---
 
-## Final Instruction
+## Decision Reminders
 
 When uncertain, choose the option that:
 1. keeps business rules independent
@@ -511,4 +495,4 @@ When uncertain, choose the option that:
 4. improves testability
 5. makes replacement of frameworks, databases, and delivery mechanisms easier
 
-If a proposed change conflicts with these priorities, reject it and propose a cleaner architectural alternative.
+If a relevant architectural guarantee is violated, explain the concrete effect and choose a scoped adjustment; these preferences alone do not justify rejecting a working project pattern.

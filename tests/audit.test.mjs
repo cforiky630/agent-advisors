@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 
 import {
   analyze,
@@ -10,7 +11,41 @@ import {
   discover,
   installedPluginRoots,
   renderMarkdown,
+  parseArgs,
 } from "../scripts/audit_skills.mjs";
+
+test("plugin names do not downgrade an actual project/user collision, including CLI exit status", () => {
+  const root = tempRoot();
+  try {
+    const roots = ["claude-user", "claude-project", "claude-plugin:demo"].map((scope) =>
+      ({ scope, agent: "claude", path: join(root, scope.replace(":", "-")) }));
+    roots.forEach((item, i) => makeSkill(item.path, "shared", { description: `Review modules version ${i}.` }));
+    const result = analyze(discover(roots).records);
+    assert.ok(result.issues.some((issue) => issue.level === "error" && /same name resolves/.test(issue.message)));
+    const args = roots.flatMap((item) => ["--root", `${item.scope}=${item.path}`]);
+    const cli = spawnSync(process.execPath, ["scripts/audit_skills.mjs", "--no-defaults", "--json", "--fail-on-issues", ...args], { encoding: "utf8" });
+    assert.equal(cli.status, 1, cli.stderr);
+    assert.ok(JSON.parse(cli.stdout).issues.some((issue) => issue.level === "error"));
+    const pluginOnly = analyze(discover([roots[0], roots[2]]).records);
+    assert.ok(pluginOnly.issues.some((issue) => issue.level === "warn" && /namespaced/.test(issue.message)));
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("broken root links and malformed plugin registries cannot be reported as an empty healthy install", () => {
+  const root = tempRoot();
+  try {
+    const broken = join(root, "skills");
+    symlinkSync(join(root, "absent"), broken, process.platform === "win32" ? "junction" : "dir");
+    const inventory = discover([{ scope: "claude-user", agent: "claude", path: broken }]);
+    assert.equal(inventory.broken.length, 1);
+    assert.ok(analyze(inventory.records, {}, inventory.broken).issues.some((issue) => issue.level === "error"));
+    const registry = join(root, ".claude", "plugins");
+    mkdirSync(registry, { recursive: true });
+    writeFileSync(join(registry, "installed_plugins.json"), "{broken");
+    assert.throws(() => installedPluginRoots(root), /Cannot read installed plugin registry/);
+    assert.equal(parseArgs(["--root", `cc-switch=${root}`]).roots[0].agent, "store");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
 
 function makeSkill(root, name, { description, body = "# Skill\n", extra = "" } = {}) {
   const dir = join(root, name);
@@ -220,6 +255,22 @@ test("deduplicates physical copies across claude-user, codex, and cc-switch into
   }
 });
 
+test("detects drift when identical entrypoints ship different references", () => {
+  const root = tempRoot();
+  try {
+    const roots = ["a", "b"].map((name) => ({ scope: name, agent: name, path: join(root, name) }));
+    for (const [i, item] of roots.entries()) {
+      makeSkill(item.path, "demo-advisor", { description: "Architecture guidance.", body: "references/rules.md\n" });
+      mkdirSync(join(item.path, "demo-advisor", "references"), { recursive: true });
+      writeFileSync(join(item.path, "demo-advisor", "references", "rules.md"), i ? "Never retry." : "Always retry.");
+    }
+    const { records } = discover(roots);
+    const result = analyze(records);
+    assert.equal(result.skills.length, 2);
+    assert.ok(result.issues.some((issue) => /content drift/.test(issue.message)));
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 test("emits a warn issue when the same skill name has content drift across roots", () => {
   const claudeRoot = tempRoot();
   const storeRoot = tempRoot();
@@ -277,7 +328,7 @@ test("renders end-to-end markdown report and builds lockfile JSON structure", ()
     assert.match(markdown, /`alpha` ↔ `beta`/);
 
     const lock = buildLock(result, { roots, generatedAt });
-    assert.equal(lock.version, 1);
+    assert.equal(lock.version, 2);
     assert.equal(lock.generatedAt, "2026-01-15T00:00:00.000Z");
     assert.equal(lock.roots.length, 1);
     assert.ok(lock.budgets.claude);

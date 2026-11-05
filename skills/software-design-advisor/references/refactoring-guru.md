@@ -1,5 +1,8 @@
 # Engineering Reference: Refactoring & Code Smell Catalog (Refactoring.Guru)
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose & Primary Directive
 
 This reference provides an operational engineering synthesis of the Refactoring.Guru code-smell taxonomy and refactoring technique catalog. Use it to diagnose structural friction, select the smallest behavior-preserving transformation, and avoid over-engineering traps.

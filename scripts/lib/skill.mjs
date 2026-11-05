@@ -6,7 +6,7 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, readlinkSync, statSync } from "node:fs";
 import { basename, join, relative, sep } from "node:path";
 
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
@@ -181,6 +181,48 @@ export function estimateTokens(text) {
 
 export function sha256(text) {
   return createHash("sha256").update(text, "utf8").digest("hex");
+}
+
+/** Hash the shipped tree, including paths, assets and link targets; never follow links. */
+export function skillContentHash(skillDir, { maxFiles = 10000, maxFileBytes = 32 * 1024 * 1024,
+  maxTotalBytes = 128 * 1024 * 1024, maxDepth = 32 } = {}) {
+  const hash = createHash("sha256");
+  let count = 0;
+  let totalBytes = 0;
+  const add = (kind, path, bytes) => {
+    hash.update(JSON.stringify([kind, path, bytes.length]) + "\n");
+    hash.update(bytes);
+  };
+  const walk = (dir, depth = 0) => {
+    if (depth > maxDepth) throw new Error("Skill hash depth limit exceeded");
+    const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
+      a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+    for (const entry of entries) {
+      if (entry.name === ".git" || entry.name === "node_modules") continue;
+      if (++count > maxFiles) throw new Error("Skill hash entry limit exceeded");
+      const full = join(dir, entry.name);
+      const path = relative(skillDir, full).split(sep).join("/");
+      if (entry.isSymbolicLink()) {
+        add("link", path, Buffer.from(readlinkSync(full)));
+      } else if (entry.isDirectory()) {
+        add("dir", path, Buffer.alloc(0));
+        walk(full, depth + 1);
+      } else if (entry.isFile()) {
+        const size = statSync(full).size;
+        totalBytes += size;
+        if (size > maxFileBytes || totalBytes > maxTotalBytes) {
+          throw new Error("Skill hash byte limit exceeded");
+        }
+        let bytes = readFileSync(full);
+        if (/\.(?:md|mdc|markdown)$/i.test(entry.name)) {
+          bytes = Buffer.from(bytes.toString("utf8").replace(/\r\n/g, "\n"));
+        }
+        add("file", path, bytes);
+      }
+    }
+  };
+  walk(skillDir);
+  return hash.digest("hex");
 }
 
 const NON_PLURAL_ENDINGS = /(?:ss|us|is|os)$/;
@@ -549,13 +591,30 @@ export function evaluateTriggerCorpus(
   const byName = new Map(skills.map((skill) => [skill.name, skill]));
   const failures = [];
   let totalCases = 0;
+  let checkedCases = 0;
+  const manualCases = [];
 
   for (const suite of suites) {
     const owner = byName.get(suite.skill);
-    if (!owner) continue;
+    if (!owner) {
+      failures.push({ kind: "missing-skill", message: `evaluation skill not found: ${suite.skill}` });
+      continue;
+    }
+    if (suite.cases.length === 0) {
+      failures.push({ kind: "empty-suite", message: `no evaluation cases for ${suite.skill}` });
+    }
 
     for (const testCase of suite.cases) {
       totalCases += 1;
+      if (testCase.kind === "defer") {
+        manualCases.push({ ...testCase, skill: suite.skill });
+        continue;
+      }
+      if (!["activate", "dormant"].includes(testCase.kind)) {
+        failures.push({ kind: "unknown-case", message: `unknown evaluation kind: ${testCase.kind}` });
+        continue;
+      }
+      checkedCases += 1;
       const ownerResult = promptMatchScore(owner, testCase.prompt);
 
       if (testCase.kind === "activate" && ownerResult.score < activateFloor) {
@@ -580,7 +639,7 @@ export function evaluateTriggerCorpus(
     }
   }
 
-  return { totalCases, failures };
+  return { totalCases, checkedCases, manualCases, failures };
 }
 
 export function findOverbroad(description) {
@@ -686,7 +745,8 @@ export function readSkill(skillDir, { scope = "unknown", agent = "unknown" } = {
     tags: domainTags(description),
     negativeTags: negativeDomainTags(description),
     overbroad: findOverbroad(description),
-    contentHash: sha256(text.replace(/\r\n/g, "\n").trim()),
+    contentHashVersion: 2,
+    contentHash: skillContentHash(skillDir),
   };
 }
 

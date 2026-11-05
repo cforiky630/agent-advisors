@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
@@ -21,6 +21,7 @@ import {
   readSkill,
   slugify,
   splitTriggerSurface,
+  skillContentHash,
 } from "../scripts/lib/skill.mjs";
 
 test("parses frontmatter with CRLF line endings", () => {
@@ -282,9 +283,60 @@ test("evaluates all 57 trigger benchmark cases in evals/ with zero activation or
     parseTriggerCases(readFileSync(join(repoRoot, "evals", "data-storage-trigger-cases.md"), "utf8"), "data-storage-advisor"),
   ];
 
-  const { totalCases, failures } = evaluateTriggerCorpus(skills, suites);
+  const { totalCases, checkedCases, manualCases, failures } = evaluateTriggerCorpus(skills, suites);
   assert.equal(totalCases, 57);
+  assert.equal(checkedCases, 48);
+  assert.equal(manualCases.length, 9);
+  assert.ok(manualCases.every((item) => item.kind === "defer"));
   assert.deepEqual(failures, []);
+});
+
+test("trigger evaluation fails missing skills, empty suites and unknown kinds; deferral stays manual", () => {
+  assert.equal(evaluateTriggerCorpus([], [{ skill: "missing", cases: [] }]).failures[0].kind, "missing-skill");
+  const skills = [{ name: "demo" }];
+  assert.equal(evaluateTriggerCorpus(skills, [{ skill: "demo", cases: [] }]).failures[0].kind, "empty-suite");
+  const result = evaluateTriggerCorpus(skills, [{ skill: "demo", cases: [
+    { kind: "defer", prompt: "Follow the testing workflow", expectation: "defer" },
+    { kind: "typo", prompt: "Unknown" },
+  ] }]);
+  assert.equal(result.checkedCases, 0);
+  assert.equal(result.manualCases.length, 1);
+  assert.equal(result.failures[0].kind, "unknown-case");
+});
+
+test("skill content hash covers nested references, binary assets, file names and additions", () => {
+  const root = mkdtempSync(join(tmpdir(), "aa-hash-"));
+  try {
+    mkdirSync(join(root, "references", "nested"), { recursive: true });
+    writeFileSync(join(root, "SKILL.md"), "# Demo\r\n");
+    const initial = skillContentHash(root);
+    writeFileSync(join(root, "SKILL.md"), "# Demo\n");
+    assert.equal(skillContentHash(root), initial);
+    const file = join(root, "references", "nested", "rules.md");
+    writeFileSync(file, "Always retry.\n");
+    const withRules = skillContentHash(root);
+    assert.notEqual(withRules, initial);
+    writeFileSync(file, "Never retry.\n");
+    assert.notEqual(skillContentHash(root), withRules);
+    const changed = skillContentHash(root);
+    writeFileSync(join(root, "asset.bin"), Buffer.from([0, 255, 128]));
+    assert.notEqual(skillContentHash(root), changed);
+    const beforeRename = skillContentHash(root);
+    renameSync(file, join(root, "references", "nested", "renamed.md"));
+    assert.notEqual(skillContentHash(root), beforeRename);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("skill hashing fails explicitly on resource limits rather than returning a partial identity", () => {
+  const root = mkdtempSync(join(tmpdir(), "aa-hash-limit-"));
+  try {
+    writeFileSync(join(root, "SKILL.md"), "# Demo\n");
+    assert.throws(() => skillContentHash(root, { maxFileBytes: 1 }), /byte limit/);
+    assert.throws(() => skillContentHash(root, { maxTotalBytes: 1 }), /byte limit/);
+    assert.throws(() => skillContentHash(root, { maxFiles: 0 }), /entry limit/);
+    mkdirSync(join(root, "references"));
+    assert.throws(() => skillContentHash(root, { maxDepth: 0 }), /depth limit/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
 

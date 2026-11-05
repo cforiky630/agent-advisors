@@ -1,5 +1,8 @@
 # Engineering Reference: OWASP API Security Top 10
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This reference provides actionable, production-grade engineering heuristics based on the OWASP API Security Top 10 standard. It prioritizes practical implementation, eliminating textbook anti-patterns that fail under real-world deployment conditions.
@@ -20,7 +23,7 @@ This reference provides actionable, production-grade engineering heuristics base
   SELECT * FROM orders WHERE id = :order_id AND tenant_id = :authenticated_tenant_id;
   ```
 - **Compound Keys & Policy Enforcement**: In microservices or ORMs, perform row-level filtering in the repository layer or run an explicit policy assertion (`policy.can(user, 'read', order)`) before exposing the resource.
-- **Use Non-Sequential, B-Tree-Friendly Public Identifiers**: Avoid exposing raw sequential integers (`id=1234`) in public URLs to defeat automated enumeration. To avoid B-Tree clustered index page fragmentation caused by completely random `UUIDv4` primary keys (see `data-storage-advisor`), prefer **time-ordered CSPRNG identifiers (`UUIDv7` or `KSUID`)** or maintain an internal `BIGINT` clustered primary key paired with an external indexed public token (`public_id`).
+- **Public Identifier Choice**: Enforce resource authorization regardless of ID format. For enumeration-sensitive resources, consider opaque public IDs while checking metadata exposure, existing API contracts and measured index costs. Retain a non-sensitive established sequential-ID contract when migration adds no concrete protection; UUIDv7/KSUID are public identifiers, not bearer secrets.
 - **Fail Closed on Missing Subject**: If the caller's identity context cannot be established, abort with HTTP 401/403 before executing data access routines.
 - **When This Default Fails (Counter-Indications)**:
   - Unpredictable identifiers (`UUIDv4`/`UUIDv7`/`KSUID`) are **never** a substitute for row-level authorization; treating unguessable URLs as access control ("security by obscurity") fails whenever URLs leak via logs, `Referer` headers, or shared links.

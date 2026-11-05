@@ -40,6 +40,7 @@ import {
   overlapScore,
   parseFrontmatter,
   sha256,
+  skillContentHash,
   slugify,
 } from "./lib/skill.mjs";
 
@@ -143,6 +144,7 @@ function walkFiles(root) {
     }
     for (const entry of entries) {
       if (SKIP_DIRS.has(entry.name)) continue;
+      if (files.length >= MAX_FILES) break;
       const full = join(dir, entry.name);
       if (entry.isSymbolicLink()) continue; // Do not follow links out of quarantine.
       if (entry.isDirectory()) {
@@ -206,7 +208,8 @@ export function discoverCandidates(root) {
       lines: countLines(text),
       tokens: estimateTokens(text),
       descriptionTokens: estimateTokens(meta.description || ""),
-      contentHash: sha256(text.replace(/\r\n/g, "\n").trim()),
+      contentHashVersion: kind === "skill" ? 2 : 1,
+      contentHash: kind === "skill" ? skillContentHash(dirname(file.path)) : sha256(text.replace(/\r\n/g, "\n").trim()),
       flags: securityFlags(meta, text),
     });
   }
@@ -238,7 +241,7 @@ export function loadInventory(path) {
     return {
       path,
       names: new Set(skills.map((skill) => skill.name)),
-      hashes: new Set(skills.map((skill) => skill.contentHash)),
+      hashes: new Set(skills.map((skill) => `${skill.contentHashVersion ?? 1}:${skill.contentHash}`)),
       skills,
     };
   } catch {
@@ -249,7 +252,7 @@ export function loadInventory(path) {
 export function compareWithInventory(candidate, inventory) {
   if (!inventory) return { duplicateName: false, duplicateContent: false, closest: null };
   const duplicateName = inventory.names.has(candidate.name);
-  const duplicateContent = inventory.hashes.has(candidate.contentHash);
+  const duplicateContent = inventory.hashes.has(`${candidate.contentHashVersion ?? 1}:${candidate.contentHash}`);
 
   let closest = null;
   if (candidate.description) {
@@ -360,9 +363,12 @@ function renderProposal({ source, commit, license, candidates, executable, inven
 
 export function importRepo(options) {
   const source = validateSource(options.source, { allowLocal: options.allowLocal });
+  const outDir = resolve(options.out ?? join(CWD, ".advisor-import", repoSlug(options.source)));
+  if (existsSync(outDir) && (lstatSync(outDir).isSymbolicLink() || !statSync(outDir).isDirectory() || readdirSync(outDir).length > 0)) {
+    throw new Error("Import output must be an empty, non-symlink directory; choose a fresh --out to preserve previous proposals");
+  }
   const quarantine = mkdtempSync(join(tmpdir(), "advisor-import-"));
   const cloneDir = join(quarantine, "repo");
-  const outDir = resolve(options.out ?? join(CWD, ".advisor-import", repoSlug(options.source)));
 
   try {
     const isLocal = !/^(https:\/\/|ssh:\/\/|git:\/\/|git@[^:]+:)/.test(source);
@@ -461,6 +467,7 @@ export function importRepo(options) {
         lines: candidate.lines,
         tokens: candidate.tokens,
         contentHash: candidate.contentHash,
+        contentHashVersion: candidate.contentHashVersion,
         flags: candidate.flags,
         action: candidate.action,
         duplicateName: comparison.get(candidate.rel).duplicateName,

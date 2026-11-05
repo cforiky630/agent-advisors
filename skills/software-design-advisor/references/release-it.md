@@ -1,11 +1,14 @@
 # Engineering Reference: Release It! by Michael T. Nygard
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This repository follows **Release It!** in the sense of Michael Nygard:
 design and implement software that survives production reality - failures, overload, latency, partial outages, bad data, hostile traffic, and operational mistakes.
 
-All code generation, edits, and reviews must optimize for:
+When this topic is relevant, evaluate the requested change against:
 - production readiness
 - failure isolation
 - graceful degradation
@@ -65,10 +68,12 @@ The code must assume these conditions, not merely tolerate them by accident.
 4. Infinite waits are forbidden.
 
 ### Retries Must Be Disciplined
-1. Retry only where repeated attempts are safe for the caller and provider.
-2. Bound retry count and total retry time.
-3. Add jitter/backoff to avoid synchronized retry storms.
-4. Do not retry validation errors or permanent failures.
+
+- Classify the operation and failure first: transient transport/service faults may be retryable; validation failures or denied access normally are not.
+- Prove the effect is idempotent, or use a provider-supported stable idempotency key with durable deduplication. A timeout can mean success with a lost response; do not blindly repeat payments, emails or resource creation.
+- Retry at one chosen layer; count SDK/proxy retries to prevent multiplicative attempts. Bound total attempts and elapsed time inside the caller's deadline, with backoff/jitter where contention warrants it.
+- For ambiguous non-idempotent outcomes without safe deduplication, stop automatic retries and query/reconcile the result. Circuit breakers need measured failure/latency behavior, appropriate isolation and a tested recovery path; they are not mandatory wrappers on every call.
+- Verify duplicate submissions and the crash between provider success and local acknowledgement, not just immediate errors.
 
 ### Circuit Breakers and Fast Failure
 1. Protect unstable dependencies with fast-fail mechanisms when appropriate.
@@ -366,11 +371,11 @@ Before finalizing any change, verify:
 - Are scheduled and background workloads bounded and paced safely?
 - Did we preserve the core service under likely failure scenarios?
 
-If any answer is no, revise before shipping.
+For relevant items, address a demonstrated defect or report a material limit. Inapplicable checklist items do not require changes.
 
 ---
 
-## Final Instruction
+## Decision Reminders
 
 When uncertain, prefer the design that:
 1. survives partial failure

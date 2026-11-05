@@ -1,5 +1,8 @@
 # Engineering Reference: Domain-Driven Design (Strategic & Tactical Modeling)
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose & Primary Directive
 
 This reference provides distilled engineering guidelines synthesized from Eric Evans's *Domain-Driven Design*. Use these rules to align software structure with complex business domains, protect invariants, and maintain explicit context boundaries.

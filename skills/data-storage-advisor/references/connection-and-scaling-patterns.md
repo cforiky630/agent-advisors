@@ -1,5 +1,8 @@
 # Engineering Reference: Connection Pools & Scaling Patterns
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This reference provides production engineering heuristics for connection pool sizing, N+1 query elimination, and read-replica replication lag mitigation based on PostgreSQL/MySQL operational best practices and HikariCP benchmarks.
@@ -9,17 +12,17 @@ This reference provides production engineering heuristics for connection pool si
 ## 1. Connection Pool Sizing & Resource Management
 
 **Misconception**: "If we have 1,000 concurrent web requests, we need 1,000 database connections."
-**Reality**: Relational databases (PostgreSQL processes, MySQL threads) are bound by CPU cores and disk I/O spindles. Excess connections (>100 per database instance) trigger devastating OS context-switching overhead, disk thrashing, and memory exhaustion.
+**Reality**: Relational databases (PostgreSQL processes, MySQL threads) are bound by CPU cores and disk I/O spindles. Excess active connections can increase scheduling, memory and I/O contention; there is no universal 100-connection failure threshold.
 
-### The Pool Sizing Formula (HikariCP / PostgreSQL Standard)
+### Pool Sizing Starting Point (HikariCP Heuristic)
 ```
 connections = (CPU_cores * 2) + effective_spindle_count
 ```
-- Example: An 8-core database server with SSD storage operates optimally with approximately `(8 * 2) + 1 = 17` to `25` active connections.
-- Set application pool sizes conservatively (e.g., 10–20 connections per service instance).
+- This is a benchmark starting point, not a standard or an optimal SSD formula. The original HikariCP source explicitly leaves SSD applicability unanalysed; effective spindle count can be zero for a fully cached working set.
+- Start conservatively and load-test representative throughput, tail latency, wait time and memory. Budget total backend connections across replicas and retain operational headroom.
 - Use an external connection pooler (e.g., **PgBouncer** in transaction pooling mode or **ProxySQL**) to multiplex thousands of microservice clients onto a small, optimal pool of backend database connections.
 - **When This Default Fails (Counter-Indications)**:
-  - **External Transaction Multiplexers (PgBouncer / RDS Proxy / Supavisor)**: The `(CPU_cores * 2) + 1` cap applies to **active physical database backend connections**, not to logical application client pools sitting in front of a transaction-mode pooler.
+  - **External Transaction Multiplexers (PgBouncer / RDS Proxy / Supavisor)**: The heuristic concerns **active physical database backend connections**, rather than logical application client pools sitting in front of a transaction-mode pooler.
   - **High-Wait Foreign Data Wrappers (FDW) or Long Lock Waits**: If backend sessions spend most of their wall-clock time blocked on remote network FDW calls rather than local CPU/NVMe I/O, active backend concurrency must be sized via Little's Law ($L = \lambda W$) while isolating slow workloads into a separate pool.
 
 ---
@@ -59,7 +62,7 @@ for (const order of orders) {
 1. **Time-Windowed Primary Pinning**:
    - When a user performs a write mutation, set a session cookie or local cache entry with a timestamp (e.g., `last_write_at`).
    - For the next 2–5 seconds, route all read requests for that specific user directly to the **Primary** database node.
-   - All subsequent reads drop back to read replicas once replica lag window has passed.
+   - A fixed window is best-effort: lag can exceed it. Measure lag and use replication-position verification or writer routing when read-your-writes is required.
 2. **Replication Position Verification (GTID / LSN)**:
    - Record the Global Transaction ID (GTID) or Log Sequence Number (LSN) upon committing the write on the primary.
    - Wait or assert that the selected read replica has caught up to that LSN before executing read queries.

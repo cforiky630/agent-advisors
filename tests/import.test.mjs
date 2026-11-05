@@ -7,14 +7,38 @@ import test from "node:test";
 
 import {
   classifyFile,
+  compareWithInventory,
   detectLicense,
   discoverCandidates,
   importRepo,
+  loadInventory,
   repoSlug,
   validateSource,
 } from "../scripts/import_repo.mjs";
+import { readSkill } from "../scripts/lib/skill.mjs";
 
 const SKILL = "---\nname: demo-advisor\ndescription: Review legacy modules and refactoring seams.\nlicense: MIT\n---\n\n# Demo\n";
+
+test("import duplicate checks compare complete skill trees using versioned hashes", () => {
+  const root = mkdtempSync(join(tmpdir(), "aa-import-hash-"));
+  try {
+    const dir = join(root, "skills", "demo");
+    mkdirSync(join(dir, "references"), { recursive: true });
+    writeFileSync(join(dir, "SKILL.md"), SKILL);
+    const rule = join(dir, "references", "rule.md");
+    writeFileSync(rule, "Always retry.");
+    const installed = readSkill(dir);
+    const inventoryPath = join(root, "inventory.json");
+    writeFileSync(inventoryPath, JSON.stringify({ version: 2, skills: [installed] }));
+    const inventory = loadInventory(inventoryPath);
+    const candidate = () => discoverCandidates(root).candidates.find((item) => item.kind === "skill");
+    assert.equal(compareWithInventory(candidate(), inventory).duplicateContent, true);
+    writeFileSync(rule, "Never retry.");
+    assert.equal(compareWithInventory(candidate(), inventory).duplicateContent, false);
+    writeFileSync(inventoryPath, JSON.stringify({ version: 1, skills: [{ name: installed.name, contentHash: candidate().contentHash }] }));
+    assert.equal(compareWithInventory(candidate(), loadInventory(inventoryPath)).duplicateContent, false);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
 
 test("classifies skill-shaped markdown", () => {
   assert.equal(classifyFile("skills/demo/SKILL.md", SKILL), "skill");
@@ -104,6 +128,9 @@ test("imports a local repository into quarantine and writes a proposal", () => {
     const proposal = readFileSync(join(out, "proposal.md"), "utf8");
     assert.match(proposal, /did not install anything/i);
     assert.match(proposal, /Commit/);
+    const manifest = readFileSync(join(out, "manifest.json"), "utf8");
+    assert.throws(() => importRepo({ source: repo, allowLocal: true, out }), /choose a fresh --out/);
+    assert.equal(readFileSync(join(out, "manifest.json"), "utf8"), manifest);
   } finally {
     rmSync(repo, { recursive: true, force: true });
     rmSync(out, { recursive: true, force: true });

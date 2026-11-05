@@ -1,5 +1,8 @@
 # Engineering Reference: Cryptographic Hygiene & Secret Safety
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This reference provides defensive, production-ready engineering standards for password hashing, symmetric encryption, cryptographic randomness, and side-channel timing attack mitigation.
@@ -8,7 +11,7 @@ This reference provides defensive, production-ready engineering standards for pa
 
 ## 1. Password Storage & Key Derivation (KDF)
 
-**Core Rule**: Passwords must be hashed using memory-hard, computationally expensive Key Derivation Functions (KDFs). Fast cryptographic hashes (MD5, SHA-1, SHA-256, SHA-512) are completely vulnerable to GPU-based rainbow table and dictionary cracking.
+**Core Rule**: Use a purpose-built, deliberately expensive password KDF. Prefer a memory-hard KDF such as Argon2id for new systems; bcrypt is a legacy CPU-cost KDF, not a memory-hard replacement. A fast hash alone is unsuitable for password storage.
 
 ### Production Directives (Event-Loop Safety & Algorithm Selection)
 - **Never Block the Event Loop (Async Mandate)**:
@@ -26,14 +29,10 @@ This reference provides defensive, production-ready engineering standards for pa
   - Memory: 64 MiB (19 MiB for RAM-constrained microservices).
   - Iterations (Time): 3 passes.
   - Parallelism: 1–4 threads.
-- **Bcrypt (Battle-tested alternative & 72-Byte Null-Byte Trap)**:
-  - Cost factor: Minimum `12`.
-  - **The 72-Byte Truncation Bug**: Bcrypt ignores any characters beyond 72 bytes. If supporting long passwords, pre-hash with SHA-256 formatted as **hex**:
-    ```typescript
-    // Hex encoding prevents raw null-byte (\x00) C-string termination bugs:
-    const preHashed = crypto.createHash('sha256').update(password).digest('hex');
-    const hash = await bcrypt.hash(preHashed, 12);
-    ```
+- **Legacy Bcrypt and Input Limits**:
+  - Most implementations use at most 72 input bytes. Do not silently truncate passwords or add plain SHA-256 pre-hashing as a universal fix: printable encoding avoids null bytes but does not prevent password-shucking attacks on a leaked inner hash.
+  - Prefer a vetted Argon2id/scrypt migration for new long-password support. Preserve the existing verification format, record algorithm/parameters and re-hash after successful authentication under an explicit migration policy.
+  - Where bcrypt must remain, use a reviewed scheme and documented byte limits; benchmark the work factor on target hardware. A keyed pre-hash requires separately managed pepper and format/migration design, not an ad hoc snippet.
 - **Salt Management**:
   - Always generate a cryptographically random salt per user (minimum 16 bytes). Modern libraries (Argon2, bcrypt) handle salt generation and embedding automatically. Never reuse static salts or peppers as a substitute for unique per-user salts.
 

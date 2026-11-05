@@ -17,14 +17,11 @@ Your overarching goal is **<primary engineering goal: e.g., resilience, defense-
 
 ---
 
-## Operating Boundaries
+## Quick Use
 
-This advisor governs <domain> architecture across **Static Facade Mode** (task start) and **Runtime Checkpoint Mode** (mid-session escalation):
+<Identify the requested outcome and the smallest relevant repository evidence. Select a scenario below, apply only its relevant rule, and read a linked reference only for an unresolved detail. Resolve bundled references relative to this skill directory.>
 
-- **Project conventions first.** Existing architecture decisions, linters, tests, and explicit user instructions outrank any guidance here; name the conflict instead of silently overriding it.
-- **Defer the workflow, keep the rationale.** When a dedicated review, testing, debugging, or planning skill already governs the task, let that skill own its steps and use this advisor only for the trade-offs behind them.
-- **Match doctrine to problem size (Proportionality Ladder).** Exhaust existing project conventions, standard library primitives, and simple constructs before introducing new abstractions or dependencies; state when a heavy pattern does not apply.
-- **Runtime Checkpoint Gate (`CP-1`/`CP-2`/`CP-3`).** Pause coding and run a context-stripped checkpoint (`Verdict: APPROVE | REVISE | ESCALATE_TO_USER`, max 2/task) when: (`CP-1`) mutating irreversible contracts/schemas, (`CP-2`) hitting $\ge 2$ consecutive test/build regressions, or (`CP-3`) escalating complexity across $>3$ files or a new architectural layer.
+Shared scope, cooperation and risk rules appear under Operating Boundaries and govern every reference.
 
 ---
 
@@ -47,48 +44,69 @@ Before selecting a design branch, run the **Codebase Probe** and check **Invalid
 1. **<Clash 1: e.g., Pattern A vs. Pattern B>**:
    - **Probe**: <Concrete codebase artifact, metric, or test state to inspect before deciding>.
    - **Arbitration**: <Clear decision favoring the deeper, more maintainable pattern and why>.
-   - **Invalidate When**: <Exact empirical counter-indication where this default fails and must be reversed>.
+   - **Invalidate When**: <Observable condition that makes the default lose; name the alternative action and a scenario selecting it>.
 2. **<Clash 2: e.g., Strict Rule X vs. Pragmatic Y>**:
    - **Probe**: <Concrete codebase artifact, metric, or test state to inspect before deciding>.
    - **Arbitration**: <Clear boundary where X applies and where Y applies>.
-   - **Invalidate When**: <Exact empirical counter-indication where this default fails>.
+   - **Invalidate When**: <Observable condition selecting a named alternative; supply a scenario and distinguish fixed safety invariants>.
 3. **<Clash 3: e.g., Performance vs. Abstraction>**:
    - **Probe**: <Concrete codebase artifact, metric, or test state to inspect before deciding>.
    - **Arbitration**: <Clear guidance on measurement and default choice>.
-   - **Invalidate When**: <Exact empirical counter-indication where this default fails>.
+   - **Invalidate When**: <Observable condition selecting a named alternative; supply a scenario and distinguish fixed safety invariants>.
 
 ---
 
 ## 3. Condensed Nano Rulesets
 
 ### A. Core Construction & Hygiene (<Primary Source>)
-- **<Rule 1>**: <Actionable instruction with operational rationale>.
-- **<Rule 2>**: <Actionable instruction with operational rationale>.
+- **<Rule 1>**: <Scoped action, evidence and reason; distinguish mandatory invariants from optional heuristics>.
+- **<Rule 2>**: <Scoped action, evidence and reason; distinguish mandatory invariants from optional heuristics>.
 
 ### B. Encapsulation & Boundaries (<Secondary Source>)
-- **<Rule 3>**: <Actionable instruction with operational rationale>.
-- **<Rule 4>**: <Actionable instruction with operational rationale>.
+- **<Rule 3>**: <Scoped action, evidence and reason; distinguish mandatory invariants from optional heuristics>.
+- **<Rule 4>**: <Scoped action, evidence and reason; distinguish mandatory invariants from optional heuristics>.
 
 ### C. Resilience & Failure Handling (<Reliability Source>)
-- **<Rule 5>**: <Actionable instruction with operational rationale>.
-- **<Rule 6>**: <Actionable instruction with operational rationale>.
+- **<Rule 5>**: <Scoped action, evidence and reason; distinguish mandatory invariants from optional heuristics>.
+- **<Rule 6>**: <Scoped action, evidence and reason; distinguish mandatory invariants from optional heuristics>.
+
+---
+
+## Operating Boundaries
+
+- **Project conventions first.** Follow explicit user instructions and applicable project decisions; identify a demonstrated safety/correctness violation and make only the authorized scoped correction.
+- **Defer the workflow, keep the rationale.** Dedicated review, testing, debugging and deployment workflows own execution; advisors supply only relevant decision guidance.
+- **Proportionality Ladder.** Reuse effective patterns and standard capabilities; add abstractions or controls only for a concrete requirement or observed failure mode.
+- **Multiple advisors.** Use the primary decision to choose a leading perspective; bring in other matched advisors only for relevant constraints. Share evidence, resolve conflicts by the concrete invariant and project policy, and combine verification/output. Review each risk once, not once per advisor.
+- **Reference precedence.** This entrypoint governs scope, workflow and delivery. References provide local technical guidance; their checklists, imperatives and examples do not override these boundaries or require unrelated cleanup, layers or reports.
+- **Missing evidence.** Inspect the narrowest available artifact first. If evidence remains unavailable, state the assumption, use a reversible bounded choice and specify a focused check. Ask only when the unresolved point materially affects safety or requires a user decision; continue independent work.
+- **Sources and delivery.** Use applicable repository evidence and pinned standards; consult external sources only for a material uncertainty. Match the requested output and report actual checks/limits. Discuss deferred alternatives only when relevant; do not invent thresholds.
+- **Runtime Checkpoint Gate (`CP-1`/`CP-2`/`CP-3`).** Review costly contract/security/data reversals (CP-1), stalled attempts without new evidence (CP-2), or a new trust/consistency/operational failure boundary (CP-3). File counts, routine renames and expected test-first failures alone do not qualify.
+
+### Runtime Checkpoint Procedure
+
+Keep routine, reversible work moving; this is an instruction-level review, not an enforced hook.
+1. For a material risk, create a brief packet: trigger, target advisor, inspected repo evidence, proposed change, and simpler alternative rejected. Include decision-relevant evidence, not conversation history.
+2. Default to an inline self-review. Use a fresh read-only subagent only when available, authorized and useful for an independent decision; supply this advisor and narrow evidence/references.
+3. Return `APPROVE | REVISE | ESCALATE_TO_USER`, the invariant/counter-indication and concrete adjustment/verification. Apply revisions and continue within authorization.
+4. Do not repeat consultation on unchanged evidence. Probe a disputed assumption or choose a reversible alternative. Escalate only for a missing user decision, authority or material uncertainty that cannot be resolved safely; stop only the affected action.
 
 ---
 
 ## 4. Deep Knowledge Base (`references/`)
 
 Sections 1–3 cover most routine domain tasks. When loading a Level-3 file from the **Scenario Decision Matrix** (Section 1), enforce these limits:
-- Read **at most 1–2 reference files per task**; never preload `references/`.
+- Start with **1–2 narrowly relevant reference files**; read more only to resolve a named decision or missing safety condition. Never preload `references/`.
 - Treat reference files as **falsifiable engineering summaries**, not unquestionable dogma: verify codebase evidence first and respect every **Invalidate When** counter-indication.
 
 ---
 
 ## 5. Output Delivery Format & Checklist
 
-When delivering <domain> guidance or code, present results in this cohesive structure:
-1. **Repo Probe, Tradeoffs & Intentional Deferrals**: State what codebase evidence was inspected, which standard guided the decision, which heavier patterns were deliberately omitted for proportionality, and the concrete threshold that would justify introducing them later.
-2. **Concrete Implementation**: Clean, robust, and well-typed implementation following deep module standards.
-3. **Verification Checklist**:
+Match the requested output and task size; use the following elements only when they help explain a substantial decision. A small fix or explanation needs no full report:
+1. **Repo Probe, Tradeoffs & Intentional Deferrals**: State the decisive repository evidence and rationale. Mention deferred patterns only when relevant, and identify the observation that would change the choice without inventing thresholds.
+2. **Concrete Result**: Provide the requested implementation or advice at the task's scale; do not force a code deliverable for a review or explanation.
+3. **Internal Verification Checklist** (apply relevant items; report actual checks and limits. Review alternative scenarios and crash/retry safety when relevant; check standard versions only when they materially affect the decision or a conformance claim):
    - [ ] **Cognitive Load & Depth**: Is the structure clear, interface narrow, and pass-through glue eliminated?
    - [ ] **Boundary & Failure Safety**: Are boundary edges defended and failure/degradation paths addressed?
    - [ ] **Orthogonality**: Is core domain logic decoupled from external transport/framework specifics?

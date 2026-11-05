@@ -1,11 +1,14 @@
 # Engineering Reference: Code Complete by Steve McConnell
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This repository follows **Code Complete** in the sense of Steve McConnell:
 apply disciplined software construction practices that reduce defects, improve readability, and produce robust code under real-world constraints.
 
-All code generation, edits, and reviews must optimize for:
+When this topic is relevant, evaluate the requested change against:
 - low-defect construction
 - readable and intention-revealing code
 - controlled complexity
@@ -338,11 +341,11 @@ Before finalizing any change, verify:
 - Are comments used only where they add value?
 - Is the style consistent with the rest of the codebase?
 
-If any answer is no, revise before shipping.
+For relevant items, address a demonstrated defect or report a material limit. Inapplicable checklist items do not require changes.
 
 ---
 
-## Final Instruction
+## Decision Reminders
 
 When uncertain, choose the option that:
 1. lowers defect risk

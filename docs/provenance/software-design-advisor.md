@@ -38,5 +38,9 @@ This document provides formal bibliographic attribution, copyright provenance, a
 
 ## Maintenance Rules
 
-- Whenever an engineering reference under `references/` is modified or added, maintainers must verify that the corresponding entry above reflects the authoritative edition and publisher.
+- For substantive reference changes, keep the source attribution accurate. Check an edition when its differences affect the recommendation or an explicit conformance claim; preserve the applicable project-pinned version. Editorial edits and stable principles do not require a search for the newest publication.
 - Reference notes must remain concise, high-density decision heuristics rather than narrative summaries.
+
+## Retry and Recovery Verification (2026-11-05)
+
+[Amazon Builders' Library: Making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) describes request identity and side-effect safety. [AWS Saga orchestration guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-orchestration.html) covers participant idempotency, compensation and crash handling. The advisor's conditional-finalization and reconciliation checklist is an engineering synthesis, not a claim that every workflow needs Saga orchestration or achieves cross-system ACID.

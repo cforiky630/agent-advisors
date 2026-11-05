@@ -1,77 +1,58 @@
-# Dual-Mode Advisor Architecture & Runtime Checkpoint Protocol
+# Risk-Based Advisor Checkpoint Protocol
 
-Agent ecosystems use the word **"Advisor"** for two fundamentally different mechanisms:
+Advisors supply task-start domain guidance and optional independent review at material decision boundaries. This is an instruction-level protocol followed by the host agent; no hook or daemon enforces it. Each skill embeds the minimum procedure for standalone distribution.
 
-1. **Mode A — Static Domain Facade (Task-Start Routing)**: Loaded when a user prompt matches a domain (architecture, API security, data storage). Reduces engineering randomness with minimal context tax via Three-Level Progressive Disclosure.
-2. **Mode B — Runtime Checkpoint Protocol (Mid-Session Escalation)**: Invoked at high-stakes decision points during long sessions (e.g., turn 80) to break context pollution, thrashing loops, and unexamined architectural pivots.
+## 1. Triggers and Non-Triggers
 
-**Agent Advisors** supports both modes with **zero external dependencies or background daemons**.
-
----
-
-## Why Static Facades Alone Are Not Enough
-
-Loading `SKILL.md` at the beginning of a session solves **context cost**, not **mid-session context degradation**. By turn 80 of a debugging or refactoring session:
-- Early instructions are diluted by compiler errors, stack traces, and failed attempts.
-- **The Self-Referential Consultation Paradox**: A model that is already tunnel-visioned on a flawed tactical patch rarely realizes it "feels uncertain" enough to ask for help.
-
-To solve this without an external orchestration server, Mode B replaces subjective self-reflection (*"consult when unsure"*) with **objective state predicates** and **context-stripped subagent isolation**.
-
----
-
-## 1. Three Deterministic Checkpoint Triggers
-
-Do not rely on subjective confidence to trigger a consultation. Pause execution and run a Checkpoint whenever any of these three objective conditions holds:
-
-| Trigger ID | Objective State Predicate | Concrete Examples |
+| Trigger | Review when | Insufficient on its own |
 | :--- | :--- | :--- |
-| **`CP-1: Irreversible Boundary`** | The change alters a persistent or external contract that is expensive to roll back. | Adding/altering a database migration, changing public API request/response schemas, modifying auth/session middleware, or changing cryptographic primitives. |
-| **`CP-2: Thrashing Loop`** | $\ge 2$ consecutive failed attempts, test regressions, or edit-revert cycles on the same module. | Fixing a bug in `OrderService` breaks `PaymentTest`, and fixing `PaymentTest` re-breaks `OrderService`; or an index change fails to eliminate a full scan twice. |
-| **`CP-3: Proportionality Jump`** | A proposed change steps up the Proportionality Ladder beyond flat local code. | Introducing a new abstraction layer, adding a third-party dependency, wrapping network I/O in a transaction, or touching $> 3$ files for one conceptual fix. |
+| **CP-1: Costly reversal** | A proposed change breaks an external contract, risks persistent data loss, or changes a material security guarantee without a verified rollback/compatibility plan. | Editing a migration file, changing an internal signature, or touching an auth test without altering its guarantee. |
+| **CP-2: Stalled reasoning** | Attempts repeat without new evidence or measurable progress; another patch would repeat the same unsupported hypothesis. | Two failures, an expected TDD red test, or a failure that produced useful new diagnostic evidence. |
+| **CP-3: New failure boundary** | The design introduces a new trust, consistency or operational failure boundary whose invariants and recovery are not yet checked. | More than three files, mechanical renames, or adding a local helper/module. |
 
----
+Use the lightest useful review. First inspect evidence and the simpler alternative. Routine reversible edits continue under existing tests and project conventions; do not require a separate ceremony for every trigger hint.
 
-## 2. The Context-Stripped Consultation Packet ($\le 200$ Tokens)
+## 2. Decision Packet
 
-When `CP-1`, `CP-2`, or `CP-3` fires, **never forward the noisy conversation transcript**. Construct a fresh, self-contained **Consultation Packet** containing only four verifiable fields:
-
-```markdown
-### [ADVISOR CHECKPOINT PACKET]
-- **Trigger**: CP-1 | CP-2 | CP-3 (<one-line reason>)
-- **Target Advisor**: software-design-advisor | api-security-advisor | data-storage-advisor
-- **Repo Probe Evidence**: <concrete facts inspected in the codebase: e.g., existing test seams, EXPLAIN row counts, active auth middleware, or failure diff>
-- **Proposed Design**: <1-3 bullets describing the planned change and files touched>
-- **Simpler Alternative Rejected**: <why a flatter standard-library or single-file fix was ruled out>
-```
-
----
-
-## 3. Execution Across Agent Runtimes
-
-### Path 1: Isolated Subagent Consultation (Recommended)
-When running in **Claude Code** (`Task` tool), **Cursor** (Subagents), **Antigravity / Gemini** (`invoke_subagent`), or **Codex**:
-1. Spawn a **read-only subagent** with a clean context window.
-2. Instruct the subagent to read **only** `skills/<target-advisor>/SKILL.md` (and at most 1 Level-3 file in `references/` if required by Section 1) plus the **Consultation Packet**.
-3. The subagent evaluates the packet against the advisor's **Evidence-Gated Trade-offs** and **Falsifiability Bounds (`Invalidate When`)** and returns a structured verdict.
-
-### Path 2: Inline Checkpoint Gate (Single-Agent Fallback)
-When subagents are unavailable, emit the Consultation Packet and Verdict explicitly in the reasoning/output stream before applying file edits.
-
----
-
-## 4. Verdict Contract & Anti-Loop Budget
-
-Every checkpoint returns a deterministic verdict in under 150 tokens:
+For a qualifying risk, write a brief self-contained packet:
 
 ```markdown
-### [CHECKPOINT VERDICT]
-- **Verdict**: APPROVE | REVISE | ESCALATE_TO_USER
-- **Violated Invariant / Counter-Indication**: <None, or the exact trade-off / Invalidate-When condition triggered>
-- **Required Adjustment**: <Concrete structural change required before proceeding>
-- **Deferral Threshold**: <What scale/threat metric must be reached before adopting the heavier pattern>
+- Trigger: CP-1 | CP-2 | CP-3, with the concrete risk
+- Target advisor: relevant domain
+- Repo probe evidence: inspected artifacts and observations; explicitly mark unknowns
+- Proposed design: action, invariant, reversibility and recovery
+- Simpler alternative rejected: the evidence that rules it out
 ```
 
-### Consultation Budget & Termination Rules
-- **Maximum 2 Checkpoints per task.**
-- If a design receives `REVISE` once, apply the adjustment and proceed.
-- If the revised design triggers a second `REVISE` or `CP-2` persists after the adjustment, immediately emit `ESCALATE_TO_USER` with the two competing trade-offs and stop mutating files. Never enter an unbounded advisor-worker loop.
+Exclude conversation history. Preserve material evidence instead of enforcing a token ceiling that would hide a safety condition. A reviewer may request a specific missing artifact rather than infer unsupported facts.
+
+## 3. Execution
+
+Default to an inline self-review. Use a fresh read-only subagent only when available, authorized and useful for an independent decision. Give it the packet, relevant advisor and narrowly scoped references/evidence. Do not spawn one merely because several files changed. A self-review cannot claim independent context isolation.
+
+## 4. Verdict and Follow-Through
+
+```markdown
+- Verdict: APPROVE | REVISE | ESCALATE_TO_USER
+- Invariant / counter-indication: the evidence selecting the branch
+- Adjustment and verification: concrete action and the check that will resolve uncertainty
+- Deferral threshold: evidence that would justify a heavier alternative
+```
+
+- APPROVE permits only the scoped proposal; it is not a global correctness guarantee.
+- REVISE means apply the adjustment and continue within the user's existing authorization. A repeated REVISE does not automatically require the user.
+- Do not repeat consultation on unchanged evidence. Use a discriminating probe or a reversible alternative instead of an advisor loop.
+- ESCALATE_TO_USER is reserved for a missing user policy decision, authority, or material uncertainty that cannot be resolved safely from available evidence. State the concrete decision needed; stop only the affected action and continue independent work.
+- There is no task-wide two-checkpoint limit: distinct material risks need distinct evidence. Re-consult only for a changed proposal, new risk or new evidence.
+
+## 5. Behavioral Review Cases
+
+Expected decisions: a multi-file mechanical rename continues locally; expected test-first failures continue the testing loop; a repeated unsupported patch triggers a diagnostic probe; a destructive migration without recovery gets a rollback/compatibility review; an external payment retry requires idempotency and crash-recovery evidence. File-count thresholds and verdict counts alone never decide these cases.
+
+These are protocol expectations, not measured model outcomes. Use the manual outcome protocol to evaluate actual adherence and overhead.
+
+## Combining Advisors and References
+
+Use the primary decision to select a leading perspective, then apply relevant constraints from other matched advisors. Reuse probe evidence, review each material risk once and combine verification/output. If advice differs, select the branch using the concrete invariant and applicable project policy; do not run competing advisor workflows.
+
+Entrypoints govern task scope and delivery. Reference notes add technical detail under those rules; a reference checklist does not authorize unrelated cleanup, a fresh report or additional architecture layers. Installed skills keep the protocol self-contained; generated fallback rules factor identical blocks once and retain any advisor-specific differences.

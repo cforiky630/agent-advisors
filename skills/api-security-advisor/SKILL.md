@@ -12,14 +12,11 @@ Your overarching goal is **construction discipline, defense-in-depth, fail-safe 
 
 ---
 
-## Operating Boundaries
+## Quick Use
 
-This advisor governs application-level security across **Static Facade Mode** (task start) and **Runtime Checkpoint Mode** (mid-session escalation):
+Identify the resource, caller and trust boundary in the requested change; inspect existing authorization/validation controls. Select the matching scenario below and apply its relevant invariant. Read a reference only for an unresolved implementation detail. Reuse effective controls and verify failure behavior without broadening into a security-platform redesign.
 
-- **Project conventions first.** Existing authentication middleware, security policies, and explicit user instructions outrank doctrine here. Note conflicts rather than silently breaking working code.
-- **Defer the workflow, keep the rationale.** Dedicated penetration testing, vulnerability scanning (SAST/DAST), and auditing tools manage their own execution. This advisor provides the defensive design rationale behind implementations.
-- **Match doctrine to problem size (Proportionality Ladder).** Reuse existing project middleware and platform crypto/validation primitives before adding dependencies. Scale controls to the threat boundary: public multi-tenant APIs require strict rate-limiting and subject-bound authorization, whereas local CLI tools do not need distributed token introspection.
-- **Runtime Checkpoint Gate (`CP-1`/`CP-2`/`CP-3`).** Pause coding and run a context-stripped checkpoint (`Verdict: APPROVE | REVISE | ESCALATE_TO_USER`, max 2/task) when: (`CP-1`) altering authentication, authorization, or cryptographic boundaries, (`CP-2`) hitting $\ge 2$ consecutive auth/test failures, or (`CP-3`) introducing new security dependencies or touching $>3$ boundary files.
+Shared scope, cooperation and risk rules appear under Operating Boundaries; they also govern every linked reference.
 
 ---
 
@@ -42,33 +39,33 @@ Before selecting a security control, run the **Codebase Probe** and check **Inva
 
 1. **Fail-Closed vs. Availability (Safe Defaults)**:
    - **Probe**: Inspect error/catch blocks in auth middleware, policy engines, and rate limiters to see how upstream timeouts or missing claims are handled.
-   - **Arbitration**: **Default to Deny (Fail-Closed).** Abort with HTTP 401/403 whenever identity, tenant context, or policy state cannot be verified.
-   - **Invalidate When**: A non-security telemetry or non-blocking abuse-scoring enrichment times out after primary authentication and object ownership have already been verified locally.
+   - **Arbitration**: **Deny Unverified Access.** Do not grant access when required identity or policy evidence is unavailable. Distinguish invalid credentials, denied permissions and dependency unavailability in error handling; an auth-service outage is not evidence of bad credentials.
+   - **Invalidate When**: An endpoint is explicitly public and requires no identity, or only optional enrichment failed after local access checks succeeded: serve the authorized/public response without making that optional dependency an access gate.
 2. **Boundary Parsing vs. Pervasive Defensive Assertions**:
    - **Probe**: Check where request body/query schemas are parsed and whether raw unvalidated JSON maps reach service or ORM layers.
    - **Arbitration**: **Parse, Don't Validate at the API Edge.** Convert untrusted payloads into constrained, immutable DTOs/Value Objects at the controller boundary so domain services operate on verified types.
-   - **Invalidate When**: Cross-service internal RPCs cross a trust boundary (e.g., multi-tenant queue consumers), which must re-assert tenant/subject invariants even if an upstream gateway parsed the shape.
-3. **Unpredictable Identifiers vs. B-Tree Storage Locality**:
-   - **Probe**: Inspect primary key column types (`BIGINT`, `UUID`) and clustered index definitions on the target database table.
-   - **Arbitration**: **Pair Row-Level Ownership Checks with Storage-Friendly Public IDs.** Prevent enumeration without destroying B-Tree locality by using time-ordered CSPRNG IDs (`UUIDv7` / `KSUID`) or an internal `BIGINT` clustered key paired with an external random public ID.
-   - **Invalidate When**: Never rely on unpredictable IDs (`UUIDv4`/`UUIDv7`) as a substitute for `WHERE tenant_id = :authenticated_tenant_id` authorization checks.
+   - **Invalidate When**: A streaming/large input cannot be materialized safely: validate incrementally with size/resource limits, retaining authorization and domain checks before side effects. Crossing a new trust boundary always requires rechecking relevant invariants.
+3. **Opaque Public Identifiers vs. Existing Contract and Storage Needs**:
+   - **Probe**: Inspect the authorization path, public-ID contract, enumeration threat, database engine and measured index behavior.
+   - **Arbitration**: **Prefer Opaque IDs for Enumeration-Sensitive Public Resources.** Keep authorization mandatory; choose a vetted ID format only after checking metadata exposure and storage costs. Separate public IDs from internal keys when justified; never treat public IDs as bearer secrets.
+   - **Invalidate When**: An established public sequential-ID contract exposes no sensitive enumeration information and changing it breaks callers without reducing a concrete threat: retain it, enforce authorization and rate limits, and defer an ID migration.
 4. **Timing Attack Resistance vs. Standard Equality**:
    - **Probe**: Search for `===`, `==`, or string equality on HMAC signatures, webhook secrets, API keys, or reset tokens.
    - **Arbitration**: **Constant-Time Secret Verification (`timingSafeEqual`).** Compare equal-length byte buffers or SHA-256 digests in constant time.
-   - **Invalidate When**: Comparing public non-secret identifiers (e.g., username lookup, public route slugs, or OAuth `client_id`).
-5. **Standardized Cryptography vs. Custom Schemes**:
+   - **Invalidate When**: Both operands are public identifiers (e.g., route slugs or OAuth `client_id`): use ordinary equality; reserve constant-time secret checks for comparisons that protect a secret.
+5. **Platform Primitive Defaults vs. Interoperability Constraints**:
    - **Probe**: Inspect existing crypto helpers, KDF cost parameters, and nonce/IV generation logic.
-   - **Arbitration**: **Zero Proprietary Cryptography.** Use audited primitives (Argon2id/Bcrypt, AES-256-GCM with unique 12-byte IVs, HMAC-SHA256).
-   - **Invalidate When**: Existing legacy tokens require read-only backward verification during a dual-write migration window (deprecate and re-hash on login).
+   - **Arbitration**: **Use Vetted Platform Implementations.** Choose supported primitives for the actual purpose (e.g., password KDF, authenticated encryption, MAC), with key/nonce management; prefer modern password KDFs over inventing a scheme.
+   - **Invalidate When**: Interoperability, compliance or available validated modules rule out a suggested primitive: use the required vetted implementation and document the constraint. Legacy verification needs a bounded migration plan; this never licenses custom cryptography.
 
 ---
 
 ## 3. Condensed Nano Rulesets
 
 ### A. Authorization & Access Control (OWASP API Top 10)
-- **Always Bind Subject to Entity**: Include the authenticated user/tenant ID in every read/write `WHERE` clause to defeat BOLA/IDOR.
+- **Always Bind Subject to Entity**: Enforce subject/resource authorization for protected reads and writes through scoped queries, verified RLS or the established policy layer. Public/system operations need an explicit policy; opaque IDs never replace authorization.
 - **No Mass Assignment**: Bind incoming payloads to explicit allowlisted DTOs (`strict`/`strip`); never pass raw request JSON into ORM models.
-- **Distributed Rate Limiting**: Enforce tiered rate limits using shared stores (e.g., Redis) for multi-replica deployments.
+- **Distributed Rate Limiting**: Reuse gateway/platform limits; coordinate quota state across replicas only when the threat model requires an aggregate limit that local limits cannot enforce.
 
 ### B. Identity, Tokens & Sessions (RFC Standards)
 - **Pin JWT Algorithms**: Whitelist expected verification algorithms (`RS256`, `ES256`, `EdDSA`); unconditionally reject `none`.
@@ -81,26 +78,47 @@ Before selecting a security control, run the **Codebase Probe** and check **Inva
 - **Canonicalize Paths & Defeat SSRF**: Resolve `realpathSync` against a base root; verify outbound webhook IPs at socket dial time against private CIDR blocklists.
 
 ### D. Cryptography & Secrets (NIST Standards)
-- **Non-Blocking Memory-Hard KDFs**: Hash passwords asynchronously with Argon2id or Bcrypt; never block the event loop.
-- **Unique IVs & CSPRNG Exclusivity**: Generate a fresh 12-byte IV per AES-256-GCM encryption and use `crypto.randomBytes` for all secrets/tokens.
+- **Non-Blocking Password KDFs**: Hash passwords asynchronously with Argon2id or Bcrypt; never block the event loop.
+- **Unique IVs & CSPRNG Exclusivity**: Generate a fresh 12-byte IV per AES-256-GCM encryption and use an OS-backed CSPRNG (e.g., Node `crypto.randomBytes`) for secrets/tokens.
+
+---
+
+## Operating Boundaries
+
+- **Project conventions first.** Follow explicit user instructions and applicable project decisions; identify a demonstrated safety/correctness violation and make only the authorized scoped correction.
+- **Defer the workflow, keep the rationale.** Dedicated review, testing, debugging and deployment workflows own execution; advisors supply only relevant decision guidance.
+- **Proportionality Ladder.** Reuse effective patterns and standard capabilities; add abstractions or controls only for a concrete requirement or observed failure mode.
+- **Multiple advisors.** Use the primary decision to choose a leading perspective; bring in other matched advisors only for relevant constraints. Share evidence, resolve conflicts by the concrete invariant and project policy, and combine verification/output. Review each risk once, not once per advisor.
+- **Reference precedence.** This entrypoint governs scope, workflow and delivery. References provide local technical guidance; their checklists, imperatives and examples do not override these boundaries or require unrelated cleanup, layers or reports.
+- **Missing evidence.** Inspect the narrowest available artifact first. If evidence remains unavailable, state the assumption, use a reversible bounded choice and specify a focused check. Ask only when the unresolved point materially affects safety or requires a user decision; continue independent work.
+- **Sources and delivery.** Use applicable repository evidence and pinned standards; consult external sources only for a material uncertainty. Match the requested output and report actual checks/limits. Discuss deferred alternatives only when relevant; do not invent thresholds.
+- **Runtime Checkpoint Gate (`CP-1`/`CP-2`/`CP-3`).** Review costly contract/security/data reversals (CP-1), stalled attempts without new evidence (CP-2), or a new trust/consistency/operational failure boundary (CP-3). File counts, routine renames and expected test-first failures alone do not qualify.
+
+### Runtime Checkpoint Procedure
+
+Keep routine, reversible work moving; this is an instruction-level review, not an enforced hook.
+1. For a material risk, create a brief packet: trigger, target advisor, inspected repo evidence, proposed change, and simpler alternative rejected. Include decision-relevant evidence, not conversation history.
+2. Default to an inline self-review. Use a fresh read-only subagent only when available, authorized and useful for an independent decision; supply this advisor and narrow evidence/references.
+3. Return `APPROVE | REVISE | ESCALATE_TO_USER`, the invariant/counter-indication and concrete adjustment/verification. Apply revisions and continue within authorization.
+4. Do not repeat consultation on unchanged evidence. Probe a disputed assumption or choose a reversible alternative. Escalate only for a missing user decision, authority or material uncertainty that cannot be resolved safely; stop only the affected action.
 
 ---
 
 ## 4. Deep Knowledge Base (`references/`)
 
 Sections 1–3 provide baseline defensive posture. When loading a Level-3 file from the **Scenario Decision Matrix** (Section 1), enforce these limits:
-- Read **at most 1–2 reference files per task**; never preload `references/`.
+- Start with **1–2 narrowly relevant reference files**; read more only to resolve a named decision or missing safety condition. Never preload `references/`.
 - Treat reference files as **falsifiable engineering heuristics**: verify actual project middleware, database engines, and threat boundaries before applying a control, and respect every **Invalidate When** counter-indication.
 
 ---
 
 ## 5. Output Delivery Format & Checklist
 
-Present security-conscious API designs or defensive code in this structure:
-1. **Repo Probe, Threat Model & Intentional Deferrals**: State what codebase auth/validation state was inspected, concrete attack surfaces mitigated, and which heavier controls were deferred with their trigger thresholds.
-2. **Defensive Implementation**: Clean, well-typed code applying fail-closed and parameterized patterns.
-3. **Verification Checklist**:
-   - [ ] **Authorization (BOLA/BFLA)**: Are queries and mutations explicitly bound to the authenticated subject/tenant?
+Match the user's requested format and task size. Provide the fix or advice directly; use these elements for substantive security decisions when helpful:
+1. **Repo Probe, Threat Model & Intentional Deferrals**: Explain the relevant auth/validation state, threat mitigated and residual uncertainty. Discuss deferred controls only when a concrete threat or requirement makes them relevant.
+2. **Concrete Result**: Deliver the requested implementation or advice with the relevant authorization, input and failure controls.
+3. **Internal Verification Checklist** (apply relevant items; report actual checks and material limits, not a mandatory checklist transcript):
+   - [ ] **Authorization (BOLA/BFLA)**: Do protected resources enforce the intended subject/resource policy, including tenant isolation where applicable?
    - [ ] **Boundary & Injection Safety**: Are inputs parsed into strict DTOs, queries parameterized, and shells/SSRF blocked?
-   - [ ] **Cryptographic & Fail-Closed Hygiene**: Are secrets compared in constant time, KDFs async, and errors failing closed (401/403)?
+   - [ ] **Cryptographic & Fail-Closed Hygiene**: Are secrets compared in constant time, KDFs async, and unverified access denied with error responses distinguishing auth failures from dependency outages?
    - [ ] **Proportionality & Precedence**: Are controls matched to the actual threat boundary while respecting existing project middleware?

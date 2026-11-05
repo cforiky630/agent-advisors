@@ -5,7 +5,7 @@ session** with only this skill installed, then repeat with the skill removed and
 compare. A case "triggers" when the `SKILL.md` body enters context — not when the
 answer merely mentions architecture.
 
-CI checks structure only; these cases check behavior. For whether the advisor
+CI checks structure and lexical/domain matching for activation/dormancy; it does not run a model. Deferral and actual skill loading require the manual fresh-session runs below. For whether the advisor
 improves the work rather than merely loading, use
 [`outcome-protocol.md`](outcome-protocol.md).
 
@@ -18,7 +18,7 @@ improves the work rather than merely loading, use
 | 3 | "Our domain model is anemic and business rules are leaking into service classes." | DDD tactical guidance; invariants back into entities/value objects. |
 | 4 | "Is this abstraction too shallow? Review the module boundary." | Interface depth analysis, pass-through elimination. |
 | 5 | "Should this CRUD service adopt full DDD?" | Proportionality: no aggregates or event sourcing without real invariants. |
-| 6 | "We're adding retries and timeouts to a remote billing call. What failure modes matter?" | Timeouts, circuit breaking, degradation; maps to DDIA/Release It!. |
+| 6 | "We're adding retries and timeouts to a remote billing call. What failure modes matter?" | Check idempotency/durable deduplication and timeout ambiguity before retrying; stable operation keys, SDK retry budget, recovery; circuit breaking only when justified. |
 | 7 | "帮我把这个 3000 行的订单类重构一下，目前没有测试。" | Activation across languages; test-first safety net before restructuring. |
 | 8 | "Review this module: naming, error handling, and whether the seams are in the right place." | Design review with rationale, not a style checklist. |
 

@@ -57,8 +57,8 @@ export function installedPluginRoots(home = HOME) {
       }
     }
     return roots;
-  } catch {
-    return [];
+  } catch (error) {
+    throw new Error(`Cannot read installed plugin registry: ${registry}`, { cause: error });
   }
 }
 
@@ -128,6 +128,14 @@ export function discover(roots) {
   const skipped = [];
 
   for (const root of roots) {
+    try {
+      if (lstatSync(root.path).isSymbolicLink() && !existsSync(root.path)) {
+        broken.push({ scope: root.scope, path: root.path });
+        continue;
+      }
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
     if (!existsSync(root.path)) {
       skipped.push(root);
       continue;
@@ -299,7 +307,9 @@ export function analyze(
     for (const [name, group] of byName) {
       if (group.length < 2) continue;
       const scopes = [...new Set(group.map((skill) => skill.scope))];
-      const hasPlugin = scopes.some((scope) => scope.startsWith("claude-plugin"));
+      const ordinary = group.filter((skill) => !skill.scope.startsWith("claude-plugin"));
+      const ordinaryConflict = new Set(ordinary.map((skill) => skill.contentHash)).size > 1;
+      const hasPlugin = !ordinaryConflict && scopes.some((scope) => scope.startsWith("claude-plugin"));
       const identical = new Set(group.map((skill) => skill.contentHash)).size === 1;
       collisions.push({ agent, name, scopes, pluginOnly: hasPlugin, identical });
       issues.push({
@@ -486,7 +496,7 @@ export function renderMarkdown(result, { roots, broken, skipped, generatedAt = n
 
 export function buildLock(result, { roots, generatedAt = new Date() } = {}) {
   return {
-    version: 1,
+    version: 2,
     generatedAt: generatedAt.toISOString(),
     roots: roots.map((root) => ({ scope: root.scope, agent: root.agent, path: toPosix(root.path) })),
     budgets: result.budgets,
@@ -505,6 +515,7 @@ export function buildLock(result, { roots, generatedAt = new Date() } = {}) {
           realpath: toPosix(inst.realpath ?? skill.realpath),
         })),
         contentHash: skill.contentHash,
+        contentHashVersion: skill.contentHashVersion,
         description: skill.description,
         descriptionTokens: skill.descriptionTokens,
         lineCount: skill.lineCount,
@@ -546,7 +557,7 @@ export function parseArgs(argv) {
       if (split <= 0 || split === value.length - 1) throw new Error("--root expects scope=path");
       options.roots.push({
         scope: value.slice(0, split),
-        agent: value.slice(0, split).split("-")[0],
+        agent: value.slice(0, split).startsWith("cc-switch") ? "store" : value.slice(0, split).split("-")[0],
         path: resolve(value.slice(split + 1)),
       });
     } else if (arg === "--no-defaults") options.useDefaults = false;

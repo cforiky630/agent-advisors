@@ -1,23 +1,39 @@
 # Engineering Reference: Transactions, Isolation Levels & Concurrency Control
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This reference establishes heuristics for transaction boundaries, concurrency anomalies, and deadlock prevention based on *Designing Data-Intensive Applications* (DDIA) and modern MVCC relational engines.
 
 ---
 
-## 1. The Golden Rule of Transaction Boundaries
+## 1. Short Transactions and Recoverable External Effects
 
-**Directive**: **NEVER hold a database transaction open while performing network I/O, file system operations, or computationally expensive tasks.**
+Keep ordinary business transactions free of slow external calls; one database transaction cannot roll back a remote charge or email. First decide whether an external effect exists. For a DB-only invariant, use one local transaction.
 
-### The Catastrophic Cascade
-- An HTTP call to a payment gateway taking 1.5 seconds holds the database connection and row locks open for 1.5 seconds.
-- At 50 concurrent requests, the entire database connection pool (typically 20–50 connections) is exhausted, causing connection starvation and cascading site-wide outages.
+### External-Effect Workflow
+1. **Reserve durably**: In a short transaction, validate the invariant and persist an operation ID, request fingerprint, pending state and any reservation. Commit before calling the provider. Use a unique constraint to deduplicate concurrent submissions.
+2. **Call outside the transaction**: Send the same stable idempotency key for every attempt at this operation. Verify provider key retention, scope and payload-matching semantics. Count SDK retries and fit all attempts within an end-to-end deadline.
+3. **Finalize conditionally**: Record the provider result/reference and transition pending to succeeded/failed with a conditional update or version check. Duplicate callbacks must not apply the effect twice.
+4. **Recover ambiguity**: A timeout or crash may occur after the provider succeeds. Preserve an unknown/pending state, query the provider by operation reference or await a verified callback, and reconcile before retrying or releasing a reservation. Never create a new operation key merely because the previous response was lost.
+5. **Bound pending work**: Define ownership/leases, retry limits, reservation expiry and a reconciliation job. A lease expiry alone does not prove that an external action failed. Compensation is a separate business operation that can fail and needs its own idempotency and observability.
 
-### The Correct Three-Phase Pattern
-1. **Phase 1 (Fast DB Read / State Reservation)**: Query current state, validate preconditions, reserve status (commit or release locks immediately).
-2. **Phase 2 (External I/O Outside Transaction)**: Make external API call, send email, or execute third-party network request.
-3. **Phase 3 (Fast DB Update / State Finalization)**: Open a short transaction, record results, update balance/status, commit in milliseconds.
+### Failure Cases to Verify
+
+| Boundary | Required behavior |
+| :--- | :--- |
+| Crash after reservation, before call | Resume from durable pending state or safely expire a confirmed unexecuted reservation. |
+| Provider succeeds, response lost | Query/reconcile or retry with the same supported idempotency key; do not charge again with a new key. |
+| Provider succeeds, final DB commit fails | Recover from provider reference and operation state; finalize once. |
+| Concurrent retries/callbacks | Unique operation identity and conditional state transitions apply the result once. |
+
+### When This Default Fails (Counter-Indications)
+- **No external side effect**: Use one local ACID transaction rather than introducing a multi-phase state machine.
+- **No safe deduplication or result lookup**: Do not automatically retry an ambiguous non-idempotent call. Preserve unknown state and use a defined reconciliation/operator path.
+- **Strong cross-system atomicity required**: A split workflow offers no global ACID guarantee. Verify a supported coordination mechanism or revisit the business contract before proceeding; do not claim a Saga is automatically equivalent.
+- **Reliable publication needed**: A same-database transactional outbox can atomically store the business update and publication intent. It obeys short-transaction guidance; its relay/consumer still needs duplicate handling and recovery. Adopt it only when that delivery requirement exists.
 
 ---
 
@@ -27,8 +43,10 @@ This reference establishes heuristics for transaction boundaries, concurrency an
 | :--- | :---: | :---: | :---: | :---: |
 | **Read Uncommitted** | Possible | Possible | Possible | Possible |
 | **Read Committed** | **Prevented** | Possible | Possible | Possible |
-| **Repeatable Read** (MySQL default) | **Prevented** | **Prevented** | **Prevented** (MVCC) | Possible (Write Skew) |
-| **Serializable** (SSI) | **Prevented** | **Prevented** | **Prevented** | **Prevented** |
+| **Repeatable Read** (snapshot reads; engine-specific) | **Prevented** | **Prevented** | **Prevented** (MVCC) | Possible (Write Skew) |
+| **Serializable** (implementation varies) | **Prevented** | **Prevented** | **Prevented** | **Prevented** |
+
+Isolation names alone do not define every engine behavior. PostgreSQL maps Read Uncommitted to Read Committed and prevents phantoms at Repeatable Read; MySQL snapshot reads and locking/current reads differ. Verify the deployed engine and read mode before applying this summary.
 
 ### Write Skew (The Doctors on Call Problem)
 - Occurs when two concurrent transactions read overlapping data, make a decision based on that data, and write to disjoint rows that together violate an invariant (e.g., at least one doctor must remain on call; two doctors simultaneously query `count > 1` and both successfully check out).
@@ -80,4 +98,4 @@ for (const id of sortedAccountIds) {
   await db.query('SELECT * FROM accounts WHERE id = ? FOR UPDATE', [id]);
 }
 ```
-Eliminating circular lock dependencies eliminates 99% of relational database deadlocks.
+Consistent ordering reduces row-lock cycles; it does not eliminate deadlocks involving other tables, secondary indexes, gap locks or implicit constraint locks. Handle detected deadlocks with bounded retries of the entire transaction.

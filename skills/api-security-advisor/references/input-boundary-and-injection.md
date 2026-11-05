@@ -1,5 +1,8 @@
 # Engineering Reference: Input Boundaries & Injection Defense
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This reference establishes defensive, production-tested engineering heuristics for input sanitization, data validation, and injection defense across SQL, OS commands, file paths, and serialization boundaries.

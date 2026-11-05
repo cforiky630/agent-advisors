@@ -25,7 +25,7 @@
 **Agent Advisors** is a dual-layer open-source repository designed for the AI coding agent ecosystem:
 
 1. **The Core Asset — Domain Advisors (`skills/`)**: Standalone, runtime-agnostic engineering skills. Each advisor acts as an evidence-gated domain facade (Software Architecture, Defensive API Security, Database Persistence), guiding models with concrete codebase probes (`Probe`), trade-off rationales (`Arbitration`), and falsifiability bounds (`Invalidate When`) without persistent prompt bloat.
-2. **The Governance Toolchain (`scripts/`)**: An optional, zero-dependency management suite to audit token overhead across runtimes, analyze positive/negative trigger ontologies, validate against a 57-case prompt benchmark, and evaluate untrusted third-party skill repositories in OS quarantine.
+2. **The Governance Toolchain (`scripts/`)**: An optional, zero-dependency management suite to audit token overhead across runtimes, analyze positive/negative trigger ontologies, run 48 static trigger checks and report 9 manual deferral scenarios, and evaluate untrusted third-party skill repositories in a temporary quarantine directory.
 
 > **Zero Tooling Requirement**: The advisors under `skills/` are pure, self-contained Markdown assets (`SKILL.md` + `references/`). You can adopt and run the advisors directly in any agent runtime without ever installing Node.js dependencies or invoking script tooling.
 
@@ -116,7 +116,7 @@ Level 1: Positive + Negative Ontology     ~90–140 tokens   Persistent routing 
 Level 2: Evidence-Gated Facade (SKILL.md) <= 150 lines     Unified routing table, Repo Probes, Invalidate-When bounds
    │
    ▼  Loaded selectively only when pattern-level detail is needed
-Level 3: Falsifiable References           1–2 files max    Targeted deep notes + Counter-Indications in references/*.md
+Level 3: Falsifiable References           1–2 files first    Targeted deep notes + Counter-Indications in references/*.md
 ```
 
 - **Level 1 (`name` + `description`)**: Pairs positive scope triggers with an explicit `Do not trigger for...` anti-trigger boundary so orthogonal skills do not collide.
@@ -124,24 +124,24 @@ Level 3: Falsifiable References           1–2 files max    Targeted deep notes
   - **`Probe`**: Concrete codebase artifacts (test coverage/seams, `EXPLAIN` plans, active auth middleware) the agent must inspect *before* choosing a branch.
   - **`Arbitration`**: Deterministic default choice and causal rationale.
   - **`Invalidate When`**: Explicit counter-indications stating when the advisor's default fails and must be reversed.
-- **Level 3 (`references/*.md`)**: High-density engineering condensations that include explicit `When This Default Fails (Counter-Indications)` sections and cross-advisor alignment (e.g., reconciling API Security's non-sequential IDs with Data Storage's B-Tree locality via `UUIDv7`/`KSUID`).
+- **Level 3 (`references/*.md`)**: High-density engineering condensations that include explicit `When This Default Fails (Counter-Indications)` sections and cross-advisor alignment (e.g., reconciling API Security's non-sequential IDs with Data Storage's B-Tree locality by checking public-ID threats, API compatibility and measured index costs).
 
 ### 2. Dual-Mode Operation: Static Facade & Runtime Checkpoint Protocol
 
 Loading a skill at turn 1 does not prevent context pollution at turn 80. Every advisor supports two operating modes (see [`docs/CHECKPOINT_PROTOCOL.md`](docs/CHECKPOINT_PROTOCOL.md)):
 - **Mode A — Static Domain Facade (Default)**: Loaded automatically at task start when the prompt matches domain intent.
-- **Mode B — Runtime Checkpoint Gate (`CP-1` / `CP-2` / `CP-3`)**: Breaks the self-referential "when to consult" paradox using three objective state triggers:
-  1. **`CP-1` (Irreversible Boundary)**: Mutating database migrations, public API contracts, or auth/crypto primitives.
-  2. **`CP-2` (Thrashing Loop)**: Hitting $\ge 2$ consecutive test/build regressions or revert cycles on the same unit.
-  3. **`CP-3` (Proportionality Jump)**: Stepping up the Proportionality Ladder across $> 3$ files or a new architectural layer.
-  When triggered, the agent packages a $\le 200$-token **Context-Stripped Consultation Packet** (stripping noisy session history) for an isolated subagent or checkpoint pass (`Verdict: APPROVE | REVISE | ESCALATE_TO_USER`, capped at 2 checkpoints/task).
+- **Mode B — Risk-Based Checkpoint (`CP-1` / `CP-2` / `CP-3`)**: Review costly contract/data/security reversals (CP-1), repeated attempts without new evidence or progress (CP-2), and newly introduced trust/consistency/operational failure boundaries (CP-3). File counts, mechanical renames and expected test-first failures alone do not qualify. Use a brief evidence packet and inline review by default; an independent reviewer is optional when authorized and useful. Apply revisions autonomously; ask the user only for a missing decision/authority or material uncertainty that cannot be resolved safely.
+
+Runtime checkpoints are an instruction-level protocol followed by the host agent, without an enforcement hook. Each skill embeds its minimum packet, verdict, inline fallback and termination procedure for standalone distribution.
 
 ### 3. Operating Boundaries & Proportionality
+
+Entrypoints begin with Quick Use and scenario routing. For tasks spanning domains, use one leading decision perspective, share evidence, and combine verification/output; review each risk once. Linked references supply technical detail under the entrypoint's scope, and cannot mandate unrelated layers, cleanup or reports. The creator resolves its template from the installed skill and discovers validators in the target project.
 
 Every advisor operates under explicit precedence boundaries:
 - **Project Conventions First**: Existing repository architecture, database migrations, middlewares, linters, tests, and explicit user instructions strictly supersede advisor defaults.
 - **Workflow Deferral**: Advisors govern design and implementation; when an adjacent dedicated workflow (e.g., test-runner, specialized vulnerability scanner, debugger) owns the task, the advisor yields process control and supplies only architectural rationale.
-- **Proportionality Ladder & Intentional Deferrals**: Simple flat constructs and standard libraries are exhausted before introducing layered abstractions. When omitting heavier patterns, the advisor documents the exact scale or threat threshold that would warrant adopting them later.
+- **Proportionality Ladder & Intentional Deferrals**: Simple flat constructs and standard libraries are exhausted before introducing layered abstractions. Discuss a deferred heavier pattern only when it is a plausible alternative; name the evidence that would change the choice without inventing thresholds.
 
 ### 4. Zero-Token Provenance Separation
 
@@ -186,18 +186,19 @@ npm run audit
 - **Per-Runtime Token Overhead**: Calculates persistent description tokens across Claude Code, Cursor, Codex, and Gemini/Antigravity (excluding passive stores like `~/.cc-switch/skills`).
 - **Cross-Directory Deduplication**: Merges identical physical copies while flagging content drift across roots.
 - **Positive/Negative Trigger Ontology & Overlap Analysis**: Separates positive triggers from `Do not trigger for...` anti-trigger clauses (`splitTriggerSurface`), scores pairs via $0.6 \times \text{Dice} + 0.4 \times \text{Jaccard}$, and applies an **Orthogonality Discount** when skills explicitly exclude each other's domains.
-- **Counterfactual Trigger Benchmark (`npm run validate`)**: Evaluates all 57 prompt cases in `evals/*-trigger-cases.md` to verify that positive prompts activate their advisor and dormant prompts never over-trigger.
+- **Static trigger checks (`npm run validate`)**: 24 activation and 24 dormancy cases use lexical/domain heuristics; 9 deferral cases require manual runtime evaluation. Static checks do not demonstrate actual skill loading or improved model outputs.
+- **Conflict boundaries**: Installation collisions and content drift are checked deterministically; trigger overlap is a review candidate. Doctrinal contradictions require `advisor-creator` or human judgment; scripts do not automatically merge or arbitrate them.
 - **Reports**: Outputs human-readable diagnostics to `.advisor-audit/audit-report.md` and a deterministic lockfile to `.advisor-audit/skills.lock.json`. See [`docs/AUDIT.md`](docs/AUDIT.md).
 
 ### 2. Quarantine Repository Import (`import_repo.mjs`)
 
-Safely evaluate skills from external repositories without risking local environment contamination:
+Inspect external repositories as data in a temporary quarantine directory. This is not an OS process sandbox:
 
 ```bash
 node scripts/import_repo.mjs https://github.com/owner/repo --ref main
 ```
 
-- Clones into an isolated OS temporary directory with Git hooks, filesystem monitors, and submodules disabled.
+- Clones into an dedicated temporary directory with Git hooks, filesystem monitors, and submodules disabled.
 - Enforces strict path traversal and symbolic link containment on `--subdir` targets.
 - Copies only Markdown candidate assets (`SKILL.md`, `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*.mdc`); executable scripts are cataloged as security flags but never copied or executed.
 - Emits an adoption assessment report at `.advisor-import/<repo>/proposal.md`.
@@ -210,7 +211,7 @@ Compile scattered Architecture Decision Records (`docs/adr/*.md`), `.cursor/rule
 Activate advisor-creator to scan our docs/adr/ and .cursor/rules/, extract contradictory rules, and compile them into a domain advisor.
 ```
 
-Instead of shifting domain modeling onto the user, `advisor-creator` automatically scans raw files for doctrinal contradictions and unguarded `ALWAYS`/`NEVER` rules, injects `Probe` and `Invalidate When` boundaries from [`advisor-template.md`](skills/advisor-creator/references/advisor-template.md), and outputs a **Compilation ROI Scorecard** (per-turn token savings %, resolved rule conflicts, and added proportionality guards).
+Instead of shifting domain modeling onto the user, `advisor-creator` automatically scans raw files for doctrinal contradictions and unguarded `ALWAYS`/`NEVER` rules, injects `Probe` and `Invalidate When` boundaries from [`advisor-template.md`](skills/advisor-creator/references/advisor-template.md), and produces a usable advisor. For substantial adoption decisions, an optional **Compilation Cost & Decision Scorecard** records measured context cost, conflict evidence and paired decision scenarios.
 
 ---
 

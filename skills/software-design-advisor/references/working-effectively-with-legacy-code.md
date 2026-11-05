@@ -1,11 +1,14 @@
 # Engineering Reference: Working Effectively with Legacy Code by Michael Feathers
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This repository follows the discipline of **Working Effectively with Legacy Code** in the sense of Michael Feathers:
 make risky existing code changeable by gaining understanding, creating seams, and establishing tests.
 
-All code generation, edits, and reviews must optimize for:
+When this topic is relevant, evaluate the requested change against:
 - safe change in poorly understood code
 - characterization before redesign
 - breaking dependencies that block tests
@@ -307,7 +310,7 @@ When reviewing legacy-oriented changes, actively look for:
 
 ## Code Generation Rules
 
-When asked to modify legacy code, default to producing:
+Choose the smallest technique that removes an observed obstacle to safe change; these are options, not required deliverables:
 - characterization tests where needed
 - small seams
 - wrappers around hard dependencies
@@ -355,11 +358,11 @@ Before finalizing any change, verify:
 - Did we separate structural changes from behavior changes where practical?
 - Did we leave the code more changeable than we found it?
 
-If any answer is no, revise before shipping.
+For relevant items, address a demonstrated defect or report a material limit. Inapplicable checklist items do not require changes.
 
 ---
 
-## Final Instruction
+## Decision Reminders
 
 When uncertain, choose the smallest change that:
 1. increases understanding

@@ -1,11 +1,14 @@
 # Engineering Reference: Designing Data-Intensive Applications by Martin Kleppmann
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This repository follows **Designing Data-Intensive Applications** in the sense of Martin Kleppmann:
 design systems around explicit trade-offs in reliability, scalability, maintainability, consistency, and data flow.
 
-All code generation, edits, and reviews must optimize for:
+When this topic is relevant, evaluate the requested change against:
 - explicit data and consistency semantics
 - idempotent and replay-safe processing
 - clear ownership of truth
@@ -377,11 +380,11 @@ Before finalizing any change, verify:
 - Are service boundaries aligned with data ownership?
 - Are lag and failure observable?
 
-If any answer is no, revise before shipping.
+For relevant items, address a demonstrated defect or report a material limit. Inapplicable checklist items do not require changes.
 
 ---
 
-## Final Instruction
+## Decision Reminders
 
 When uncertain, prefer the design that:
 1. makes data ownership explicit

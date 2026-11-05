@@ -1,11 +1,14 @@
 # Engineering Reference: Domain-Driven Design Distilled by Vaughn Vernon
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This repository follows **Domain-Driven Design Distilled**:
 use the smallest effective set of DDD practices to model the business meaning clearly and deliver results quickly.
 
-All code generation, edits, and reviews must optimize for:
+When this topic is relevant, evaluate the requested change against:
 - clear business language
 - explicit bounded contexts
 - focus on core domain complexity
@@ -301,11 +304,11 @@ Before finalizing any change, verify:
 - Did we keep infrastructure out of the model?
 - Did we avoid DDD theater and over-modeling?
 
-If any answer is no, revise before shipping.
+For relevant items, address a demonstrated defect or report a material limit. Inapplicable checklist items do not require changes.
 
 ---
 
-## Final Instruction
+## Decision Reminders
 
 When uncertain, choose the option that:
 1. sharpens the business language

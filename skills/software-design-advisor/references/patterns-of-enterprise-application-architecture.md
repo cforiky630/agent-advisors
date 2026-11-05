@@ -1,11 +1,14 @@
 # Engineering Reference: Patterns of Enterprise Application Architecture by Martin Fowler
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This repository follows the practical style of **Patterns of Enterprise Application Architecture**:
 structure enterprise software around clear responsibilities for domain logic, persistence, transaction boundaries, integration, and presentation.
 
-All code generation, edits, and reviews must optimize for:
+When this topic is relevant, evaluate the requested change against:
 - explicit separation of concerns
 - predictable business logic placement
 - appropriate enterprise patterns instead of accidental coupling
@@ -388,11 +391,11 @@ Before finalizing any change, verify:
 - Did we avoid layering theater?
 - Did we keep concurrency and loading assumptions visible?
 
-If any answer is no, revise before shipping.
+For relevant items, address a demonstrated defect or report a material limit. Inapplicable checklist items do not require changes.
 
 ---
 
-## Final Instruction
+## Decision Reminders
 
 When uncertain, choose the smallest set of enterprise patterns that makes:
 1. business logic placement obvious

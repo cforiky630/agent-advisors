@@ -30,5 +30,15 @@ This document provides formal bibliographic attribution, copyright provenance, a
 
 ## Maintenance Rules
 
-- Whenever an engineering reference under `references/` is modified or added, maintainers must verify that the corresponding entry above reflects the authoritative edition and publisher.
+- For substantive reference changes, keep the source attribution accurate. Check an edition when its differences affect the recommendation or an explicit conformance claim; preserve the applicable project-pinned version. Editorial edits and stable principles do not require a search for the newest publication.
 - Reference notes must remain concise, high-density persistence heuristics rather than database product manuals.
+
+Version-specific clarification: [PostgreSQL 18 multicolumn indexes and skip scans](https://www.postgresql.org/docs/18/indexes-multicolumn.html). HikariCP pool sizing is a benchmark starting point; its source explicitly notes the absence of SSD analysis, not an SSD optimum.
+
+Dialect boundary: [MySQL 8.4 CREATE INDEX](https://dev.mysql.com/doc/refman/8.4/en/create-index.html) documents functional indexes and NULL uniqueness semantics; PostgreSQL partial-index syntax must not be presented as portable SQL.
+
+## Retry and Recovery Verification (2026-11-05)
+
+[Amazon Builders' Library: Making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) describes request identity and side-effect safety. [AWS Saga orchestration guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-orchestration.html) covers participant idempotency, compensation and crash handling. The advisor's conditional-finalization and reconciliation checklist is an engineering synthesis, not a claim that every workflow needs Saga orchestration or achieves cross-system ACID.
+
+Isolation semantics: [PostgreSQL 17 transaction isolation](https://www.postgresql.org/docs/17/transaction-iso.html). Engine/read-mode differences must be checked before treating an isolation-name table as a portable behavioral contract.

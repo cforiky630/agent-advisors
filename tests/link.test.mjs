@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   existsSync,
+  cpSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -11,8 +12,11 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import test from "node:test";
+import fs from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
+import { spawnSync } from "node:child_process";
 
 import {
   DEFAULT_SKILLS_DIR,
@@ -25,12 +29,54 @@ import {
   statusSkills,
   unlinkSkills,
 } from "../scripts/link_skills.mjs";
+import { readSkill } from "../scripts/lib/skill.mjs";
 
 function tempDir(prefix = "aa-link-") {
   const dir = mkdtempSync(join(tmpdir(), prefix));
   mkdirSync(dir, { recursive: true });
   return dir;
 }
+
+test("installer rejects path-like or mismatched skill names before changing destinations", () => {
+  const root = tempDir();
+  try {
+    const skillDir = join(root, "source", "demo-advisor");
+    mkdirSync(skillDir, { recursive: true });
+    const marker = join(root, "keep.txt");
+    writeFileSync(marker, "keep");
+    for (const name of ["../../escape", "other-advisor"]) {
+      writeFileSync(join(skillDir, "SKILL.md"), `---\nname: ${name}\ndescription: Review modules.\nlicense: MIT\n---\n`);
+      assert.throws(() => linkSkills({ skillsDir: join(root, "source"), targets: [root], copy: true, force: true }), /Invalid skill name/);
+      assert.equal(readFileSync(marker, "utf8"), "keep");
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("unlink preserves a matching-name broken link belonging to a foreign source", () => {
+  const root = tempDir();
+  const dest = join(root, "software-design-advisor");
+  try {
+    symlinkSync(join(root, "foreign", "missing"), dest, process.platform === "win32" ? "junction" : "dir");
+    const result = unlinkSkills({ targets: [root], only: ["software-design-advisor"] });
+    assert.equal(result.results[0].status, "skipped");
+    assert.ok(lstatSync(dest).isSymbolicLink());
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("CLI fallback export refuses existing project rules unless force is explicit", () => {
+  const root = tempDir();
+  try {
+    const output = join(root, "AGENTS.md");
+    writeFileSync(output, "Existing project rules\n");
+    const args = ["scripts/link_skills.mjs", "--emit-agents", output, "--json"];
+    const denied = spawnSync(process.execPath, args, { encoding: "utf8" });
+    assert.equal(denied.status, 1);
+    assert.equal(readFileSync(output, "utf8"), "Existing project rules\n");
+    const forced = spawnSync(process.execPath, [...args, "--force"], { encoding: "utf8" });
+    assert.equal(forced.status, 0, forced.stderr);
+    assert.match(readFileSync(output, "utf8"), /Shared Operating Boundaries/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
 
 test("links only *-advisor skills by default and includes advisor-creator when includeMeta is true", () => {
   const targetDir = tempDir();
@@ -207,7 +253,14 @@ test("compileAgentsMarkdown deterministically synthesizes Condensed Nano Ruleset
   assert.match(first, /Proportionality Ladder/);
   assert.match(first, /Project conventions first/);
   assert.match(first, /Defer the workflow/);
-  assert.match(first, /Intentional Deferrals/);
+  assert.match(first, /Discuss deferred alternatives only when relevant; do not invent thresholds/);
+  assert.match(first, /\*\*Probe\*\*/);
+  assert.match(first, /\*\*Invalidate When\*\*/);
+  assert.match(first, /Runtime Checkpoint Procedure/);
+  assert.match(first, /Do not repeat consultation on unchanged evidence/);
+  assert.equal((first.match(/### Runtime Checkpoint Procedure\n/g) ?? []).length, 1);
+  assert.equal((first.match(/\*\*Multiple advisors\.\*\*/g) ?? []).length, 1);
+  assert.doesNotMatch(first, /state the concrete scale or threat trigger threshold/);
 
   // Includes all three domain advisors and their A..D nano ruleset subsections
   assert.match(first, /`api-security-advisor`/);
@@ -217,6 +270,33 @@ test("compileAgentsMarkdown deterministically synthesizes Condensed Nano Ruleset
   assert.match(first, /### A\. Query Tuning & Indexing/);
   assert.match(first, /### A\. Construction & Pragmatism/);
   assert.match(first, /### D\. Architecture, Domain & Resilience/);
+});
+
+test("fallback keeps different advisor boundaries and checkpoint variants instead of silently dropping them", () => {
+  const root = tempDir();
+  try {
+    for (const name of ["a-advisor", "b-advisor"]) {
+      const dir = join(root, name);
+      mkdirSync(dir);
+      writeFileSync(join(dir, "SKILL.md"), `---\nname: ${name}\ndescription: Architecture guidance.\nlicense: MIT\n---\n# ${name}\n\n## Operating Boundaries\n\nOnly ${name} owns its local policy.\n\n### Runtime Checkpoint Procedure\n\nCheck ${name} risk.\n\n## 3. Condensed Nano Rulesets\n\nKeep ${name} invariant.\n`);
+    }
+    const result = compileAgentsMarkdown({ skillsDir: root });
+    for (const name of ["a-advisor", "b-advisor"]) {
+      assert.match(result, new RegExp(`Only ${name} owns its local policy`));
+      assert.match(result, new RegExp(`Check ${name} risk`));
+      assert.match(result, new RegExp(`Keep ${name} invariant`));
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("fallback includes a usable creator workflow in meta-only and mixed selections", () => {
+  for (const options of [{ only: ["advisor-creator"] }, { includeMeta: true }]) {
+    const result = compileAgentsMarkdown(options);
+    assert.match(result, /#### Authoring Workflow/);
+    assert.match(result, /relative to this installed skill directory/);
+    assert.match(result, /only when that project script is confirmed to validate these skills/);
+    assert.equal((result.match(/### Runtime Checkpoint Procedure\n/g) ?? []).length, 1);
+  }
 });
 
 test("resolveTargetRoots maps agent aliases and listRepoSkills rejects unknown skill names", () => {
@@ -285,10 +365,101 @@ test("copy mode physically copies skill directories allowing repository decoupli
     assert.ok(existsSync(join(installedSkill, "SKILL.md")));
     // Must be a physical directory, not a symbolic link or junction
     assert.equal(lstatSync(installedSkill).isSymbolicLink(), false);
+    const status = statusSkills({ targets, only: ["api-security-advisor"] });
+    assert.equal(status.conflicts.length, 0);
+    assert.equal(status.results[0].status, "copied");
+    writeFileSync(join(installedSkill, "references", "cryptographic-hygiene.md"), "Changed rules\n");
+    assert.equal(statusSkills({ targets, only: ["api-security-advisor"] }).conflicts.length, 1);
   } finally {
     rmSync(targetDir, { recursive: true, force: true });
   }
 });
+
+test("copy refuses equal, nested, ancestor and junction-aliased source paths without deleting files", () => {
+  const root = tempDir();
+  const source = join(root, "demo-advisor", "demo-advisor");
+  mkdirSync(source, { recursive: true });
+  const entry = join(source, "SKILL.md");
+  const text = "---\nname: demo-advisor\ndescription: Architecture guidance.\nlicense: MIT\n---\n# Demo\n";
+  writeFileSync(entry, text);
+  try {
+    const alias = join(root, "alias");
+    symlinkSync(join(root, "demo-advisor"), alias, process.platform === "win32" ? "junction" : "dir");
+    for (const target of [join(root, "demo-advisor"), source, root, alias]) {
+      for (const dryRun of [false, true]) {
+        const result = linkSkills({ skillsDir: join(root, "demo-advisor"), targets: [target], copy: true, force: true, dryRun });
+        assert.equal(result.conflicts.length, 1);
+        assert.match(result.results[0].reason, /overlap/);
+        assert.equal(readFileSync(entry, "utf8"), text);
+      }
+    }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test("forced copy stages data, reports dry runs and restores destination when final rename fails", (t) => {
+  const targetDir = tempDir();
+  const options = { targets: [targetDir], only: ["api-security-advisor"], copy: true, force: true };
+  const marker = join(targetDir, "api-security-advisor", "keep.txt");
+  mkdirSync(dirname(marker), { recursive: true });
+  writeFileSync(marker, "original");
+  const originalRename = fs.renameSync;
+  try {
+    const preview = linkSkills({ ...options, dryRun: true });
+    assert.equal(preview.results[0].status, "would-replace");
+    assert.equal(readFileSync(marker, "utf8"), "original");
+    t.mock.method(fs, "cpSync", () => { throw new Error("simulated staging failure"); });
+    syncBuiltinESMExports();
+    assert.throws(() => linkSkills(options), /simulated staging failure/);
+    assert.equal(readFileSync(marker, "utf8"), "original");
+    t.mock.restoreAll();
+    syncBuiltinESMExports();
+    t.mock.method(fs, "renameSync", (from, to) => {
+      if (from.endsWith(join("payload"))) throw new Error("simulated final rename failure");
+      return originalRename(from, to);
+    });
+    syncBuiltinESMExports();
+    assert.throws(() => linkSkills(options), /simulated final rename failure/);
+    assert.equal(readFileSync(marker, "utf8"), "original");
+    t.mock.restoreAll();
+    syncBuiltinESMExports();
+    assert.equal(linkSkills(options).results[0].status, "replaced");
+    assert.ok(existsSync(join(targetDir, "api-security-advisor", "references", "cryptographic-hygiene.md")));
+    assert.equal(existsSync(marker), false);
+  } finally {
+    t.mock.restoreAll();
+    syncBuiltinESMExports();
+    rmSync(targetDir, { recursive: true, force: true });
+  }
+});
+
+test("standalone domains and creator keep local resources and cooperation rules after source removal", () => {
+  const root = tempDir();
+  const skillsDir = join(root, "source");
+  const name = "software-design-advisor";
+  const installed = join(root, "installed");
+  try {
+    cpSync(DEFAULT_SKILLS_DIR, skillsDir, { recursive: true });
+    linkSkills({ skillsDir, targets: [installed], copy: true, includeMeta: true });
+    rmSync(skillsDir, { recursive: true, force: true });
+    const text = readFileSync(join(installed, name, "SKILL.md"), "utf8");
+    assert.match(text, /Runtime Checkpoint Procedure/);
+    assert.match(text, /packet: trigger, target advisor, inspected repo evidence/);
+    assert.match(text, /Default to an inline self-review/);
+    assert.match(text, /Escalate only for a missing user decision, authority/);
+    for (const entry of listRepoSkills(installed, { includeMeta: true })) {
+      const record = readSkill(entry.skillDir);
+      assert.deepEqual(record.missingReferences, []);
+      const body = readFileSync(record.skillMd, "utf8");
+      assert.match(body, /\*\*Multiple advisors\.\*\*/);
+      assert.match(body, /\*\*Reference precedence\.\*\*/);
+      assert.ok(body.indexOf("## Quick Use") < body.indexOf("## 1."));
+    }
+    const creatorRoot = join(installed, "advisor-creator");
+    assert.ok(existsSync(join(creatorRoot, "references", "advisor-template.md")));
+    assert.equal(existsSync(join(root, "package.json")), false);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
 
 test("parseArgs parses aliases including --client, -c, --project, -p, --all, -a, --copy, and --list", () => {
   const parsed = parseArgs([

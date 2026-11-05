@@ -21,15 +21,18 @@ import {
   existsSync,
   lstatSync,
   mkdirSync,
+  mkdtempSync,
   readFileSync,
+  readlinkSync,
   readdirSync,
   realpathSync,
+  renameSync,
   rmSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join, resolve, sep } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { stdin as input, stdout as output } from "node:process";
 import { createInterface } from "node:readline/promises";
 import { fileURLToPath } from "node:url";
@@ -77,6 +80,16 @@ export function listRepoSkills(
     .filter((entry) => entry.isDirectory() && existsSync(join(resolvedDir, entry.name, "SKILL.md")))
     .map((entry) => readSkill(join(resolvedDir, entry.name), { scope: "repo", agent: "repo" }))
     .sort((a, b) => a.name.localeCompare(b.name));
+
+  for (const record of records) {
+    if (!record.frontmatter || !record.description) {
+      throw new Error(`Invalid skill metadata: ${record.skillMd}`);
+    }
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(record.name) ||
+        record.name !== relative(resolvedDir, record.skillDir)) {
+      throw new Error(`Invalid skill name or directory mismatch: ${record.name}`);
+    }
+  }
 
   if (requested.length > 0) {
     const byName = new Map(records.map((record) => [record.name, record]));
@@ -212,6 +225,46 @@ function normalizeTargets(targets, { mode = "link" } = {}) {
   });
 }
 
+// Resolve existing ancestors too, so missing destinations under junctions are checked.
+function physicalPath(path) {
+  const real = safeRealpath(path);
+  if (real) return real;
+  const parent = dirname(path);
+  if (parent === path) throw new Error(`Cannot resolve target path: ${path}`);
+  return join(physicalPath(parent), relative(parent, path));
+}
+
+function containsPath(parent, child) {
+  const path = relative(parent, child);
+  return path === "" || (!isAbsolute(path) && path !== ".." && !path.startsWith(`..${sep}`));
+}
+
+function copySkill(source, dest) {
+  mkdirSync(dirname(dest), { recursive: true });
+  const stage = mkdtempSync(join(dirname(dest), ".advisor-copy-"));
+  const payload = join(stage, "payload");
+  const backup = join(stage, "previous");
+  let preserveBackup = false;
+  try {
+    cpSync(source, payload, { recursive: true });
+    if (safeLstat(dest)) renameSync(dest, backup);
+    try {
+      renameSync(payload, dest);
+    } catch (error) {
+      if (safeLstat(backup)) {
+        try { renameSync(backup, dest); }
+        catch (rollbackError) {
+          preserveBackup = true;
+          throw new AggregateError([error, rollbackError], `Copy rollback failed; original retained at ${backup}`);
+        }
+      }
+      throw error;
+    }
+  } finally {
+    if (!preserveBackup) rmSync(stage, { recursive: true, force: true });
+  }
+}
+
 /**
  * Link or copy selected skills from `skillsDir` into each target root.
  * Never deletes a real (non-symlink) directory or file when in link mode, even when `force: true`.
@@ -238,12 +291,17 @@ export function linkSkills({
       const lstat = safeLstat(dest);
 
       if (copy) {
+        const destPhysical = physicalPath(dest);
+        if (!sourceReal || containsPath(sourceReal, destPhysical) || containsPath(destPhysical, sourceReal)) {
+          results.push({ agent: target.agent, scope: target.scope, skill: skill.name,
+            source: sourcePath, target: dest, status: "conflict",
+            reason: "source and destination overlap (including resolved links)" });
+          continue;
+        }
         if (lstat) {
           if (force) {
             if (!dryRun) {
-              rmSync(dest, { recursive: true, force: true });
-              mkdirSync(dest, { recursive: true });
-              cpSync(sourcePath, dest, { recursive: true });
+              copySkill(sourcePath, dest);
             }
             results.push({
               agent: target.agent,
@@ -251,7 +309,7 @@ export function linkSkills({
               skill: skill.name,
               source: sourcePath,
               target: dest,
-              status: "replaced",
+              status: dryRun ? "would-replace" : "replaced",
             });
           } else {
             results.push({
@@ -268,8 +326,7 @@ export function linkSkills({
         }
 
         if (!dryRun) {
-          mkdirSync(dest, { recursive: true });
-          cpSync(sourcePath, dest, { recursive: true });
+          copySkill(sourcePath, dest);
         }
         results.push({
           agent: target.agent,
@@ -393,7 +450,9 @@ export function unlinkSkills({
       if (lstat.isSymbolicLink()) {
         const destExists = existsSync(dest);
         const destReal = destExists ? safeRealpath(dest) : null;
-        const matchesRepo = !destExists || Boolean(destReal && sourceReal && destReal === sourceReal);
+        const linkTarget = resolve(dirname(dest), readlinkSync(dest));
+        const matchesRepo = Boolean(destReal && sourceReal && destReal === sourceReal) ||
+          (!destExists && relative(sourcePath, linkTarget) === "");
 
         if (matchesRepo) {
           if (!dryRun) {
@@ -494,14 +553,19 @@ export function statusSkills({
         continue;
       }
 
+      let identicalCopy = false;
+      if (lstat.isDirectory()) {
+        try { identicalCopy = readSkill(dest).contentHash === skill.contentHash; }
+        catch { /* An unreadable or incomplete copy remains a conflict. */ }
+      }
       results.push({
         agent: target.agent,
         scope: target.scope,
         skill: skill.name,
         source: sourcePath,
         target: dest,
-        status: "conflict",
-        reason: "destination is a non-symlink directory or file",
+        status: identicalCopy ? "copied" : "conflict",
+        reason: identicalCopy ? undefined : "destination is a non-symlink directory or file with different or unreadable content",
       });
     }
   }
@@ -523,9 +587,8 @@ function extractScopeSummary(description) {
   return firstSentence || "Domain engineering advisor";
 }
 
-function extractNanoRulesets(body) {
+function extractSection(body, header) {
   const normalized = String(body ?? "").replace(/\r\n/g, "\n");
-  const header = "## 3. Condensed Nano Rulesets";
   const startIdx = normalized.indexOf(header);
   if (startIdx === -1) return "";
   const afterHeader = normalized.slice(startIdx + header.length).replace(/^[^\n]*\n/, "");
@@ -553,15 +616,34 @@ export function compileAgentsMarkdown({
       ...skill,
       title: extractTitle(body, skill.name),
       scopeSummary: extractScopeSummary(skill.description),
-      nanoRules: extractNanoRulesets(body),
+      quickUse: extractSection(body, "## Quick Use"),
+      nanoRules: extractSection(body, "## 3. Condensed Nano Rulesets"),
+      tradeoffs: extractSection(body, "## 2. Engineering Trade-offs"),
+      boundaries: extractSection(body, "## Operating Boundaries"),
+      workflow: extractSection(body, "## 1. The 5-Step Compilation Pipeline"),
+      authoringStandard: extractSection(body, "## 2. Frontmatter Ontology Standard"),
+      authoringChecks: extractSection(body, "## 3. Advisor Quality Audit Checklist"),
     };
   });
+
+  // Factor only identical authored blocks; retain distinct constraints under their advisor.
+  const checkpointHeader = "### Runtime Checkpoint Procedure";
+  for (const skill of parsedSkills) {
+    const checkpointAt = skill.boundaries.indexOf(checkpointHeader);
+    skill.checkpoint = checkpointAt < 0 ? "" : skill.boundaries.slice(checkpointAt + checkpointHeader.length).trim();
+    skill.boundaryBlocks = (checkpointAt < 0 ? skill.boundaries : skill.boundaries.slice(0, checkpointAt))
+      .trim().split(/\n\s*\n/).filter(Boolean);
+  }
+  const sharedBlocks = (parsedSkills[0]?.boundaryBlocks ?? []).filter((block) =>
+    parsedSkills.every((skill) => skill.boundaryBlocks.includes(block)));
+  const sharedCheckpoint = parsedSkills.length > 0 && parsedSkills.every((skill) =>
+    skill.checkpoint === parsedSkills[0].checkpoint) ? parsedSkills[0].checkpoint : "";
 
   const lines = [];
   lines.push("# Agent Advisors — Condensed Fallback Rules (`AGENTS.md`)");
   lines.push("");
   lines.push(
-    "> Generated deterministically from `skills/*/SKILL.md` for environments without native multi-skill routing. When your runtime supports `SKILL.md` discovery, prefer linking the full skill directories via `node scripts/link_skills.mjs` so Level-2 facades and Level-3 `references/` load on demand.",
+    "> Generated deterministically from `skills/*/SKILL.md` for environments without native multi-skill routing. Apply only the advisor relevant to the current decision; use others for additional constraints. Full Facade paths are repository-relative, not guaranteed installed paths. Prefer full skill installation for on-demand references and bundled authoring templates.",
   );
   lines.push("");
   lines.push("## Included Advisors");
@@ -576,27 +658,22 @@ export function compileAgentsMarkdown({
   lines.push("");
   lines.push("## Shared Operating Boundaries");
   lines.push("");
-  lines.push(
-    "- **Project conventions first.** Existing architecture decisions, migrations, middlewares, linters, tests, and explicit user instructions outrank any doctrine here. Name conflicts rather than silently breaking working code.",
-  );
-  lines.push(
-    "- **Defer the workflow, keep the rationale.** When a dedicated review, testing, debugging, security scanning, or planning workflow governs the task, let that workflow run its steps and use these advisors for the engineering trade-offs behind them.",
-  );
-  lines.push(
-    "- **Match doctrine to problem size (Proportionality Ladder).** Exhaust existing project patterns, standard library capabilities, and simple flat constructs before introducing new abstractions, layers, or dependencies.",
-  );
-  lines.push(
-    "- **Intentional Deferrals.** When omitting heavier patterns (e.g., DDD aggregates, distributed rate limiters, read replicas) for proportionality, state the concrete scale or threat trigger threshold that would justify introducing them later.",
-  );
+  lines.push(sharedBlocks.join("\n\n"));
+  if (sharedCheckpoint) lines.push("", checkpointHeader, "", sharedCheckpoint);
   lines.push("");
   lines.push("## Condensed Nano Rulesets");
 
   for (const skill of parsedSkills) {
-    if (!skill.nanoRules) continue;
     lines.push("");
     lines.push(`### ${skill.title} (\`${skill.name}\`)`);
     lines.push("");
-    lines.push(skill.nanoRules);
+    if (skill.quickUse) lines.push(skill.quickUse, "");
+    const distinctBlocks = skill.boundaryBlocks.filter((block) => !sharedBlocks.includes(block));
+    if (distinctBlocks.length) lines.push("#### Additional Operating Boundaries", "", distinctBlocks.join("\n\n"), "");
+    if (skill.checkpoint && !sharedCheckpoint) lines.push(`#### Runtime Checkpoint Procedure (${skill.name})`, "", skill.checkpoint, "");
+    if (skill.tradeoffs) lines.push("#### Evidence-Gated Trade-offs", "", skill.tradeoffs, "");
+    if (skill.nanoRules) lines.push("#### Nano Rules (subject to the probes and counter-indications above)", "", skill.nanoRules.replace(/^### /gm, "##### "));
+    if (skill.workflow) lines.push("#### Authoring Workflow", "", skill.workflow, "", skill.authoringStandard, "", skill.authoringChecks);
   }
 
   lines.push("");
@@ -831,6 +908,9 @@ export async function main(argv = process.argv.slice(2)) {
       process.stdout.write(markdown);
     } else {
       const outPath = resolve(options.emitAgents);
+      if (safeLstat(outPath) && !options.force) {
+        throw new Error(`Output already exists: ${outPath}. Pass --force to replace it.`);
+      }
       if (!options.dryRun) {
         mkdirSync(dirname(outPath), { recursive: true });
         writeFileSync(outPath, markdown, "utf8");
@@ -880,8 +960,8 @@ export async function main(argv = process.argv.slice(2)) {
       console.log("\nAgent Advisors — Skill Link Status\n");
       for (const item of results) {
         const symbol =
-          item.status === "linked"
-            ? "✔ [linked]"
+          item.status === "linked" || item.status === "copied"
+            ? `✔ [${item.status}]`
             : item.status === "missing"
               ? "○ [missing]"
               : "✖ [conflict]";
@@ -939,13 +1019,13 @@ export async function main(argv = process.argv.slice(2)) {
           ? "✔"
           : item.status === "already-linked"
             ? "ℹ"
-            : item.status === "replaced"
+            : item.status === "replaced" || item.status === "would-replace"
               ? "↺"
               : "✖";
       const suffix = item.reason ? ` (${item.reason})` : "";
       console.log(`  ${symbol} [${item.status}] ${item.scope.padEnd(16)} ${item.skill} -> ${toPosix(item.target)}${suffix}`);
     }
-    const successCount = results.filter((r) => r.status === "linked" || r.status === "replaced" || r.status === "would-link" || r.status === "copied" || r.status === "would-copy").length;
+    const successCount = results.filter((r) => ["linked", "replaced", "would-replace", "would-link", "copied", "would-copy"].includes(r.status)).length;
     const existingCount = results.filter((r) => r.status === "already-linked").length;
     console.log(`\nSummary: ${successCount} processed, ${existingCount} already present, ${conflicts.length} conflict(s).`);
     if (conflicts.length > 0) {

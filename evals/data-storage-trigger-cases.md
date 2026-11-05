@@ -2,7 +2,7 @@
 
 Manual evaluation set for `data-storage-advisor`. Run each prompt in a **fresh session** with only this skill installed, then repeat with the skill removed and compare. A case "triggers" when the `SKILL.md` body enters context — not when the answer merely mentions databases.
 
-CI checks structure only; these cases check behavior. For whether the advisor improves the work rather than merely loading, use [`outcome-protocol.md`](outcome-protocol.md).
+CI checks structure and lexical/domain matching for activation/dormancy; it does not run a model. Deferral and actual skill loading require the manual fresh-session runs below. For whether the advisor improves the work rather than merely loading, use [`outcome-protocol.md`](outcome-protocol.md).
 
 ---
 

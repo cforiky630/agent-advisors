@@ -24,8 +24,8 @@
 
 **Agent Advisors** 采用清晰的双层解耦架构设计：
 
-1. **核心产品 —— 领域顾问库（`skills/`）**：独立于任何脚本或运行时的纯净工程技能资产。每个顾问扮演单一领域的证据门控门面（软件架构设计、防御性 API 安全、数据持久化架构），通过**代码库前置探针（`Probe`）**、**冲突仲裁因果律（`Arbitration`）**与**可证伪失效边界（`Invalidate When`）**，赋予大模型跨会话稳定、可检验的工程决策能力。
-2. **辅助设施 —— 技能治理与开发工具链（`scripts/`）**：一套零外部依赖的静态治理工具，支持多运行时常驻 Token 预算审计、**正/负向触发本体分离与正交豁免分析**、**57 项真实提示词反事实路由基准校验**，以及外部不可信技能仓库的操作系统级隔离导入。
+1. **核心产品 —— 领域顾问库（`skills/`）**：独立于任何脚本或运行时的纯净工程技能资产。每个顾问扮演单一领域的证据门控门面（软件架构设计、防御性 API 安全、数据持久化架构），通过**代码库前置探针（`Probe`）**、**冲突仲裁因果律（`Arbitration`）**与**可证伪失效边界（`Invalidate When`）**，为大模型提供跨会话可复用、可检验的工程决策指导。
+2. **辅助设施 —— 技能治理与开发工具链（`scripts/`）**：一套零外部依赖的静态治理工具，支持多运行时常驻 Token 预算审计、**正/负向触发本体分离与正交豁免分析**、**48 项静态触发检查与 9 项人工让渡场景**，以及外部不可信技能仓库的临时目录隔离导入。
 
 > **免工具运行说明**：`skills/` 目录下的所有顾问均为完全自闭环的 Markdown 规范文件（`SKILL.md` + `references/`）。普通用户可以直接在任何智能体环境中使用这些顾问，**无需安装 Node.js 依赖，也无需运行任何本地脚本**。
 
@@ -116,27 +116,27 @@ node scripts/link_skills.mjs --unlink
 第 2 层：证据门控门面（SKILL.md）          <= 150 行        合一路由表、代码库探针（Probe）与证伪边界（Invalidate When）
    │
    ▼  仅在需要深入具体模式细节时按需读取
-第 3 层：可证伪参考库（references/*.md）   每次最多 1–2 篇   高密度总结 + 显式反指征（When This Default Fails）
+第 3 层：可证伪参考库（references/*.md）   先读 1–2 篇   高密度总结 + 显式反指征（When This Default Fails）
 ```
 
-- **第 1 层（`name` + `description`）**：显式配对正向触发范围与负向反触发声明（`Do not trigger for...`），确保正交技能互不干扰。
+- **第 1 层（`name` + `description`）**：显式配对正向触发范围与负向反触发声明（`Do not trigger for...`），帮助表达领域边界，实际触发仍取决于宿主。
 - **第 2 层（`SKILL.md`）**：消除双重路由冗余（在第 1 节直接映射 `references/*.md`），释放预算用于第 2 节的**证据门控权衡仲裁**：
   - **`Probe`（前置探针）**：做决定前必须先在代码库中核查的具体证据（如现有单测接缝、`EXPLAIN` 执行计划、鉴权中间件状态）；
-  - **`Arbitration`（确定性仲裁）**：默认分支及其工程因果律；
+  - **`Arbitration`（取舍依据）**：默认分支及其工程因果律；
   - **`Invalidate When`（证伪边界）**：明确列出该默认准则何时失效并必须反转。
-- **第 3 层（`references/*.md`）**：包含显式的 `When This Default Fails (Counter-Indications)` 反指征章节，并完成跨顾问一致性对齐（如对齐 API 安全的防枚举 ID 与数据存储的 B-Tree 聚簇局部性，优先采用 `UUIDv7`/`KSUID`）。
+- **第 3 层（`references/*.md`）**：包含显式的 `When This Default Fails (Counter-Indications)` 反指征章节，并完成跨顾问一致性对齐（如对齐 API 安全的防枚举 ID 与数据存储的 B-Tree 聚簇局部性，结合公开 ID 威胁、既有 API 契约及实测索引开销选型）。
 
 ### 2. 双模运行机制：静态领域门面 + 运行时断点裁决协议（Checkpoint Protocol）
 
 第 1 轮加载的指南无法阻止第 80 轮的上下文污染。每个顾问同时支持两种运行模式（详见 [`docs/CHECKPOINT_PROTOCOL.md`](docs/CHECKPOINT_PROTOCOL.md)）：
 - **模式 A —— 静态领域门面（默认）**：任务初始匹配领域意图时自动挂载。
-- **模式 B —— 运行时断点裁决门控（`CP-1` / `CP-2` / `CP-3`）**：用三个客观状态谓词打破“模型不知何时该咨询”的自指死锁：
-  1. **`CP-1`（不可逆边界变更）**：修改数据库迁移、公网 API 契约或鉴权/密码学原语；
-  2. **`CP-2`（退化震荡循环）**：同一模块连续发生 $\ge 2$ 次测试/构建回归或反复回滚；
-  3. **`CP-3`（比例阶梯跃迁）**：单次改动跨越多层抽象或波及 $> 3$ 个文件。
-  触发断点时，智能体剥离嘈杂的历史对话，组装 $\le 200$ tokens 的**去污染咨询包（Consultation Packet）**，交由隔离的只读子代理（Subagent）或自审块给出结构化裁决（`Verdict: APPROVE | REVISE | ESCALATE_TO_USER`，单任务上限 2 次）。
+- **模式 B —— 按风险触发的断点审查（`CP-1` / `CP-2` / `CP-3`）**：在难以撤回的契约、数据或安全变更（CP-1）、没有新证据或进展的反复尝试（CP-2）、引入新的信任、一致性或运行故障边界（CP-3）时检查证据。文件数、机械重命名和预期的测试先失败均不能单独触发断点。默认进行简短自审；仅在已获授权且能提供独立判断时使用子代理。按裁决修正后继续工作，只有缺少用户决策、权限或无法安全消解的重大不确定性时才向用户升级。
+
+断点属于由宿主智能体执行的指令协议，没有自动强制执行的 Hook。每个技能内嵌完整的最小咨询、裁决与终止流程，独立复制后仍可使用。
 
 ### 3. 运行边界与按比例适配法则（Proportionality Ladder）
+
+入口先给出 Quick Use 和场景路由。跨领域任务选择主要决策视角，共用证据并合并验证与输出，同一风险只审查一次。参考资料在入口规定的范围内提供技术细节，不能自行要求新增架构层、额外清理或报告。创建器从已安装技能定位模板，并检查目标项目实际提供的验证工具。
 
 每个领域顾问均声明了严格的优先级边界：
 - **项目既有规范优先**：代码库现有的架构决策、数据库迁移脚本、中间件、Linter、测试套件及用户的显式指令，优先级严格高于顾问默认准则。
@@ -185,13 +185,14 @@ npm run audit
 
 - **分运行时 Token 开销评估**：分别计算 Claude Code、Cursor、Codex 与 Gemini/Antigravity 每轮系统提示词的描述常驻开销。
 - **跨目录物理副本去重**：自动识别并合并跨运行时的相同物理副本，同时检测同名技能在不同目录下的内容漂移。
-- **正/负向触发本体分离与重叠度分析**：通过 `splitTriggerSurface` 自动剥离 `Do not trigger for...` 反触发子句，结合词项相似度（$0.6 \times \text{Dice}$）、领域标签交集（$0.4 \times \text{Jaccard}$）与**正交边界豁免折扣（Orthogonality Discount）**识别真正的竞争技能对。
-- **反事实触发基准校验（`npm run validate`）**：自动运行 `evals/*-trigger-cases.md` 中的全部 57 项基准提示词，验证正向激活召回与休眠防误触。
+- **正/负向触发本体分离与重叠度分析**：通过 `splitTriggerSurface` 自动剥离 `Do not trigger for...` 反触发子句，结合词项相似度（$0.6 \times \text{Dice}$）、领域标签交集（$0.4 \times \text{Jaccard}$）与**正交边界豁免折扣（Orthogonality Discount）**筛选需要人工核查的重叠候选对。
+- **静态触发检查（`npm run validate`）**：对 24 项正向与 24 项休眠案例执行词项/领域标签启发式检查；另外 9 项让渡案例明确列为人工运行时评估。静态分数不代表模型实际加载技能或改善输出。
+- **冲突能力边界**：脚本确定性检查安装冲突和内容漂移，触发重叠仅作为核查候选；规则含义冲突由 `advisor-creator` 或人工裁决，脚本不自动合并或仲裁。
 - **输出产物**：在 `.advisor-audit/audit-report.md` 输出诊断报告，在 `.advisor-audit/skills.lock.json` 输出确定性清单锁文件（详见 [`docs/AUDIT.md`](docs/AUDIT.md)）。
 
-### 2. 外部仓库沙箱隔离导入（`import_repo.mjs`）
+### 2. 外部仓库隔离检查与导入（`import_repo.mjs`）
 
-安全评估外部第三方技能仓库，杜绝本地环境污染：
+将外部第三方仓库作为数据，在临时目录中检查；这不是操作系统级进程沙箱：
 
 ```bash
 node scripts/import_repo.mjs https://github.com/owner/repo --ref main
@@ -210,7 +211,7 @@ node scripts/import_repo.mjs https://github.com/owner/repo --ref main
 调用 advisor-creator，扫描我们项目的 docs/adr/ 与 .cursor/rules/，提取其中的冲突规则并编译为一个新的领域顾问。
 ```
 
-无需用户手动做领域建模，`advisor-creator` 会自动扫描散落规则中的自相矛盾点与无保护的 `ALWAYS`/`NEVER` 绝对化指令，基于 [`advisor-template.md`](skills/advisor-creator/references/advisor-template.md) 注入 `Probe` 与 `Invalidate When` 边界，并输出**编译收益评分卡（Compilation ROI Scorecard）**（常驻 Token 压缩率、消解冲突数、新增比例护栏数）。
+无需用户手动做领域建模，`advisor-creator` 会自动扫描散落规则中的自相矛盾点与无保护的 `ALWAYS`/`NEVER` 绝对化指令，基于 [`advisor-template.md`](skills/advisor-creator/references/advisor-template.md) 注入 `Probe` 与 `Invalidate When` 边界，先交付可用顾问；在较大的采纳决策中，可按需提供**编译成本与决策评分卡（Compilation Cost & Decision Scorecard）**（实测常驻 Token 成本、冲突裁决证据、默认与替代分支场景及尚未验证的效果）。
 
 ---
 

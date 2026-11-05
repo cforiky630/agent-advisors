@@ -1,11 +1,14 @@
 # Engineering Reference: Refactoring by Martin Fowler
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This repository follows the discipline of **Refactoring** in the sense of Martin Fowler:
 improve the internal structure of code **without changing its observable behavior**.
 
-All code generation, edits, and reviews must optimize for:
+When this topic is relevant, evaluate the requested change against:
 - small behavior-preserving changes
 - clearer names and simpler control flow
 - lower duplication
@@ -422,11 +425,11 @@ Before finalizing any change, verify:
 - Did control flow become simpler?
 - Did responsibilities become clearer?
 
-If any answer is no, revise before shipping.
+For relevant items, address a demonstrated defect or report a material limit. Inapplicable checklist items do not require changes.
 
 ---
 
-## Final Instruction
+## Decision Reminders
 
 When uncertain, choose the next **small, behavior-preserving transformation**
 that makes the requested change easier and the code easier to understand.

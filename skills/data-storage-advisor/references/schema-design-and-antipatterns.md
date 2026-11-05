@@ -1,5 +1,8 @@
 # Engineering Reference: Schema Design & SQL Antipatterns
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This reference provides architectural heuristics for relational schema design, relationship modeling, and data integrity constraints based on Bill Karwin's *SQL Antipatterns*.
@@ -56,7 +59,7 @@ This reference provides architectural heuristics for relational schema design, r
 **Problem**: Adding a `deleted_at` timestamp frequently breaks unique constraints:
 - Desired rule: Email must be unique among active users.
 - Standard SQL unique constraint on `(email, deleted_at)`:
-  - In PostgreSQL / MySQL: Multiple active rows with `deleted_at = NULL` may violate uniqueness or (in SQL standard) `NULL != NULL` allows duplicate active emails!
+  - With default PostgreSQL / MySQL NULL semantics, a unique index on `(email, deleted_at)` permits multiple active rows with the same email and `deleted_at = NULL`; it does not enforce the intended invariant.
 
 ### Production Solution: Partial Unique Index
 ```sql
@@ -64,6 +67,7 @@ This reference provides architectural heuristics for relational schema design, r
 CREATE UNIQUE INDEX uq_users_active_email ON users (email)
 WHERE deleted_at IS NULL;
 
--- MySQL (Prior to partial index support):
--- Store deleted_at default as a sentinel non-null value or use active state column
+-- MySQL 8.4 has no PostgreSQL-style WHERE predicate for CREATE INDEX.
+-- Evaluate an engine-supported generated/functional active-email key instead;
+-- preserve multiple deleted rows and test active-duplicate rejection explicitly.
 ```

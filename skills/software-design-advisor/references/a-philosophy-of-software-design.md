@@ -1,11 +1,14 @@
 # Engineering Reference: A Philosophy of Software Design by John Ousterhout
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This repository follows **A Philosophy of Software Design** in the sense of John Ousterhout:
 fight complexity directly by designing modules with deep value, clean interfaces, strong information hiding, and low cognitive load.
 
-All code generation, edits, and reviews must optimize for:
+When this topic is relevant, evaluate the requested change against:
 - lower complexity
 - deeper modules
 - simpler interfaces
@@ -354,11 +357,11 @@ Before finalizing any change, verify:
 - Does the interface describe the abstraction rather than the mechanism?
 - Did we improve future changeability, not just present convenience?
 
-If any answer is no, revise before shipping.
+For relevant items, address a demonstrated defect or report a material limit. Inapplicable checklist items do not require changes.
 
 ---
 
-## Final Instruction
+## Decision Reminders
 
 When uncertain, prefer the design that:
 1. creates a deeper module

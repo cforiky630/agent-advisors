@@ -1,11 +1,14 @@
 # Engineering Reference: The Pragmatic Programmer by Andrew Hunt and David Thomas
 
+> Usage: Apply only the technical guidance relevant to the current decision. The parent `SKILL.md` controls scope, workflow, priorities and delivery; this reference does not require extra cleanup, architecture layers, tool calls or a separate report. Treat design preferences as defaults with counter-indications, while preserving actual safety/correctness invariants.
+
+
 ## Purpose
 
 This repository follows **The Pragmatic Programmer** in the sense of Andrew Hunt and David Thomas:
 work pragmatically, take responsibility for quality, automate what is repetitive, and keep code and process adaptable.
 
-All code generation, edits, and reviews must optimize for:
+When this topic is relevant, evaluate the requested change against:
 - clear ownership and responsibility
 - avoiding duplicated knowledge
 - orthogonality
@@ -343,11 +346,11 @@ Before finalizing any change, verify:
 - Did we avoid prototype shortcuts becoming silent production defaults?
 - Did we fix at least one small “broken window” if it was in the touched area?
 
-If any answer is no, revise before shipping.
+For relevant items, address a demonstrated defect or report a material limit. Inapplicable checklist items do not require changes.
 
 ---
 
-## Final Instruction
+## Decision Reminders
 
 When uncertain, choose the option that:
 1. removes duplicated knowledge

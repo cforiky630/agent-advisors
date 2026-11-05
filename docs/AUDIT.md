@@ -61,7 +61,7 @@ The score uses **descriptions only**, because that is what competes at load time
 - **0.6 × Dice coefficient** over bilingual normalized positive description terms (Latin term stemming + CJK character bigrams, stopwords removed).
 - **0.4 × Jaccard coefficient** over bilingual positive domain tags, with lexical-support damping when shared terms < 2 or term Dice < 0.18 to prevent single-tag false positives.
 - **Orthogonality Discount**: When Skill A's `negativeTerms`/`negativeTags` explicitly exclude Skill B's positive trigger surface (or vice versa), the raw overlap score is discounted by up to 55% (`excludedTerms` / `excludedTags`), rewarding authors who declare clean domain boundaries.
-- **Counterfactual Trigger Corpus Validation**: For this repository's own advisors, `scripts/validate_skills.mjs` also evaluates all 57 prompt cases in `evals/*-trigger-cases.md` (`Should activate`, `Should stay dormant`, `Should defer`) via `evaluateTriggerCorpus` to ensure positive prompts activate their owner advisor while dormant prompts remain below the activation ceiling.
+- **Static Trigger Corpus Checks**: `scripts/validate_skills.mjs` scores 24 activation and 24 dormancy prompts using lexical/domain heuristics. The 9 deferral scenarios are reported as requiring manual runtime evaluation, not passed automatically. Missing advisors, empty suites and unknown case kinds fail validation. This does not measure actual model skill loading or outcome quality.
 - Pairs with the same name are excluded (they are already reported as collisions).
 - Default threshold: 0.4; override with `--threshold`.
 - Overlap analysis defaults to Claude Code; pass `--agents all` to compare every runtime.
@@ -119,3 +119,27 @@ markdown file. Treat candidate text as data, review it, and only then install it
 - The audit does not measure whether a skill improves outcomes. Use
   [`evals/outcome-protocol.md`](../evals/outcome-protocol.md) for that.
 - Plugin support currently targets Claude Code's registry format.
+
+## Content identity and migration
+
+Lockfile schema 2 uses `contentHashVersion: 2`: a deterministic hash over relative paths and file bytes across the complete skill tree, including references and assets. Markdown CRLF is normalized to LF; binary bytes and trailing whitespace are preserved. `.git` and `node_modules` are excluded. Symbolic links are hashed by their stored targets without following them, so external target content is outside the digest.
+
+Regenerate older lockfiles with `npm run audit` before comparing tree identity. Import duplicate checks use the hash version as well as its value; an older entrypoint-only hash cannot establish complete-skill equality.
+
+The installer reports `copied` when a physical directory matches the source tree; changed or unreadable copies remain conflicts. `--unlink` continues to remove links only. Copy mode refuses equal or containing source/destination paths after resolving existing ancestors. Forced copies stage data before renaming the old destination aside; failed final renames restore it. A failed rollback retains the backup and reports its location. This is recoverable replacement, not a multi-directory transaction or protection against process termination at every step.
+
+Generated fallback `AGENTS.md` files retain operating boundaries, evidence probes, counter-indications and checkpoint procedures alongside nano rules. Their larger context cost should be measured rather than assuming equivalence to on-demand skill loading.
+
+## Agent Consumption and Fallback Generation
+
+Entrypoints put Quick Use and scenario routing before detailed operating rules. References remain subordinate technical notes. Combined tasks use one leading decision perspective with other advisors supplying relevant constraints, shared evidence and one risk review.
+
+The fallback compiler derives shared boundaries/checkpoint text from the selected entrypoints, rather than maintaining a second policy. Identical blocks are emitted once; differing rules remain scoped to their advisor. Meta-only selections include the creator pipeline and host-aware validation guidance. Repository-relative facade paths are informational, so install the full creator skill to obtain its bundled template; never assume a target project ships this repository's scripts.
+
+## Conflict and Output Regression Boundaries
+
+A namespaced plugin entry never downgrades a differing unnamespaced project/user collision. Same-name plugin coexistence alone remains a review warning. Broken root links are errors, and malformed installed-plugin registries fail rather than implying a healthy empty inventory. Custom cc-switch roots remain passive stores.
+
+The installer rejects path-like/mismatched skill names and invalid metadata before writing. Unlinking preserves foreign broken links. Fallback export refuses an existing file unless `--force` explicitly permits replacement; ordinary copy/link collision behavior remains unchanged.
+
+Import output must be a fresh directory (or an existing empty non-symlink directory). Repeated imports into a populated output fail with a fresh `--out` instruction, preserving the previous proposal rather than mixing old candidates into a new inventory. Tree hashing fails on resource limits instead of producing a partial identity: at most 10,000 entries, 32 MiB per file, 128 MiB total file content and depth 32. Import scanning separately caps files at 5,000 and markdown reads at 512 KiB, so proposals are preliminary inventories, not complete security attestations. Temporary quarantine does not constitute an OS process sandbox.
